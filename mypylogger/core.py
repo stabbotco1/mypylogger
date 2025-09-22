@@ -9,7 +9,23 @@ from .config import LogConfig
 
 
 class SingletonLogger:
-    """Singleton logger class that provides consistent logging configuration."""
+    """Singleton logger class that provides consistent logging configuration.
+    
+    This class implements the singleton pattern to ensure that all parts of an
+    application use the same logger configuration. It automatically configures
+    JSON formatting, file output, and optional stdout output based on environment
+    variables.
+    
+    The logger is thread-safe and uses double-checked locking to ensure proper
+    initialization in multi-threaded environments.
+    
+    Attributes:
+        DEBUG (int): Debug logging level constant (10).
+        INFO (int): Info logging level constant (20).
+        WARNING (int): Warning logging level constant (30).
+        ERROR (int): Error logging level constant (40).
+        CRITICAL (int): Critical logging level constant (50).
+    """
     
     _instance: Optional['SingletonLogger'] = None
     _logger: Optional[logging.Logger] = None
@@ -26,7 +42,19 @@ class SingletonLogger:
     
     @classmethod
     def get_logger(cls) -> logging.Logger:
-        """Get the configured logger instance."""
+        """Get the configured logger instance.
+        
+        Returns the singleton logger instance, initializing it if necessary.
+        The logger is configured with JSON formatting, file output to the logs/
+        directory, and optional stdout output based on environment variables.
+        
+        Returns:
+            logging.Logger: The configured logger instance.
+            
+        Example:
+            >>> logger = SingletonLogger.get_logger()
+            >>> logger.info("Application started")
+        """
         if cls._logger is None:
             with cls._lock:
                 # Double-check locking pattern
@@ -81,7 +109,19 @@ class SingletonLogger:
     
     @classmethod
     def get_effective_level(cls) -> int:
-        """Get the effective logging level."""
+        """Get the effective logging level.
+        
+        Returns the current effective logging level of the configured logger.
+        This reflects the level set via the LOG_LEVEL environment variable.
+        
+        Returns:
+            int: The effective logging level (e.g., 10 for DEBUG, 20 for INFO).
+            
+        Example:
+            >>> level = SingletonLogger.get_effective_level()
+            >>> if level <= logging.DEBUG:
+            ...     print("Debug logging is enabled")
+        """
         logger = cls.get_logger()
         return logger.getEffectiveLevel()
     

@@ -22,7 +22,20 @@ except ImportError:
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
-    """Custom JSON formatter with fixed field order and processing."""
+    """Custom JSON formatter with fixed field order and processing.
+    
+    This formatter extends pythonjsonlogger.JsonFormatter to provide:
+    - Fixed field order with 'time' always first
+    - UTC timestamps in ISO8601 format with milliseconds
+    - Removal of unwanted fields
+    - Consistent field processing (e.g., line numbers as strings)
+    
+    The output JSON format is optimized for log parsing and analysis tools.
+    
+    Attributes:
+        FIELD_ORDER (List[str]): Ordered list of fields to include in JSON output.
+        UNWANTED_FIELDS (Set[str]): Set of fields to exclude from JSON output.
+    """
     
     # Fixed field order with time first
     FIELD_ORDER = [

@@ -9,7 +9,23 @@ from typing import Optional
 
 @dataclass
 class LogConfig:
-    """Configuration class for logging settings."""
+    """Configuration class for logging settings.
+    
+    This class holds all configuration options for the logging system, with
+    values typically loaded from environment variables. It provides methods
+    to parse and validate configuration values.
+    
+    Attributes:
+        app_name (str): Application name used for logger naming and file prefixes.
+            Defaults to "default_app".
+        log_level (str): Logging level as string (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+            Defaults to "INFO".
+        empty_log_file_on_run (bool): Whether to truncate log file on startup.
+            Defaults to False.
+        parallel_stdout_logging (str): Stdout logging configuration. Can be "false"
+            to disable, or a log level string to enable with that minimum level.
+            Defaults to "false".
+    """
     app_name: str = "default_app"
     log_level: str = "INFO"
     empty_log_file_on_run: bool = False
@@ -17,7 +33,25 @@ class LogConfig:
     
     @classmethod
     def from_environment(cls) -> 'LogConfig':
-        """Create configuration from environment variables."""
+        """Create configuration from environment variables.
+        
+        Reads configuration from the following environment variables:
+        - APP_NAME: Application name (default: "default_app")
+        - LOG_LEVEL: Logging level (default: "INFO")
+        - EMPTY_LOG_FILE_ON_RUN: Whether to truncate log file (default: "false")
+        - PARALLEL_STDOUT_LOGGING: Stdout logging level or "false" (default: "false")
+        
+        Returns:
+            LogConfig: Configuration instance with values from environment or defaults.
+            
+        Example:
+            >>> import os
+            >>> os.environ['APP_NAME'] = 'my_app'
+            >>> os.environ['LOG_LEVEL'] = 'DEBUG'
+            >>> config = LogConfig.from_environment()
+            >>> print(config.app_name)
+            my_app
+        """
         app_name = os.environ.get('APP_NAME', 'default_app')
         log_level = os.environ.get('LOG_LEVEL', 'INFO')
         empty_log_file_on_run = cls._parse_boolean(os.environ.get('EMPTY_LOG_FILE_ON_RUN', 'false'))
@@ -46,7 +80,20 @@ class LogConfig:
         return value.lower() in ('true', '1', 'yes')
     
     def get_log_level_int(self) -> int:
-        """Convert string log level to integer."""
+        """Convert string log level to integer.
+        
+        Converts the log_level string to the corresponding logging module integer.
+        Invalid levels default to INFO (20).
+        
+        Returns:
+            int: Logging level integer (10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL).
+            
+        Example:
+            >>> config = LogConfig(log_level="DEBUG")
+            >>> level = config.get_log_level_int()
+            >>> print(level)
+            10
+        """
         level_map = {
             'DEBUG': logging.DEBUG,
             'INFO': logging.INFO,
@@ -62,7 +109,20 @@ class LogConfig:
         return level_map.get(level_upper, logging.INFO)
     
     def get_stdout_level_int(self) -> int:
-        """Convert stdout logging level string to integer."""
+        """Convert stdout logging level string to integer.
+        
+        Converts the parallel_stdout_logging string to the corresponding logging
+        module integer. Invalid levels default to INFO (20).
+        
+        Returns:
+            int: Logging level integer for stdout output.
+            
+        Example:
+            >>> config = LogConfig(parallel_stdout_logging="WARNING")
+            >>> level = config.get_stdout_level_int()
+            >>> print(level)
+            30
+        """
         level_map = {
             'DEBUG': logging.DEBUG,
             'INFO': logging.INFO,

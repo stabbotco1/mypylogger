@@ -1,5 +1,22 @@
-# mypylogger - Production-quality Python logging library
-# Provides structured JSON logging with real-time development support
+"""mypylogger - Production-quality Python logging library.
+
+This library provides structured JSON logging with real-time development support
+and environment-driven configuration. It's designed for production applications
+that need consistent, parseable log output with immediate visibility during development.
+
+Example:
+    Basic usage:
+        >>> import mypylogger
+        >>> logger = mypylogger.get_logger()
+        >>> logger.info("Application started")
+
+    With environment configuration:
+        >>> import os
+        >>> os.environ['APP_NAME'] = 'my_app'
+        >>> os.environ['LOG_LEVEL'] = 'DEBUG'
+        >>> logger = mypylogger.get_logger()
+        >>> logger.debug("Debug message")
+"""
 
 __version__ = "0.1.0"
 __author__ = "Developer"
@@ -12,11 +29,35 @@ from .handlers import ImmediateFlushFileHandler, ParallelStdoutHandler
 
 # Public API exports
 def get_logger():
-    """Get the configured logger instance."""
+    """Get the configured logger instance.
+    
+    Returns the singleton logger instance configured with environment variables.
+    The logger uses JSON formatting and writes to both file and optionally stdout.
+    
+    Returns:
+        logging.Logger: Configured logger instance with JSON formatting.
+        
+    Example:
+        >>> logger = get_logger()
+        >>> logger.info("Hello, world!")
+        # Outputs JSON to logs/{APP_NAME}_{YYYY_MM_DD}.log
+    """
     return SingletonLogger.get_logger()
 
 def get_effective_level():
-    """Get the effective logging level."""
+    """Get the effective logging level.
+    
+    Returns the current logging level as an integer. This reflects the level
+    set via the LOG_LEVEL environment variable or the default (INFO).
+    
+    Returns:
+        int: The effective logging level (e.g., 10 for DEBUG, 20 for INFO).
+        
+    Example:
+        >>> level = get_effective_level()
+        >>> print(f"Current log level: {level}")
+        Current log level: 20
+    """
     return SingletonLogger.get_effective_level()
 
 # Expose logging constants for convenience
