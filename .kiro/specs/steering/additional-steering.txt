@@ -36,4 +36,16 @@ These directives take precedence when Kiro builds out this project.
 
 9. Imports
    - Document all root-level Python imports in a project artifact (e.g., root `README.md`).  
-   - Only base-level dependencies should be listed, not inherited transitive imports.  
+   - Only base-level dependencies should be listed, not inherited transitive imports.
+
+10. Discovery and Learning
+   - During implementation, capture lessons learned in steering documents
+   - Update workflow patterns when discovering better approaches
+   - Document any deviations from original plan with rationale
+   - Maintain both project-specific and reusable generic patterns
+
+11. Steering Document Evolution
+   - Update steering documents during task execution when patterns emerge
+   - Distinguish between project-specific rules and reusable workflow patterns
+   - Use steering updates to prevent repeating mistakes in future tasks
+   - Build knowledge base for future Kiro projects  
