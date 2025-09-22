@@ -45,7 +45,14 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         'pathname',
         'created',
         'msecs',
-        'relativeCreated'
+        'relativeCreated',
+        'name',  # Use app name from config instead
+        'msg',   # Use processed message instead
+        'args',  # Raw args not needed in output
+        'levelno',  # Use levelname instead
+        'exc_info',  # Will be handled separately if needed
+        'exc_text',
+        'stack_info'
     }
     
     def __init__(self, *args, **kwargs):
