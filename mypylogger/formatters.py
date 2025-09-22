@@ -112,6 +112,12 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         else:
             log_record['funcName'] = record.funcName
         
+        # Handle exception information if present
+        if record.exc_info:
+            log_record['exc_info'] = self.formatException(record.exc_info)
+        elif record.exc_text:
+            log_record['exc_info'] = record.exc_text
+        
         # Add any extra fields from the record
         for key, value in record.__dict__.items():
             if key not in log_record and key not in self.UNWANTED_FIELDS:

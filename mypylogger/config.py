@@ -60,3 +60,19 @@ class LogConfig:
         
         # Return the mapped level or default to INFO if invalid
         return level_map.get(level_upper, logging.INFO)
+    
+    def get_stdout_level_int(self) -> int:
+        """Convert stdout logging level string to integer."""
+        level_map = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'CRITICAL': logging.CRITICAL,
+        }
+        
+        # Convert to uppercase for case-insensitive matching
+        level_upper = self.parallel_stdout_logging.upper()
+        
+        # Return the mapped level or default to INFO if invalid
+        return level_map.get(level_upper, logging.INFO)

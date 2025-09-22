@@ -37,6 +37,9 @@ class SingletonLogger:
     @classmethod
     def _initialize_logger(cls) -> None:
         """Initialize the logger with configuration."""
+        from .handlers import ImmediateFlushFileHandler, ParallelStdoutHandler, get_log_file_path
+        from .formatters import CustomJsonFormatter
+        
         # Get configuration from environment
         cls._config = LogConfig.from_environment()
         
@@ -48,11 +51,33 @@ class SingletonLogger:
         
         # Prevent adding duplicate handlers
         if not cls._logger.handlers:
-            # For now, just add a basic handler - full handler setup will be in later tasks
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            cls._logger.addHandler(handler)
+            # Create JSON formatter
+            formatter = CustomJsonFormatter()
+            
+            # Add file handler
+            try:
+                log_file_path = get_log_file_path(cls._config.app_name)
+                file_mode = 'w' if cls._config.empty_log_file_on_run else 'a'
+                file_handler = ImmediateFlushFileHandler(log_file_path, mode=file_mode)
+                file_handler.setFormatter(formatter)
+                cls._logger.addHandler(file_handler)
+            except Exception as e:
+                # If file handler fails, continue without it (graceful degradation)
+                pass
+            
+            # Add stdout handler if enabled
+            if cls._config.parallel_stdout_logging.lower() != 'false':
+                try:
+                    # Parse stdout logging level
+                    stdout_level = cls._config.get_stdout_level_int()
+                    stdout_handler = ParallelStdoutHandler(stdout_level)
+                    # Use simple formatter for stdout (not JSON)
+                    stdout_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                    stdout_handler.setFormatter(stdout_formatter)
+                    cls._logger.addHandler(stdout_handler)
+                except Exception as e:
+                    # If stdout handler fails, continue without it
+                    pass
     
     @classmethod
     def get_effective_level(cls) -> int:
