@@ -9,18 +9,18 @@ from mypylogger.core import SingletonLogger
 class TestSingletonLoggerStubs:
     """Test the stub implementations in core module."""
     
-    def test_get_logger_stub_returns_logger(self):
-        """Test that the stub get_logger returns a logger instance."""
+    def test_get_logger_returns_configured_logger(self, mock_logger_instance, clean_environment):
+        """Test that get_logger returns a properly configured logger instance."""
         logger = SingletonLogger.get_logger()
         assert isinstance(logger, logging.Logger)
-        assert logger.name == "stub"
+        assert logger.name == "default_app"  # Default app name from config
     
-    def test_get_effective_level_stub_returns_info(self):
-        """Test that the stub get_effective_level returns INFO level."""
+    def test_get_effective_level_returns_configured_level(self, mock_logger_instance, clean_environment):
+        """Test that get_effective_level returns the configured level."""
         level = SingletonLogger.get_effective_level()
-        assert level == logging.INFO
+        assert level == logging.INFO  # Default level from config
     
-    def test_singleton_instance_creation(self):
+    def test_singleton_instance_creation(self, mock_logger_instance):
         """Test that singleton instance is created properly."""
         instance1 = SingletonLogger()
         instance2 = SingletonLogger()

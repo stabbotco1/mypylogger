@@ -28,7 +28,7 @@ This implementation plan follows a test-driven development approach with increme
   - Verify configuration works with various environment setups
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 4. Basic Singleton Logger Implementation
+- [x] 4. Basic Singleton Logger Implementation
   - Write tests for singleton behavior (same instance returned)
   - Implement `SingletonLogger` class in `core.py` with thread-safe singleton pattern
   - Add `get_logger()` static method that returns configured Python logger
@@ -36,7 +36,7 @@ This implementation plan follows a test-driven development approach with increme
   - Test thread safety with concurrent access
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 5. JSON Formatter with Fixed Field Order
+- [x] 5. JSON Formatter with Fixed Field Order
   - Write tests for JSON output format and field ordering
   - Implement `CustomJsonFormatter` extending `pythonjsonlogger.JsonFormatter`
   - Test timestamp formatting (UTC ISO8601 with milliseconds and 'Z' suffix)
