@@ -2,6 +2,7 @@
 Tests for custom logging handlers.
 """
 import os
+import sys
 import tempfile
 import logging
 import pytest
@@ -177,16 +178,56 @@ class TestImmediateFlushFileHandler:
 
 
 class TestParallelStdoutHandler:
-    """Tests for ParallelStdoutHandler (basic tests for current task context)."""
+    """Tests for ParallelStdoutHandler."""
     
-    def test_handler_creation(self):
-        """Test that ParallelStdoutHandler can be created."""
-        handler = ParallelStdoutHandler(logging.INFO)
+    def test_handler_creation_with_default_level(self):
+        """Test that ParallelStdoutHandler can be created with default level."""
+        handler = ParallelStdoutHandler()
         assert handler.stdout_level == logging.INFO
+        assert handler.stream == sys.stdout
         handler.close()
     
-    def test_level_filtering(self, capsys):
-        """Test that handler filters based on level."""
+    def test_handler_creation_with_custom_level(self):
+        """Test that ParallelStdoutHandler can be created with custom level."""
+        handler = ParallelStdoutHandler(logging.WARNING)
+        assert handler.stdout_level == logging.WARNING
+        assert handler.stream == sys.stdout
+        handler.close()
+    
+    def test_level_filtering_info_level(self, capsys):
+        """Test that handler filters based on INFO level."""
+        handler = ParallelStdoutHandler(logging.INFO)
+        
+        # Create records at different levels
+        debug_record = logging.LogRecord(
+            name="test", level=logging.DEBUG, pathname="test.py", lineno=1,
+            msg="Debug message", args=(), exc_info=None
+        )
+        info_record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="test.py", lineno=1,
+            msg="Info message", args=(), exc_info=None
+        )
+        warning_record = logging.LogRecord(
+            name="test", level=logging.WARNING, pathname="test.py", lineno=1,
+            msg="Warning message", args=(), exc_info=None
+        )
+        
+        # Emit all records
+        handler.emit(debug_record)
+        handler.emit(info_record)
+        handler.emit(warning_record)
+        
+        captured = capsys.readouterr()
+        
+        # Debug should be filtered out, info and warning should be output
+        assert "Debug message" not in captured.out
+        assert "Info message" in captured.out
+        assert "Warning message" in captured.out
+        
+        handler.close()
+    
+    def test_level_filtering_warning_level(self, capsys):
+        """Test that handler filters based on WARNING level."""
         handler = ParallelStdoutHandler(logging.WARNING)
         
         # Create records at different levels
@@ -198,15 +239,175 @@ class TestParallelStdoutHandler:
             name="test", level=logging.WARNING, pathname="test.py", lineno=1,
             msg="Warning message", args=(), exc_info=None
         )
+        error_record = logging.LogRecord(
+            name="test", level=logging.ERROR, pathname="test.py", lineno=1,
+            msg="Error message", args=(), exc_info=None
+        )
         
-        # Emit both records
+        # Emit all records
         handler.emit(info_record)
         handler.emit(warning_record)
+        handler.emit(error_record)
         
         captured = capsys.readouterr()
         
-        # Only warning should be output (info filtered out)
+        # Only warning and error should be output (info filtered out)
         assert "Info message" not in captured.out
         assert "Warning message" in captured.out
+        assert "Error message" in captured.out
+        
+        handler.close()
+    
+    def test_level_filtering_error_level(self, capsys):
+        """Test that handler filters based on ERROR level."""
+        handler = ParallelStdoutHandler(logging.ERROR)
+        
+        # Create records at different levels
+        warning_record = logging.LogRecord(
+            name="test", level=logging.WARNING, pathname="test.py", lineno=1,
+            msg="Warning message", args=(), exc_info=None
+        )
+        error_record = logging.LogRecord(
+            name="test", level=logging.ERROR, pathname="test.py", lineno=1,
+            msg="Error message", args=(), exc_info=None
+        )
+        critical_record = logging.LogRecord(
+            name="test", level=logging.CRITICAL, pathname="test.py", lineno=1,
+            msg="Critical message", args=(), exc_info=None
+        )
+        
+        # Emit all records
+        handler.emit(warning_record)
+        handler.emit(error_record)
+        handler.emit(critical_record)
+        
+        captured = capsys.readouterr()
+        
+        # Only error and critical should be output (warning filtered out)
+        assert "Warning message" not in captured.out
+        assert "Error message" in captured.out
+        assert "Critical message" in captured.out
+        
+        handler.close()
+    
+    def test_stdout_output_format(self, capsys):
+        """Test that stdout output is properly formatted."""
+        handler = ParallelStdoutHandler(logging.INFO)
+        
+        # Set a formatter to test formatting
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        handler.setFormatter(formatter)
+        
+        # Create a log record
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="test.py", lineno=42,
+            msg="Test message", args=(), exc_info=None
+        )
+        
+        # Emit the record
+        handler.emit(record)
+        
+        captured = capsys.readouterr()
+        
+        # Should contain formatted output
+        assert "INFO: Test message" in captured.out
+        
+        handler.close()
+    
+    def test_multiple_records_output(self, capsys):
+        """Test that multiple records are output correctly."""
+        handler = ParallelStdoutHandler(logging.INFO)
+        
+        # Create multiple log records
+        records = [
+            logging.LogRecord(
+                name="test", level=logging.INFO, pathname="test.py", lineno=1,
+                msg=f"Message {i}", args=(), exc_info=None
+            )
+            for i in range(3)
+        ]
+        
+        # Emit all records
+        for record in records:
+            handler.emit(record)
+        
+        captured = capsys.readouterr()
+        
+        # All messages should be present
+        for i in range(3):
+            assert f"Message {i}" in captured.out
+        
+        handler.close()
+    
+    def test_handler_with_file_handler_integration(self, tmp_path, capsys):
+        """Test that ParallelStdoutHandler works together with file handler."""
+        # Create a logger with both handlers
+        logger = logging.getLogger("test_integration")
+        logger.setLevel(logging.INFO)
+        
+        # Clear any existing handlers
+        logger.handlers.clear()
+        
+        # Add file handler
+        log_file = tmp_path / "test.log"
+        file_handler = ImmediateFlushFileHandler(str(log_file))
+        file_formatter = logging.Formatter('FILE: %(message)s')
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
+        
+        # Add stdout handler
+        stdout_handler = ParallelStdoutHandler(logging.INFO)
+        stdout_formatter = logging.Formatter('STDOUT: %(message)s')
+        stdout_handler.setFormatter(stdout_formatter)
+        logger.addHandler(stdout_handler)
+        
+        # Log a message
+        logger.info("Integration test message")
+        
+        # Check stdout output
+        captured = capsys.readouterr()
+        assert "STDOUT: Integration test message" in captured.out
+        
+        # Check file output
+        file_content = log_file.read_text()
+        assert "FILE: Integration test message" in file_content
+        
+        # Clean up
+        file_handler.close()
+        stdout_handler.close()
+    
+    def test_conditional_stdout_logging_disabled(self, capsys):
+        """Test that stdout logging can be conditionally disabled."""
+        # This test simulates the behavior when PARALLEL_STDOUT_LOGGING is disabled
+        # In practice, the handler wouldn't be created, but we test the filtering behavior
+        
+        # Create handler with very high level to effectively disable it
+        handler = ParallelStdoutHandler(logging.CRITICAL + 1)
+        
+        # Create records at various levels
+        info_record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="test.py", lineno=1,
+            msg="Info message", args=(), exc_info=None
+        )
+        error_record = logging.LogRecord(
+            name="test", level=logging.ERROR, pathname="test.py", lineno=1,
+            msg="Error message", args=(), exc_info=None
+        )
+        critical_record = logging.LogRecord(
+            name="test", level=logging.CRITICAL, pathname="test.py", lineno=1,
+            msg="Critical message", args=(), exc_info=None
+        )
+        
+        # Emit all records
+        handler.emit(info_record)
+        handler.emit(error_record)
+        handler.emit(critical_record)
+        
+        captured = capsys.readouterr()
+        
+        # Nothing should be output due to high threshold
+        assert "Info message" not in captured.out
+        assert "Error message" not in captured.out
+        assert "Critical message" not in captured.out
         
         handler.close()

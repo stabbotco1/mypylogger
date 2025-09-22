@@ -46,12 +46,27 @@ class ParallelStdoutHandler(logging.StreamHandler):
     """Handler that outputs to stdout with level filtering."""
     
     def __init__(self, stdout_level: int = logging.INFO):
-        # Stub implementation - will be fully implemented in later tasks
+        """
+        Initialize the stdout handler with level filtering.
+        
+        Args:
+            stdout_level: Minimum log level to output to stdout (default: INFO)
+        """
         super().__init__(sys.stdout)
         self.stdout_level = stdout_level
     
     def emit(self, record: logging.LogRecord) -> None:
-        """Emit a log record to stdout if level is appropriate."""
-        # Stub implementation
+        """
+        Emit a log record to stdout if level is appropriate.
+        
+        Args:
+            record: The log record to emit
+        """
+        # Only emit if the record level is at or above our threshold
         if record.levelno >= self.stdout_level:
-            super().emit(record)
+            try:
+                super().emit(record)
+            except Exception:
+                # Handle any errors during emission gracefully
+                # This prevents stdout logging errors from breaking the application
+                self.handleError(record)
