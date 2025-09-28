@@ -1,0 +1,45 @@
+Run started:2025-09-28 20:56:03.999554
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: mypylogger/core.py:94:12
+93	                cls._logger.addHandler(file_handler)
+94	            except Exception as e:
+95	                # If file handler fails, continue without it (graceful degradation)
+96	                pass
+97	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: mypylogger/core.py:108:16
+107	                    cls._logger.addHandler(stdout_handler)
+108	                except Exception as e:
+109	                    # If stdout handler fails, continue without it
+110	                    pass
+111	    
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 509
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 2
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 2
+Files skipped (0):

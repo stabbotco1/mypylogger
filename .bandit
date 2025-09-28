@@ -1,0 +1,36 @@
+[bandit]
+# Bandit configuration for mypylogger security scanning
+
+# Directories to exclude from scanning
+exclude_dirs = [
+    "tests",
+    "build", 
+    "dist",
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    "htmlcov"
+]
+
+# Test IDs to skip (with justification)
+skips = [
+    # B101: Test for use of assert - we use asserts in tests which is acceptable
+    # Uncomment if needed: "B101"
+]
+
+# Confidence levels: LOW, MEDIUM, HIGH
+confidence = "MEDIUM"
+
+# Severity levels: LOW, MEDIUM, HIGH  
+severity = "MEDIUM"
+
+# Output format options: csv, json, txt, xml, yaml
+format = "txt"
+
+# Include full path in output
+absolute_paths = true
+
+# Aggregate output by vulnerability type
+aggregate = "vuln"
