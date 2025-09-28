@@ -1,4 +1,6 @@
 """
+Copyright (c) 2024 Stephen Abbot. Licensed under MIT License.
+
 Core singleton logger implementation.
 """
 import logging

@@ -1,4 +1,6 @@
 """
+Copyright (c) 2024 Stephen Abbot. Licensed under MIT License.
+
 Configuration management for environment-driven logging setup.
 """
 import os

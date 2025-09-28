@@ -83,9 +83,9 @@ Code Push → Quality Gates → Security Scan → Test Matrix → Deploy
 Display in README.md header:
 
 ```markdown
-[![Build Status](https://github.com/username/mypylogger/workflows/CI/badge.svg)](https://github.com/username/mypylogger/actions)
-[![Coverage](https://codecov.io/gh/username/mypylogger/branch/main/graph/badge.svg)](https://codecov.io/gh/username/mypylogger)
-[![Security](https://github.com/username/mypylogger/workflows/Security/badge.svg)](https://github.com/username/mypylogger/actions)
+[![Build Status](https://github.com/stabbotco1/mypylogger/workflows/CI/badge.svg)](https://github.com/stabbotco1/mypylogger/actions)
+[![Coverage](https://codecov.io/gh/stabbotco1/mypylogger/branch/main/graph/badge.svg)](https://codecov.io/gh/stabbotco1/mypylogger)
+[![Security](https://github.com/stabbotco1/mypylogger/workflows/Security/badge.svg)](https://github.com/stabbotco1/mypylogger/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/mypylogger.svg)](https://badge.fury.io/py/mypylogger)
 [![Python versions](https://img.shields.io/pypi/pyversions/mypylogger.svg)](https://pypi.org/project/mypylogger/)

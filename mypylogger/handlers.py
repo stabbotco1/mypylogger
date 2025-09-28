@@ -1,4 +1,6 @@
 """
+Copyright (c) 2024 Stephen Abbot. Licensed under MIT License.
+
 Custom logging handlers for file and stdout output.
 """
 import logging

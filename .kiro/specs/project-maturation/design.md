@@ -110,8 +110,8 @@ jobs:
 #### Badge Configuration
 ```markdown
 <!-- README.md badge section -->
-[![Build Status](https://github.com/username/mypylogger/workflows/CI/badge.svg)](https://github.com/username/mypylogger/actions)
-[![Coverage](https://codecov.io/gh/username/mypylogger/branch/main/graph/badge.svg)](https://codecov.io/gh/username/mypylogger)
+[![Build Status](https://github.com/stabbotco1/mypylogger/workflows/CI/badge.svg)](https://github.com/stabbotco1/mypylogger/actions)
+[![Coverage](https://codecov.io/gh/stabbotco1/mypylogger/branch/main/graph/badge.svg)](https://codecov.io/gh/stabbotco1/mypylogger)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=mypylogger&metric=security_rating)](https://sonarcloud.io/dashboard?id=mypylogger)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=mypylogger&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=mypylogger)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -179,10 +179,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/username/mypylogger"
-Repository = "https://github.com/username/mypylogger"
-Documentation = "https://mypylogger.readthedocs.io"
-"Bug Tracker" = "https://github.com/username/mypylogger/issues"
+Homepage = "https://github.com/stabbotco1/mypylogger"
+Repository = "https://github.com/stabbotco1/mypylogger"
+Documentation = "https://github.com/stabbotco1/mypylogger#readme"
+"Bug Tracker" = "https://github.com/stabbotco1/mypylogger/issues"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

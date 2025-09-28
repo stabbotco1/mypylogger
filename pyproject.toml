@@ -6,7 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "mypylogger"
 version = "0.1.0"
 description = "Production-quality Python logging library with structured JSON logging"
-authors = [{name = "Developer", email = "developer@example.com"}]
+authors = [{name = "Stephen Abbot", email = "stephen.abbot@example.com"}]
+license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -24,6 +25,13 @@ classifiers = [
 dependencies = [
     "python-json-logger>=2.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/stabbotco1/mypylogger"
+Repository = "https://github.com/stabbotco1/mypylogger"
+Documentation = "https://github.com/stabbotco1/mypylogger#readme"
+"Bug Tracker" = "https://github.com/stabbotco1/mypylogger/issues"
+"Security" = "https://github.com/stabbotco1/mypylogger/blob/main/VULNERABILITIES.md"
 
 [project.optional-dependencies]
 dev = [

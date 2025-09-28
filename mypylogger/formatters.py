@@ -1,4 +1,6 @@
 """
+Copyright (c) 2024 Stephen Abbot. Licensed under MIT License.
+
 Custom JSON formatters for structured logging.
 """
 import json
