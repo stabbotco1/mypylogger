@@ -4,22 +4,29 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mypylogger"
-version = "0.1.0"
-description = "Production-quality Python logging library with structured JSON logging"
+version = "0.1.0a1"
+description = "Production-ready Python logging library with structured JSON output, environment-driven configuration, and real-time development support"
 authors = [{name = "Stephen Abbot", email = "stephen.abbot@example.com"}]
-license = {text = "MIT"}
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8"
+keywords = ["logging", "json", "structured-logging", "python", "production", "environment-config"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: System Administrators",
+
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed"
 ]
 
 dependencies = [
@@ -37,6 +44,15 @@ Documentation = "https://github.com/stabbotco1/mypylogger#readme"
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+    "pre-commit>=3.0.0",
+    "build>=0.10.0",
+    "twine>=4.0.0"
 ]
 
 [tool.setuptools.packages.find]
