@@ -126,6 +126,12 @@ This document captures the meta-learning objectives for using mypylogger as a la
 **Strategic Value**: Great documentation drives adoption, reduces support burden, and signals professionalism
 **Implementation**: Include documentation requirements, quality standards, and final review as explicit project deliverables
 
+#### OIDC Security Architecture Integration
+**Discovery**: External infrastructure decisions (OIDC setup) must be reflected in project specs before implementation
+**Pattern**: Architectural changes require spec updates to prevent implementation misalignment
+**Learning**: Always review and update specs when external dependencies or security models change
+**Implementation**: Update task definitions, design documents, and create integration guides for complex external dependencies
+
 ## Knowledge Extraction Framework
 
 ### Continuous Learning Process

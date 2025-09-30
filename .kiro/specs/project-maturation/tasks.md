@@ -36,13 +36,19 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Create security policy templates
   - _Requirements: 3.1, 3.2, 3.3, 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 5. GitHub Actions CI/CD Pipeline
-  - Create .github/workflows/ci.yml for main CI pipeline
+- [ ] 5. GitHub Actions CI/CD Pipeline with OIDC Security
+  - Create .github/workflows/ci.yml with GitHub OIDC authentication to AWS
+  - Configure AWS role assumption for secure, credential-free access
+  - Retrieve PyPI and Codecov tokens from AWS SSM Parameter Store
   - Configure quality gates (lint, format, type check, tests)
   - Set up test matrix for multiple Python versions and OS
-  - Add coverage reporting with codecov integration
-  - Configure automated PyPI publishing on tag creation
-  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+  - Add coverage reporting with codecov integration via AWS-stored token
+  - Configure automated PyPI publishing using AWS SSM-stored API token
+  - Add post-deployment smoke test to verify PyPI publication success
+  - Configure basic GitHub API status monitoring and notification
+  - Document required GitHub repository variables (AWS_GITHUB_ROLE_ARN, AWS_REGION)
+  - Document required AWS SSM parameters (/mypylogger/prod/pypi-token, /mypylogger/prod/codecov-token)
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5 + Enterprise-grade OIDC security_
 
 - [ ] 6. Security Scanning Automation
   - Create .github/workflows/security.yml for security scans
@@ -121,6 +127,7 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Update all documentation with current project status
   - Create roadmap for future enhancements (Java, Node.js versions)
   - Document lessons learned and best practices
+  - **Add future feature note**: Expand GitHub API integration for comprehensive pipeline observability
   - Prepare project for community handoff and contributions
   - _Requirements: Community readiness and knowledge transfer_
 
