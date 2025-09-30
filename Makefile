@@ -25,11 +25,19 @@ help:
 	@echo "  test-coverage  Run tests with coverage report"
 	@echo "  test-performance Run performance benchmark tests"
 	@echo "  test-all       Run complete test suite"
+	@echo "  test-complete  Run comprehensive test suite with full reporting"
+	@echo "  test-complete-fast Run fast verification with reporting"
+	@echo "  test-complete-performance Include performance benchmarks in reporting"
 	@echo ""
 	@echo "Build and Package:"
 	@echo "  build          Build package distributions"
 	@echo "  check-package  Validate package build"
 	@echo "  clean          Clean build artifacts and cache files"
+	@echo ""
+	@echo "Documentation and Verification:"
+	@echo "  docs-check     Check documentation completeness"
+	@echo "  verify-badges  Verify README badge URLs and configuration"
+	@echo "  fix-formatting Fix all code formatting issues automatically"
 	@echo ""
 	@echo "Development Workflow:"
 	@echo "  qa             Run all quality checks (lint + type + security)"
@@ -80,6 +88,11 @@ pre-commit:
 qa: format lint type-check security
 	@echo "All quality checks passed!"
 
+# Fix all formatting issues
+fix-formatting:
+	@echo "Fixing all formatting issues..."
+	./scripts/fix-formatting.sh
+
 # Testing commands
 test-fast:
 	@echo "Running fast unit tests..."
@@ -126,6 +139,19 @@ ci: qa test-coverage test-performance build check-package
 	@echo "Full CI pipeline completed successfully!"
 	@echo "Package is ready for release."
 
+# Complete test suite runner
+test-complete:
+	@echo "Running complete test suite with comprehensive reporting..."
+	./scripts/run-complete-test-suite.sh
+
+test-complete-fast:
+	@echo "Running fast test suite verification..."
+	./scripts/run-complete-test-suite.sh --fast
+
+test-complete-performance:
+	@echo "Running complete test suite with performance benchmarks..."
+	./scripts/run-complete-test-suite.sh --performance
+
 # Development workflow helpers
 watch-tests:
 	@echo "Starting test watcher (save files to trigger tests)..."
@@ -155,6 +181,12 @@ docs-check:
 	@echo "Checking documentation..."
 	python -c "import mypylogger; help(mypylogger)"
 	@echo "Documentation check complete!"
+
+# Badge verification
+verify-badges:
+	@echo "Verifying README badges..."
+	python scripts/verify-badges.py
+	@echo "Badge verification complete!"
 
 # Dependency management
 update-deps:

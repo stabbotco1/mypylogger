@@ -43,22 +43,24 @@ Example:
 __version__ = "0.1.0"
 __author__ = "Stephen Abbot"
 
+from .config import LogConfig
+
 # Import main components
 from .core import SingletonLogger
-from .config import LogConfig
 from .formatters import CustomJsonFormatter
 from .handlers import ImmediateFlushFileHandler, ParallelStdoutHandler
+
 
 # Public API exports
 def get_logger():
     """Get the configured logger instance.
-    
+
     Returns the singleton logger instance configured with environment variables.
     The logger uses JSON formatting and writes to both file and optionally stdout.
-    
+
     Returns:
         logging.Logger: Configured logger instance with JSON formatting.
-        
+
     Example:
         >>> logger = get_logger()
         >>> logger.info("Hello, world!")
@@ -66,21 +68,23 @@ def get_logger():
     """
     return SingletonLogger.get_logger()
 
+
 def get_effective_level():
     """Get the effective logging level.
-    
+
     Returns the current logging level as an integer. This reflects the level
     set via the LOG_LEVEL environment variable or the default (INFO).
-    
+
     Returns:
         int: The effective logging level (e.g., 10 for DEBUG, 20 for INFO).
-        
+
     Example:
         >>> level = get_effective_level()
         >>> print(f"Current log level: {level}")
         Current log level: 20
     """
     return SingletonLogger.get_effective_level()
+
 
 # Expose logging constants for convenience
 DEBUG = SingletonLogger.DEBUG
@@ -90,16 +94,16 @@ ERROR = SingletonLogger.ERROR
 CRITICAL = SingletonLogger.CRITICAL
 
 __all__ = [
-    'get_logger',
-    'get_effective_level',
-    'SingletonLogger',
-    'LogConfig',
-    'CustomJsonFormatter',
-    'ImmediateFlushFileHandler',
-    'ParallelStdoutHandler',
-    'DEBUG',
-    'INFO',
-    'WARNING',
-    'ERROR',
-    'CRITICAL'
+    "get_logger",
+    "get_effective_level",
+    "SingletonLogger",
+    "LogConfig",
+    "CustomJsonFormatter",
+    "ImmediateFlushFileHandler",
+    "ParallelStdoutHandler",
+    "DEBUG",
+    "INFO",
+    "WARNING",
+    "ERROR",
+    "CRITICAL",
 ]

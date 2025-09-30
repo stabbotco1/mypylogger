@@ -196,18 +196,26 @@ With AI assistance, documentation quality can be dramatically improved:
 ## Quality Gates
 
 ### Before Moving to Next Task
-- [ ] All tests pass
-- [ ] Code compiles and can be imported
-- [ ] Basic functionality works as expected
-- [ ] Steering document compliance verified
-- [ ] No breaking changes introduced
-- [ ] Documentation updated for any new features or changes
+- [ ] **Complete test suite passes** - Run `make test-complete-fast` for verification
+- [ ] **Coverage maintained** - ≥90% test coverage requirement met
+- [ ] **No regressions introduced** - All existing functionality intact
+- [ ] **Quality gates pass** - Code formatting, linting, type checking, security
+- [ ] **Documentation updated** - Any new features or changes documented
+- [ ] **Performance validated** - Run `make test-complete-performance` for critical changes
+
+**Quick Verification Command**: `make test-complete-fast`
 
 ### Before Project Completion
-- [ ] All requirements implemented and tested
+- [ ] **Complete test suite passes** - Run `make test-complete-performance` for full validation
+- [ ] **All requirements implemented and tested** - Comprehensive verification complete
 - [ ] **Documentation deliverables complete and reviewed**
 - [ ] **All examples tested and working**
 - [ ] **User journey documentation validated**
+- [ ] **Performance benchmarks meet requirements** - <1ms latency, >10K logs/sec
+- [ ] **Security scans clean** - No vulnerabilities detected
+- [ ] **Package builds successfully** - Ready for distribution
 - [ ] Steering documents updated with lessons learned
 - [ ] Reusable patterns documented for future projects
 - [ ] **Final documentation review and polish completed**
+
+**Final Verification Command**: `make test-complete-performance`
