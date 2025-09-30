@@ -7,19 +7,13 @@ schema and format requirements from the specification.
 
 import json
 import logging
-import os
-import tempfile
 import time
 from datetime import datetime
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-from mypylogger.config import LogConfig
 from mypylogger.core import SingletonLogger
 from mypylogger.formatters import CustomJsonFormatter
-from mypylogger.handlers import ImmediateFlushFileHandler
 
 
 class TestJSONSchemaValidation:

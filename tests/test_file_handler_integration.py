@@ -3,11 +3,8 @@ Integration tests for file handler functionality.
 """
 
 import logging
-import os
-import tempfile
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
 
 from mypylogger.config import LogConfig
 from mypylogger.handlers import ImmediateFlushFileHandler, get_log_file_path

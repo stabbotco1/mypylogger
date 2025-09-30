@@ -3,14 +3,9 @@ Tests for custom logging handlers.
 """
 
 import logging
-import os
 import sys
-import tempfile
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from mypylogger.handlers import ImmediateFlushFileHandler, ParallelStdoutHandler
 

@@ -59,7 +59,7 @@ class TestPerformanceBenchmarks:
         max_latency = max(latencies)
 
         # Print performance metrics for visibility
-        print(f"\nLatency Performance Metrics:")
+        print("\nLatency Performance Metrics:")
         print(f"  Average: {avg_latency:.3f}ms")
         print(f"  Median:  {median_latency:.3f}ms")
         print(f"  95th %:  {p95_latency:.3f}ms")
@@ -97,7 +97,7 @@ class TestPerformanceBenchmarks:
         duration = end_time - start_time
         throughput = num_messages / duration
 
-        print(f"\nThroughput Performance Metrics:")
+        print("\nThroughput Performance Metrics:")
         print(f"  Messages: {num_messages}")
         print(f"  Duration: {duration:.3f}s")
         print(f"  Throughput: {throughput:.0f} logs/second")
@@ -140,7 +140,7 @@ class TestPerformanceBenchmarks:
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         total_increase = final_memory - baseline_memory
 
-        print(f"\nMemory Usage Metrics:")
+        print("\nMemory Usage Metrics:")
         print(f"  Baseline: {baseline_memory:.1f}MB")
         print(f"  Final:    {final_memory:.1f}MB")
         print(f"  Increase: {total_increase:.1f}MB")
@@ -201,7 +201,7 @@ class TestPerformanceBenchmarks:
         while not results_queue.empty():
             thread_results.append(results_queue.get())
 
-        print(f"\nConcurrent Logging Performance:")
+        print("\nConcurrent Logging Performance:")
         print(f"  Threads: {num_threads}")
         print(f"  Messages per thread: {messages_per_thread}")
         print(f"  Total messages: {total_messages}")
@@ -257,7 +257,7 @@ class TestPerformanceBenchmarks:
             "duration_seconds": duration,
         }
 
-        print(f"\nPerformance Regression Baseline:")
+        print("\nPerformance Regression Baseline:")
         for key, value in performance_metrics.items():
             if "latency" in key:
                 print(f"  {key}: {value:.3f}")

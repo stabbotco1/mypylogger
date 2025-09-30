@@ -5,7 +5,6 @@ Custom logging handlers for file and stdout output.
 """
 
 import logging
-import os
 import sys
 from datetime import datetime
 from pathlib import Path

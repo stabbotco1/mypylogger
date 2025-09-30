@@ -4,10 +4,6 @@ Tests for SingletonLogger class - singleton behavior and thread safety.
 
 import logging
 import threading
-import time
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 from mypylogger.core import SingletonLogger
 

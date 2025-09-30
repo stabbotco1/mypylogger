@@ -4,10 +4,7 @@ Tests for CustomJsonFormatter - JSON output format and field ordering.
 
 import json
 import logging
-from datetime import datetime
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from mypylogger.formatters import CustomJsonFormatter
 
@@ -129,11 +126,11 @@ class TestTimestampFormatting:
         assert re.match(iso8601_pattern, timestamp)
 
         # Should be parseable as datetime
-        from datetime import datetime
+        from datetime import datetime as dt_class
 
         # Remove 'Z' and parse
-        dt = datetime.fromisoformat(timestamp[:-1])
-        assert isinstance(dt, datetime)
+        dt = dt_class.fromisoformat(timestamp[:-1])
+        assert isinstance(dt, dt_class)
 
     def test_timestamp_is_utc(self):
         """Test that timestamps are in UTC timezone."""
@@ -157,10 +154,10 @@ class TestTimestampFormatting:
         assert timestamp.endswith("Z")
 
         # Parse and verify it's reasonable (within last minute)
-        from datetime import datetime, timezone
+        from datetime import datetime as dt_class, timezone
 
-        dt = datetime.fromisoformat(timestamp[:-1]).replace(tzinfo=timezone.utc)
-        now = datetime.now(timezone.utc)
+        dt = dt_class.fromisoformat(timestamp[:-1]).replace(tzinfo=timezone.utc)
+        now = dt_class.now(timezone.utc)
 
         # Should be within the last minute (reasonable for test execution)
         time_diff = abs((now - dt).total_seconds())

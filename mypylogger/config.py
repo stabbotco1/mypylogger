@@ -7,7 +7,6 @@ Configuration management for environment-driven logging setup.
 import logging
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass

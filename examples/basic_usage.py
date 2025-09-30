@@ -14,10 +14,10 @@ import sys
 import time
 from pathlib import Path
 
+import mypylogger
+
 # Add the parent directory to the path so we can import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-import mypylogger
 
 
 def main():
@@ -66,8 +66,8 @@ def main():
     # Demonstrate exception logging
     print("\nLogging exceptions:")
     try:
-        result = 1 / 0
-    except ZeroDivisionError as e:
+        _ = 1 / 0
+    except ZeroDivisionError:
         logger.error("Division by zero error occurred", exc_info=True)
 
     # Show log file location

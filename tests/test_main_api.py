@@ -3,9 +3,6 @@ Tests for the main API functions - get_logger() and related functionality.
 """
 
 import logging
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 import mypylogger
 from mypylogger.core import SingletonLogger

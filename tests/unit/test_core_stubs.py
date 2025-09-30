@@ -4,8 +4,6 @@ Unit tests for core module stubs.
 
 import logging
 
-import pytest
-
 from mypylogger.core import SingletonLogger
 
 

@@ -8,22 +8,21 @@ to verify task completion, test coverage, and detect regressions.
 Usage: python scripts/run_complete_test_suite.py [OPTIONS]
 
 Options:
-  --fast         Run only fast unit tests (skip integration and performance)
   --performance  Include performance benchmark tests
-  --verbose      Show detailed output from all commands
+  --verbose      Show summary output only (default is detailed output)
   --subset TYPE  Run only specific test subset (quality|tests|security|build|docs)
   --help         Show this help message
 
-Default behavior: Run comprehensive testing with summary output only
+Default behavior: Run comprehensive testing with detailed output
+Note: Fast mode is temporarily disabled until full test suite passes consistently
 """
 
 import argparse
-import os
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
 class Colors:
@@ -117,8 +116,10 @@ class TestSuiteRunner:
             )
 
             self.print_error(f"{description} failed")
-            if self.verbose and e.stderr:
-                print(f"Error output: {e.stderr}")
+            if self.verbose:
+                error_output = e.stderr or e.stdout or "No error output available"
+                if error_output.strip():
+                    print(f"Error output: {error_output}")
             return False
 
     def check_environment(self) -> bool:
@@ -133,7 +134,7 @@ class TestSuiteRunner:
 
         # Check if mypylogger is importable
         try:
-            import mypylogger
+            import mypylogger  # noqa: F401
 
             if self.verbose:
                 self.print_success("mypylogger package importable")
@@ -339,7 +340,6 @@ class TestSuiteRunner:
         print(f"{Colors.BLUE}{'=' * 32}{Colors.NC}")
 
         # Count results
-        total = len(self.results)
         passed = sum(1 for r in self.results.values() if r.status == "PASS")
         failed = sum(1 for r in self.results.values() if r.status == "FAIL")
         skipped = sum(1 for r in self.results.values() if r.status == "SKIP")
@@ -350,7 +350,7 @@ class TestSuiteRunner:
         else:
             print(f"{Colors.RED}❌ {failed} CHECK(S) FAILED{Colors.NC}")
 
-        print(f"\n📊 Execution Summary:")
+        print("\n📊 Execution Summary:")
         print(f"   Total Duration: {duration:.1f}s")
         mode = (
             "Fast"
@@ -360,7 +360,7 @@ class TestSuiteRunner:
         print(f"   Mode: {mode}")
         print(f"   Results: {passed} passed, {failed} failed, {skipped} skipped")
 
-        print(f"\n🔍 Check Results:")
+        print("\n🔍 Check Results:")
 
         # Define check order for consistent output
         check_order = [
@@ -386,13 +386,14 @@ class TestSuiteRunner:
 
         if failed == 0:
             print(
-                f"\n{Colors.GREEN}🚀 All quality gates passed - ready for deployment!{Colors.NC}"
+                f"\n{Colors.GREEN}🚀 All quality gates passed - "
+                f"ready for deployment!{Colors.NC}"
             )
 
             if not self.verbose:
-                print(f"\n💡 For detailed output, run with --verbose flag")
+                print("\n💡 For detailed output, run with --verbose flag")
 
-            print(f"\n📁 Generated artifacts:")
+            print("\n📁 Generated artifacts:")
             if Path("htmlcov").exists():
                 print("   • htmlcov/index.html - Coverage report")
             if Path("dist").exists():
@@ -401,7 +402,7 @@ class TestSuiteRunner:
             print(f"\n{Colors.RED}🔧 Fix the failed checks above and re-run{Colors.NC}")
 
             if not self.verbose:
-                print(f"\n💡 For detailed error output, run with --verbose flag")
+                print("\n💡 For detailed error output, run with --verbose flag")
 
     def run(self) -> bool:
         """Run the complete test suite."""
@@ -461,29 +462,33 @@ class TestSuiteRunner:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Complete Test Suite Runner for mypylogger",
+        description="Complete Test Suite Runner for mypylogger (defaults to verbose mode)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/run_complete_test_suite.py                    # Run complete test suite (summary output)
-  python scripts/run_complete_test_suite.py --fast            # Quick verification (unit tests only)
-  python scripts/run_complete_test_suite.py --performance     # Include performance benchmarks
-  python scripts/run_complete_test_suite.py --verbose         # Show detailed output
-  python scripts/run_complete_test_suite.py --subset quality  # Run only code quality checks
-  python scripts/run_complete_test_suite.py --subset tests    # Run only test execution
+  python scripts/run_complete_test_suite.py                    # Complete suite (detailed output)
+  python scripts/run_complete_test_suite.py --performance     # With benchmarks
+  python scripts/run_complete_test_suite.py --verbose         # Summary output only
+  python scripts/run_complete_test_suite.py --subset quality  # Quality checks
+  python scripts/run_complete_test_suite.py --subset tests    # Tests only
+
+Note: Fast mode is temporarily disabled until full test suite passes consistently.
         """,
     )
 
-    parser.add_argument(
-        "--fast",
-        action="store_true",
-        help="Run only fast unit tests (skip integration and performance)",
-    )
+    # Temporarily disabled --fast option until full test suite passes
+    # parser.add_argument(
+    #     "--fast",
+    #     action="store_true",
+    #     help="Run only fast unit tests (skip integration and performance)",
+    # )
     parser.add_argument(
         "--performance", action="store_true", help="Include performance benchmark tests"
     )
     parser.add_argument(
-        "--verbose", action="store_true", help="Show detailed output from all commands"
+        "--verbose",
+        action="store_false",  # Changed: now --verbose turns OFF verbose (default is ON)
+        help="Show summary output only (default is detailed output)",
     )
     parser.add_argument(
         "--subset",
@@ -496,7 +501,7 @@ Examples:
     # Create and run test suite
     runner = TestSuiteRunner(
         verbose=args.verbose,
-        fast=args.fast,
+        fast=False,  # Disabled fast mode until full test suite passes
         performance=args.performance,
         subset=args.subset,
     )

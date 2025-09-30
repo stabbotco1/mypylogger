@@ -3,13 +3,8 @@ Integration tests for error handling and graceful degradation.
 """
 
 import logging
-import os
-import tempfile
 import threading
-from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from mypylogger.config import LogConfig
 from mypylogger.core import SingletonLogger
@@ -17,7 +12,6 @@ from mypylogger.formatters import CustomJsonFormatter
 from mypylogger.handlers import (
     ImmediateFlushFileHandler,
     ParallelStdoutHandler,
-    get_log_file_path,
 )
 
 
@@ -171,7 +165,7 @@ class TestGracefulDegradation:
             # Restore permissions for cleanup
             try:
                 log_file.chmod(0o644)
-            except:
+            except Exception:
                 pass
 
     def test_stdout_handler_error_recovery(self):

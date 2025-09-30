@@ -1,4 +1,9 @@
-"""
+"""mypylogger - Production-quality Python logging library.
+
+This library provides structured JSON logging with real-time development support
+and environment-driven configuration. It's designed for production applications
+that need consistent, parseable log output with immediate visibility during development.
+
 Copyright (c) 2024 Stephen Abbot
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,13 +23,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-"""
-
-"""mypylogger - Production-quality Python logging library.
-
-This library provides structured JSON logging with real-time development support
-and environment-driven configuration. It's designed for production applications
-that need consistent, parseable log output with immediate visibility during development.
 
 Example:
     Basic usage:
@@ -40,19 +38,19 @@ Example:
         >>> logger.debug("Debug message")
 """
 
-__version__ = "0.1.0"
-__author__ = "Stephen Abbot"
+import logging
 
 from .config import LogConfig
-
-# Import main components
 from .core import SingletonLogger
 from .formatters import CustomJsonFormatter
 from .handlers import ImmediateFlushFileHandler, ParallelStdoutHandler
 
+__version__ = "0.1.0"
+__author__ = "Stephen Abbot"
+
 
 # Public API exports
-def get_logger():
+def get_logger() -> logging.Logger:
     """Get the configured logger instance.
 
     Returns the singleton logger instance configured with environment variables.
@@ -69,7 +67,7 @@ def get_logger():
     return SingletonLogger.get_logger()
 
 
-def get_effective_level():
+def get_effective_level() -> int:
     """Get the effective logging level.
 
     Returns the current logging level as an integer. This reflects the level

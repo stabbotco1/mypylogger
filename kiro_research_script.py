@@ -259,17 +259,17 @@ def main():
         json.dump(research_data, f, indent=2)
 
     print(f"\n✅ Research complete! Results saved to: {output_file}")
-    print(f"📊 Summary:")
+    print("📊 Summary:")
     print(f"  - Accessible websites: {research_data['summary']['accessible_websites']}")
     print(f"  - Found packages: {research_data['summary']['found_packages']}")
     print(
         f"  - Successful searches: {research_data['summary']['successful_searches']}/{research_data['summary']['total_searches']}"
     )
 
-    print(f"\n📋 Next steps:")
+    print("\n📋 Next steps:")
     print(f"  1. Review the {output_file} file")
-    print(f"  2. Share the contents with your AI assistant")
-    print(f"  3. Use the findings to create getting started documentation")
+    print("  2. Share the contents with your AI assistant")
+    print("  3. Use the findings to create getting started documentation")
 
     return output_file
 

@@ -35,7 +35,7 @@ class SingletonLogger:
     _config: Optional[LogConfig] = None
     _lock = threading.Lock()
 
-    def __new__(cls):
+    def __new__(cls) -> "SingletonLogger":
         if cls._instance is None:
             with cls._lock:
                 # Double-check locking pattern
@@ -63,6 +63,8 @@ class SingletonLogger:
                 # Double-check locking pattern
                 if cls._logger is None:
                     cls._initialize_logger()
+        if cls._logger is None:
+            raise RuntimeError("Logger initialization failed")
         return cls._logger
 
     @classmethod
@@ -98,7 +100,10 @@ class SingletonLogger:
                 cls._logger.addHandler(file_handler)
             except Exception as e:
                 # If file handler fails, continue without it (graceful degradation)
-                pass
+                # Log the error to stderr for debugging
+                import sys
+
+                print(f"Warning: Failed to create file handler: {e}", file=sys.stderr)
 
             # Add stdout handler if enabled
             if cls._config.parallel_stdout_logging.lower() != "false":
@@ -114,7 +119,12 @@ class SingletonLogger:
                     cls._logger.addHandler(stdout_handler)
                 except Exception as e:
                     # If stdout handler fails, continue without it
-                    pass
+                    import sys
+
+                    print(
+                        f"Warning: Failed to create stdout handler: {e}",
+                        file=sys.stderr,
+                    )
 
     @classmethod
     def get_effective_level(cls) -> int:

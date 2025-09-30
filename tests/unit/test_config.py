@@ -5,8 +5,6 @@ Unit tests for configuration module.
 import logging
 import os
 
-import pytest
-
 from mypylogger.config import LogConfig
 
 

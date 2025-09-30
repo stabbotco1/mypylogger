@@ -9,19 +9,27 @@ import logging
 import os
 from collections import OrderedDict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 try:
     from pythonjsonlogger import json as jsonlogger
 except ImportError:
     # Stub for when dependency is not available
-    class jsonlogger:
-        class JsonFormatter(logging.Formatter):
-            def __init__(self, *args, **kwargs):
-                super().__init__(*args, **kwargs)
+    from typing import TYPE_CHECKING
 
-            def format(self, record):
-                return super().format(record)
+    if TYPE_CHECKING:
+        from pythonjsonlogger import json as jsonlogger
+    else:
+
+        class _JsonLoggerStub:
+            class JsonFormatter(logging.Formatter):
+                def __init__(self, *args: Any, **kwargs: Any) -> None:
+                    super().__init__(*args, **kwargs)
+
+                def format(self, record: logging.LogRecord) -> str:
+                    return super().format(record)
+
+        jsonlogger = _JsonLoggerStub()
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
@@ -64,7 +72,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         "stack_info",
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the formatter with default format if none provided."""
         # Set default format string if not provided
         if not args and "fmt" not in kwargs:
@@ -191,7 +199,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record as JSON."""
         # Create the log record dict
-        log_record = {}
+        log_record: Dict[str, Any] = {}
 
         # Add basic message
         message_dict = {}

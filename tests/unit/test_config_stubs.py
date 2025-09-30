@@ -2,7 +2,7 @@
 Unit tests for config module stubs.
 """
 
-import pytest
+# No imports needed for stubs
 
 from mypylogger.config import LogConfig
 

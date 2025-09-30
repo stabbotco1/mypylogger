@@ -13,10 +13,10 @@ import sys
 import time
 from pathlib import Path
 
+import mypylogger
+
 # Add the parent directory to the path so we can import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-import mypylogger
 
 
 def reset_logger():
@@ -142,16 +142,16 @@ def test_exception_logging():
 
     try:
         # Simulate a division by zero error
-        result = 1 / 0
-    except ZeroDivisionError as e:
+        _ = 1 / 0
+    except ZeroDivisionError:
         logger.error("Division by zero error occurred", exc_info=True)
         print("  Exception logged with stack trace")
 
     try:
         # Simulate a file not found error
         with open("nonexistent_file.txt", "r") as f:
-            content = f.read()
-    except FileNotFoundError as e:
+            _ = f.read()
+    except FileNotFoundError:
         logger.warning(
             "File not found",
             extra={"file_path": "nonexistent_file.txt", "operation": "read"},
@@ -255,7 +255,7 @@ def run_performance_test(num_messages=1000):
     end_time = time.time()
     duration = end_time - start_time
 
-    print(f"Performance test completed:")
+    print("Performance test completed:")
     print(f"  Messages: {num_messages}")
     print(f"  Duration: {duration:.3f} seconds")
     print(f"  Rate: {num_messages / duration:.1f} messages/second")
