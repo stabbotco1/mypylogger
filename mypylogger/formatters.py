@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional
 from collections import OrderedDict
 
 try:
-    from pythonjsonlogger import jsonlogger
+    from pythonjsonlogger import json as jsonlogger
 except ImportError:
     # Stub for when dependency is not available
     class jsonlogger:

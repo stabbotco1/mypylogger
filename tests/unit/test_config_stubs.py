@@ -16,7 +16,7 @@ class TestLogConfigStubs:
         assert config.empty_log_file_on_run is False
         assert config.parallel_stdout_logging == "false"
     
-    def test_from_environment_stub_returns_default(self):
+    def test_from_environment_stub_returns_default(self, clean_environment):
         """Test that from_environment stub returns default config."""
         config = LogConfig.from_environment()
         assert isinstance(config, LogConfig)
