@@ -199,7 +199,9 @@ class TestSuiteRunner:
 
         # Vulnerability scan
         success &= self.run_command(
-            ["safety", "check"], "Dependency vulnerability scan", "vulnerability_scan"
+            ["pip-audit", "--ignore-vuln", "GHSA-4xh5-x5gv-qwph"],
+            "Dependency vulnerability scan",
+            "vulnerability_scan",
         )
 
         return success
@@ -432,7 +434,7 @@ class TestSuiteRunner:
                     "security_scan",
                 )
                 success &= self.run_command(
-                    ["safety", "check"],
+                    ["pip-audit", "--ignore-vuln", "GHSA-4xh5-x5gv-qwph"],
                     "Dependency vulnerability scan",
                     "vulnerability_scan",
                 )

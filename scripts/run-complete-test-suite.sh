@@ -17,7 +17,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Auto-detect and activate virtual environment if needed
 if [[ -z "$VIRTUAL_ENV" ]]; then
     # Try common virtual environment locations
-    local venv_paths=("$PROJECT_ROOT/venv/bin/activate" "$PROJECT_ROOT/.venv/bin/activate" "$PROJECT_ROOT/env/bin/activate")
+    venv_paths=("$PROJECT_ROOT/venv/bin/activate" "$PROJECT_ROOT/.venv/bin/activate" "$PROJECT_ROOT/env/bin/activate")
     
     for venv_path in "${venv_paths[@]}"; do
         if [[ -f "$venv_path" ]]; then
