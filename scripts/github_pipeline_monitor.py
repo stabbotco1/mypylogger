@@ -16,58 +16,54 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-# Import configuration management
+# Import configuration management and error handling
 try:
+    from github_data_models import PipelineStatus, WorkflowRun
     from github_monitor_config import (
         ConfigManager,
         ConfigurationError,
         MonitoringConfig,
         MonitoringMode,
+    )
+    from github_monitor_exceptions import (
+        GitHubAuthenticationError,
+        GitHubConfigurationError,
+        GitHubMonitorError,
+        GitHubNetworkError,
+        GitHubPermissionError,
+        GitHubRateLimitError,
+        GitHubRepositoryError,
+        handle_github_api_error,
+        retry_with_exponential_backoff,
     )
 except ImportError:
     # Fallback for when running from different directory
     import sys
 
     sys.path.append(os.path.dirname(__file__))
+    from github_data_models import PipelineStatus, WorkflowRun
     from github_monitor_config import (
         ConfigManager,
         ConfigurationError,
         MonitoringConfig,
         MonitoringMode,
     )
+    from github_monitor_exceptions import (
+        GitHubAuthenticationError,
+        GitHubConfigurationError,
+        GitHubMonitorError,
+        GitHubNetworkError,
+        GitHubPermissionError,
+        GitHubRateLimitError,
+        GitHubRepositoryError,
+        handle_github_api_error,
+        retry_with_exponential_backoff,
+    )
 
 
-@dataclass
-class WorkflowRun:
-    """Represents a GitHub Actions workflow run."""
-
-    id: int
-    name: str
-    status: str  # queued, in_progress, completed
-    conclusion: Optional[str]  # success, failure, cancelled, skipped
-    html_url: str
-    created_at: str
-    updated_at: str
-    head_sha: str
-    duration_seconds: Optional[int] = None
-
-
-@dataclass
-class PipelineStatus:
-    """Represents the overall pipeline status."""
-
-    commit_sha: str
-    workflow_runs: List[WorkflowRun]
-    overall_status: str  # pending, success, failure, no_workflows
-    failed_workflows: List[str]
-    pending_workflows: List[str]
-    success_workflows: List[str]
-    total_duration_seconds: Optional[int] = None
-    estimated_completion_seconds: Optional[int] = None
-
-
-class GitHubAPIError(Exception):
-    """Exception raised for GitHub API errors."""
+# Legacy exception class for backward compatibility
+class GitHubAPIError(GitHubMonitorError):
+    """Legacy exception class - use specific GitHubMonitorError subclasses instead."""
 
     pass
 
@@ -109,7 +105,18 @@ class GitHubPipelineMonitor:
         self.github_token = self.config.github_token
         self.base_url = "https://api.github.com"
 
-        # Colors for output (respect config setting)
+        # Status reporter will be created when needed to avoid circular imports
+        self._status_reporter = None
+
+    @property
+    def status_reporter(self):
+        """Lazy-load status reporter to avoid circular imports."""
+        if self._status_reporter is None:
+            from github_status_reporter import create_status_reporter
+            self._status_reporter = create_status_reporter(self.config)
+        return self._status_reporter
+
+        # Colors for output (respect config setting) - kept for backward compatibility
         if self.config.colors_enabled:
             self.colors = {
                 "GREEN": "\033[0;32m",
@@ -127,8 +134,13 @@ class GitHubPipelineMonitor:
                 for key in ["GREEN", "RED", "YELLOW", "BLUE", "PURPLE", "CYAN", "NC"]
             }
 
+    @retry_with_exponential_backoff(
+        max_retries=3,
+        base_delay=1.0,
+        retryable_exceptions=(GitHubNetworkError, GitHubRateLimitError),
+    )
     def _make_api_request(self, endpoint: str) -> Dict:
-        """Make a request to the GitHub API."""
+        """Make a request to the GitHub API with enhanced error handling and retry logic."""
         url = urljoin(self.base_url, endpoint)
 
         headers = {
@@ -138,26 +150,99 @@ class GitHubPipelineMonitor:
 
         if self.github_token:
             headers["Authorization"] = f"token {self.github_token}"
+        else:
+            raise GitHubAuthenticationError(
+                "GitHub token not provided", token_provided=False
+            )
 
         try:
             request = Request(url, headers=headers)
             with urlopen(request) as response:
+                # Extract rate limit information from headers
+                rate_limit_remaining = response.headers.get("X-RateLimit-Remaining")
+                rate_limit_reset = response.headers.get("X-RateLimit-Reset")
+
+                # Warn if approaching rate limit
+                if rate_limit_remaining and int(rate_limit_remaining) < 10:
+                    reset_time = int(rate_limit_reset) if rate_limit_reset else None
+                    print(
+                        f"⚠️  GitHub API rate limit warning: {rate_limit_remaining} requests remaining"
+                    )
+                    if reset_time:
+                        reset_minutes = max(0, (reset_time - int(time.time())) // 60)
+                        print(f"   Rate limit resets in {reset_minutes} minutes")
+
                 return json.loads(response.read().decode())
+
         except HTTPError as e:
+            # Read response body for more detailed error information
+            response_text = ""
+            try:
+                response_text = e.read().decode() if hasattr(e, "read") else str(e)
+            except Exception:
+                response_text = str(e)
+
+            # Extract rate limit info from headers if available
+            rate_limit_reset = None
+            rate_limit_remaining = None
+            if hasattr(e, "headers"):
+                rate_limit_reset = e.headers.get("X-RateLimit-Reset")
+                rate_limit_remaining = e.headers.get("X-RateLimit-Remaining")
+
+            # Convert to specific exception types
             if e.code == 401:
-                raise GitHubAPIError(
-                    "GitHub API authentication failed. Check your GITHUB_TOKEN."
+                raise GitHubAuthenticationError(
+                    "GitHub API authentication failed - invalid or missing token",
+                    token_provided=bool(self.github_token),
+                    details={"status_code": e.code, "response": response_text},
                 )
             elif e.code == 403:
-                raise GitHubAPIError("GitHub API rate limit exceeded or access denied.")
+                if "rate limit" in response_text.lower() or rate_limit_remaining == "0":
+                    reset_time = int(rate_limit_reset) if rate_limit_reset else None
+                    raise GitHubRateLimitError(
+                        "GitHub API rate limit exceeded",
+                        reset_time=reset_time,
+                        remaining=(
+                            int(rate_limit_remaining) if rate_limit_remaining else 0
+                        ),
+                        details={"status_code": e.code, "response": response_text},
+                    )
+                else:
+                    raise GitHubPermissionError(
+                        "GitHub API access denied - insufficient permissions",
+                        repo_owner=self.repo_owner,
+                        repo_name=self.repo_name,
+                        details={"status_code": e.code, "response": response_text},
+                    )
             elif e.code == 404:
-                raise GitHubAPIError(
-                    f"Repository {self.repo_owner}/{self.repo_name} not found."
+                raise GitHubRepositoryError(
+                    f"Repository {self.repo_owner}/{self.repo_name} not found or not accessible",
+                    repo_owner=self.repo_owner,
+                    repo_name=self.repo_name,
+                    details={"status_code": e.code, "response": response_text},
                 )
             else:
-                raise GitHubAPIError(f"GitHub API error: {e.code} {e.reason}")
+                # Use the generic error handler for other HTTP errors
+                raise handle_github_api_error(
+                    e.code, response_text, self.repo_owner, self.repo_name
+                )
+
         except URLError as e:
-            raise GitHubAPIError(f"Network error: {e.reason}")
+            raise GitHubNetworkError(
+                f"Network connectivity error: {e.reason}",
+                original_error=e,
+                details={"url": url, "reason": str(e.reason)},
+            )
+        except json.JSONDecodeError as e:
+            raise GitHubMonitorError(
+                "Invalid JSON response from GitHub API",
+                details={"url": url, "error": str(e)},
+            )
+        except Exception as e:
+            raise GitHubMonitorError(
+                f"Unexpected error during API request: {str(e)}",
+                details={"url": url, "error_type": type(e).__name__},
+            )
 
     def get_current_commit_sha(self) -> str:
         """Get the current commit SHA from git."""
@@ -167,7 +252,11 @@ class GitHubPipelineMonitor:
             )
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
-            raise GitHubAPIError(f"Failed to get current commit SHA: {e}")
+            raise GitHubConfigurationError(
+                f"Failed to get current commit SHA: {e}",
+                config_source="git",
+                details={"command": "git rev-parse HEAD", "error": str(e)},
+            )
 
     def get_current_branch(self) -> str:
         """Get the current git branch name."""
@@ -180,7 +269,11 @@ class GitHubPipelineMonitor:
             )
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
-            raise GitHubAPIError(f"Failed to get current branch: {e}")
+            raise GitHubConfigurationError(
+                f"Failed to get current branch: {e}",
+                config_source="git",
+                details={"command": "git branch --show-current", "error": str(e)},
+            )
 
     def get_workflow_runs_for_commit(self, commit_sha: str) -> List[WorkflowRun]:
         """Get all workflow runs for a specific commit."""
@@ -305,7 +398,7 @@ class GitHubPipelineMonitor:
             Final pipeline status
 
         Raises:
-            GitHubAPIError: If timeout is reached or API errors occur
+            GitHubMonitorError: If timeout is reached or API errors occur
         """
         if commit_sha is None:
             commit_sha = self.get_current_commit_sha()
@@ -342,14 +435,16 @@ class GitHubPipelineMonitor:
                 # Check timeout
                 elapsed = time.time() - start_time
                 if elapsed > timeout_seconds:
-                    raise GitHubAPIError(
-                        f"Pipeline monitoring timeout after {timeout_minutes} minutes"
+                    raise GitHubMonitorError(
+                        f"Pipeline monitoring timeout after {timeout_minutes} minutes",
+                        details={
+                            "timeout_minutes": timeout_minutes,
+                            "elapsed_seconds": elapsed,
+                        },
                     )
 
-                # Wait before next poll
-                print(
-                    f"{self.colors['BLUE']}⏳ Waiting {poll_interval_seconds}s before next check...{self.colors['NC']}"
-                )
+                # Show progress and wait before next poll
+                self.status_reporter.display_progress(status)
                 time.sleep(poll_interval_seconds)
 
             except KeyboardInterrupt:
@@ -359,68 +454,8 @@ class GitHubPipelineMonitor:
                 return self.get_pipeline_status(commit_sha)
 
     def _print_pipeline_status(self, status: PipelineStatus) -> None:
-        """Print a formatted pipeline status report."""
-        print(
-            f"\n{self.colors['BLUE']}📊 Pipeline Status for {status.commit_sha[:8]}:{self.colors['NC']}"
-        )
-
-        for run in status.workflow_runs:
-            if run.status == "completed":
-                if run.conclusion == "success":
-                    icon = f"{self.colors['GREEN']}✅{self.colors['NC']}"
-                elif run.conclusion in ["failure", "cancelled", "timed_out"]:
-                    icon = f"{self.colors['RED']}❌{self.colors['NC']}"
-                else:
-                    icon = f"{self.colors['YELLOW']}⚠️{self.colors['NC']}"
-
-                # Add duration if available and verbose mode
-                duration_text = ""
-                if self.config.verbose and run.duration_seconds:
-                    minutes = run.duration_seconds // 60
-                    seconds = run.duration_seconds % 60
-                    duration_text = f" ({minutes}m {seconds}s)"
-
-                status_text = f"{run.conclusion}{duration_text}"
-            else:
-                icon = f"{self.colors['YELLOW']}🔄{self.colors['NC']}"
-                status_text = f"{run.status}"
-
-            print(f"  {icon} {run.name}: {status_text}")
-
-        # Overall status with enhanced information
-        if status.overall_status == "success":
-            success_count = len(status.success_workflows)
-            print(
-                f"\n{self.colors['GREEN']}🚀 All workflows completed successfully! ({success_count} workflows){self.colors['NC']}"
-            )
-            if self.config.verbose and status.total_duration_seconds:
-                total_minutes = status.total_duration_seconds // 60
-                total_seconds = status.total_duration_seconds % 60
-                print(f"  Total execution time: {total_minutes}m {total_seconds}s")
-        elif status.overall_status == "failure":
-            print(
-                f"\n{self.colors['RED']}💥 Pipeline failed - {len(status.failed_workflows)} workflow(s) failed{self.colors['NC']}"
-            )
-            for workflow in status.failed_workflows:
-                print(f"  {self.colors['RED']}❌ {workflow}{self.colors['NC']}")
-        elif status.overall_status == "pending":
-            pending_count = len(status.pending_workflows)
-            print(
-                f"\n{self.colors['YELLOW']}⏳ Pipeline in progress - {pending_count} workflow(s) pending{self.colors['NC']}"
-            )
-
-            # Show estimated completion time if available
-            if status.estimated_completion_seconds and self.config.progress_indicators:
-                est_minutes = status.estimated_completion_seconds // 60
-                est_seconds = status.estimated_completion_seconds % 60
-                print(f"  Estimated completion: ~{est_minutes}m {est_seconds}s")
-
-            for workflow in status.pending_workflows:
-                print(f"  {self.colors['YELLOW']}🔄 {workflow}{self.colors['NC']}")
-        elif status.overall_status == "no_workflows":
-            print(
-                f"\n{self.colors['YELLOW']}⚠️  No workflows found for this commit{self.colors['NC']}"
-            )
+        """Print a formatted pipeline status report using the enhanced StatusReporter."""
+        self.status_reporter.display_status(status)
 
     def check_pipeline_after_push(self, branch: str = "pre-release") -> PipelineStatus:
         """
@@ -477,9 +512,20 @@ def parse_github_repo_from_remote() -> Tuple[str, str]:
         return owner, repo
 
     except subprocess.CalledProcessError as e:
-        raise GitHubAPIError(f"Failed to get git remote URL: {e}")
+        raise GitHubConfigurationError(
+            f"Failed to get git remote URL: {e}",
+            config_source="git",
+            details={"command": "git remote get-url origin", "error": str(e)},
+        )
     except ValueError as e:
-        raise GitHubAPIError(f"Failed to parse repository info: {e}")
+        raise GitHubConfigurationError(
+            f"Failed to parse repository info: {e}",
+            config_source="git",
+            details={
+                "remote_url": remote_url if "remote_url" in locals() else None,
+                "error": str(e),
+            },
+        )
 
 
 def main():
@@ -533,7 +579,11 @@ def main():
             if "/" in args.repo:
                 config.repo_owner, config.repo_name = args.repo.split("/", 1)
             else:
-                raise GitHubAPIError("Repository must be in format 'owner/name'")
+                raise GitHubConfigurationError(
+                    "Repository must be in format 'owner/name'",
+                    config_source="command_line",
+                    details={"provided_repo": args.repo},
+                )
 
         if args.timeout:
             config.timeout_minutes = args.timeout
@@ -604,8 +654,14 @@ def main():
         else:
             exit(2)  # Pending or no workflows
 
-    except (GitHubAPIError, ConfigurationError) as e:
+    except (GitHubMonitorError, ConfigurationError) as e:
         print(f"❌ Error: {e}")
+
+        # Provide setup guidance for specific error types
+        if hasattr(e, "get_setup_guidance"):
+            print("\n💡 Setup Guidance:")
+            print(e.get_setup_guidance())
+
         exit(1)
     except KeyboardInterrupt:
         print("\n⚠️  Interrupted by user")

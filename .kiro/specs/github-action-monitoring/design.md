@@ -439,6 +439,28 @@ class TestTestSuiteIntegration:
 
 ## Future Enhancements
 
+### Testing and Quality Assurance
+- **Comprehensive unit testing**: Test configuration loading from various sources, error handling for different failure scenarios, retry logic and exponential backoff behavior, and graceful degradation modes
+- **Integration testing**: End-to-end testing of monitoring workflows with real GitHub API interactions
+- **Performance testing**: Validate API efficiency, rate limiting compliance, and resource usage under load
+- **Security testing**: Comprehensive security review of token handling and API communication
+
+### Development Environment Issues
+- **CLI Integration Investigation**: Investigate and resolve CLI command execution synchronization issues where commands appear to return `^C` or truncated output instead of expected results. This affects the ability to run test suites and other commands reliably during development. Consider implementing alternative execution methods or debugging the underlying command execution pipeline.
+- **Temp Directory Command Execution**: Explore alternative command execution using temp directory with command_to_run.sh and results.txt files to bypass CLI integration issues. Initial implementation showed promise but requires file update notification mechanism to be fully effective.
+
+### GitHub Token Setup and Authentication Issues
+- **Problem**: During development session, encountered GitHub token setup complexity where user needed to configure Personal Access Token with appropriate permissions for GitHub Actions monitoring
+- **Specific Issue**: User was presented with extensive permission options in GitHub's token creation interface (Actions, Administration, Artifact metadata, Attestations, Code scanning alerts, Codespaces, etc.) and needed guidance on minimal required permissions
+- **Required Solution**: 
+  - Create streamlined setup documentation that clearly identifies only **Actions: Read-only** permission is needed for pipeline monitoring
+  - Implement automated token validation to verify correct permissions are set
+  - Add setup wizard or guided configuration that walks users through minimal token creation
+  - Consider implementing token permission detection and warnings for over-privileged tokens
+- **Current Workaround**: Manual token setup with user guidance, but this creates friction for new users
+- **Priority**: Medium - affects initial user onboarding experience but doesn't block core functionality
+- **Implementation Notes**: Should integrate with existing ConfigManager and provide clear error messages with actionable setup instructions
+
 ### Advanced Monitoring Features
 - **Workflow dependency tracking**: Monitor dependent workflows and their relationships
 - **Historical analysis**: Track pipeline performance trends over time

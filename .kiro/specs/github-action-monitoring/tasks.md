@@ -14,28 +14,23 @@
   - Add auto-detection of repository information from git remote
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 1.2 Implement enhanced error handling and recovery
+- [x] 1.2 Implement enhanced error handling and recovery
   - Create specific exception classes for different error types (authentication, network, API)
   - Add retry logic with exponential backoff for transient failures
   - Implement graceful degradation when GitHub API is unavailable
   - Add comprehensive error messages with actionable guidance
   - _Requirements: 4.4, 5.3, 5.4, 5.5_
 
-- [ ]* 1.3 Write unit tests for configuration and error handling
-  - Test configuration loading from various sources
-  - Test error handling for different failure scenarios
-  - Test retry logic and exponential backoff behavior
-  - Test graceful degradation modes
-  - _Requirements: 4.1, 4.2, 4.3, 4.4, 5.3, 5.4_
 
-- [ ] 2. Create status reporting and user feedback system
+
+- [-] 2. Create status reporting and user feedback system
   - Implement `StatusReporter` class with multiple output formats (console, JSON, minimal)
   - Add real-time progress indicators with estimated completion times
   - Create formatted status displays with color coding and icons
   - Add support for different verbosity levels and quiet mode
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 2.1 Implement progress tracking and estimation
+- [x] 2.1 Implement progress tracking and estimation
   - Add duration tracking for workflow runs
   - Implement completion time estimation based on historical data
   - Create progress indicators that update in real-time during polling
@@ -49,7 +44,7 @@
   - Add support for JSON output format for programmatic consumption
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ]* 2.3 Write unit tests for status reporting
+- [ ] 2.3 Write unit tests for status reporting
   - Test status formatting for different pipeline states
   - Test progress indicator updates and completion estimation
   - Test output format variations (console, JSON, minimal)

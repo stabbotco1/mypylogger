@@ -278,6 +278,32 @@ All badges update automatically based on the latest CI/CD pipeline results and c
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## GitHub Actions Monitoring
+
+This project includes advanced GitHub Actions pipeline monitoring for local development:
+
+```bash
+# Monitor current commit's pipeline status
+python scripts/github_pipeline_monitor.py --status-only --repo stabbotco1/mypylogger
+
+# Example output:
+# 📊 Pipeline Status
+# 📝 Commit: 2f40aaa5
+# ✅ Overall Status: SUCCESS
+# Workflows:
+#   ✅ CI/CD Pipeline: success (1m 23s)
+#   ✅ Security Scanning: success (45s)
+```
+
+**Setup Required**: You need a GitHub Personal Access Token to use pipeline monitoring.
+
+📖 **[Complete GitHub Token Setup Guide](docs/GITHUB_TOKEN_SETUP.md)** - Step-by-step instructions for secure token configuration
+
+### Quick Setup
+1. Create token at https://github.com/settings/tokens with **Actions: Read-only** permission
+2. Set environment variable: `export GITHUB_TOKEN=your_token_here`
+3. Test: `python scripts/github_pipeline_monitor.py --status-only --repo your-username/your-repo`
+
 ## Contributing
 
 1. Fork the repository

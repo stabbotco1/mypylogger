@@ -371,22 +371,28 @@ class ConfigManager:
         return """
 GitHub Actions Monitor Setup Instructions:
 
+🔗 Complete Setup Guide: docs/GITHUB_TOKEN_SETUP.md
+
+Quick Setup:
 1. Create a GitHub Personal Access Token:
    - Go to https://github.com/settings/tokens
    - Click "Generate new token (classic)"
-   - Select scopes: repo (for private repos) or public_repo (for public repos)
-   - Copy the token
+   - IMPORTANT: Only select "Actions: Read-only" permission
+   - Copy the token (starts with ghp_)
 
 2. Set the GITHUB_TOKEN environment variable:
-   export GITHUB_TOKEN=your_token_here
+   echo 'export GITHUB_TOKEN=your_token_here' >> ~/.zshrc
+   source ~/.zshrc
 
-3. (Optional) Create a configuration file:
-   Run: python -c "from scripts.github_monitor_config import ConfigManager; ConfigManager().create_sample_config()"
+3. Test the configuration:
+   python scripts/github_pipeline_monitor.py --status-only --repo your-username/your-repo
 
-4. Test the configuration:
-   python scripts/github_pipeline_monitor.py --status-only
+4. You should see output like:
+   📊 Pipeline Status
+   📝 Commit: abc12345
+   ✅ Overall Status: SUCCESS
 
-For more information, see the documentation.
+For detailed troubleshooting and security considerations, see docs/GITHUB_TOKEN_SETUP.md
 """
 
 
