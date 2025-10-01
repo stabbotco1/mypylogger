@@ -1,0 +1,51 @@
+Command: python -m pytest tests/ -x --tb=short
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0
+rootdir: /Users/stephenabbot/projects/mypylogger
+configfile: pyproject.toml
+plugins: mock-3.15.1, anyio-4.11.0, cov-7.0.0
+collected 317 items
+
+tests/test_cache_manager.py ................................             [ 10%]
+tests/test_complete_workflows.py .........                               [ 12%]
+tests/test_coverage_improvements.py ...............                      [ 17%]
+tests/test_documentation_validation.py ....................              [ 23%]
+tests/test_end_to_end_integration.py .............                       [ 28%]
+tests/test_file_handler_integration.py .....                             [ 29%]
+tests/test_github_status_reporter.py ...................                 [ 35%]
+tests/test_integration_error_handling.py .................               [ 41%]
+tests/test_intelligent_polling.py ............................           [ 49%]
+tests/test_json_schema_validation.py ............                        [ 53%]
+tests/test_main_api.py ..........                                        [ 56%]
+tests/test_make_integration.py ..........................                [ 64%]
+tests/test_performance.py .....                                          [ 66%]
+tests/test_performance_and_security_validation.py ...............        [ 71%]
+tests/test_test_suite_integration.py ................                    [ 76%]
+tests/unit/test_config.py .............                                  [ 80%]
+tests/unit/test_config_stubs.py ...                                      [ 81%]
+tests/unit/test_core_stubs.py ...                                        [ 82%]
+tests/unit/test_formatters.py ....................                       [ 88%]
+tests/unit/test_handlers.py ................                             [ 93%]
+tests/unit/test_singleton.py ....................                        [100%]
+
+=============================== warnings summary ===============================
+scripts/run_complete_test_suite.py:50
+  /Users/stephenabbot/projects/mypylogger/scripts/run_complete_test_suite.py:50: PytestCollectionWarning: cannot collect test class 'TestSuiteRunner' because it has a __init__ constructor (from: tests/test_test_suite_integration.py)
+    class TestSuiteRunner:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.11.9-final-0 _______________
+
+Name                       Stmts   Miss   Cover   Missing
+---------------------------------------------------------
+mypylogger/__init__.py        17      0 100.00%
+mypylogger/config.py          35      0 100.00%
+mypylogger/core.py            61      1  98.36%   67
+mypylogger/formatters.py      92     12  86.96%   16-32, 108
+mypylogger/handlers.py        27      0 100.00%
+---------------------------------------------------------
+TOTAL                        232     13  94.40%
+Coverage HTML written to dir htmlcov
+Required test coverage of 90% reached. Total coverage: 94.40%
+======================== 317 passed, 1 warning in 8.76s ========================

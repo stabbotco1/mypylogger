@@ -1,7 +1,7 @@
 # Makefile for mypylogger development workflow
 # Provides automated quality checks, testing, and development commands
 
-.PHONY: help install install-dev clean lint format type-check security test test-fast test-coverage test-performance test-all build check-package pre-commit setup-dev
+.PHONY: help install install-dev clean lint format type-check security test test-fast test-coverage test-performance test-all build check-package pre-commit setup-dev monitor-pipeline monitor-after-push check-pipeline-status wait-for-pipeline wait-for-pipeline-extended test-complete-with-pipeline test-complete-wait-pipeline test-complete-bypass-pipeline quality-gate-full ci-full pre-push-full
 
 # Default target
 help:
@@ -39,9 +39,21 @@ help:
 	@echo "  verify-badges  Verify README badge URLs and configuration"
 	@echo "  fix-formatting Fix all code formatting issues automatically"
 	@echo ""
+	@echo "Pipeline Monitoring:"
+	@echo "  monitor-pipeline       Monitor current commit's pipeline status"
+	@echo "  monitor-after-push     Monitor pipeline after push to pre-release"
+	@echo "  check-pipeline-status  Quick pipeline status check"
+	@echo "  wait-for-pipeline      Wait for pipeline completion with timeout"
+	@echo ""
 	@echo "Development Workflow:"
 	@echo "  qa             Run all quality checks (lint + type + security)"
 	@echo "  ci             Run full CI pipeline locally"
+	@echo "  ci-full        Enhanced CI with pipeline verification"
+	@echo "  quality-gate-full Enhanced quality gate with optional pipeline check"
+	@echo "  pre-push-full  Enhanced pre-push with pipeline awareness"
+	@echo ""
+	@echo "Environment Variables:"
+	@echo "  ENABLE_PIPELINE_CHECK=true   Enable pipeline checking in enhanced targets"
 
 # Installation commands
 install:
@@ -139,6 +151,20 @@ ci: qa test-coverage test-performance build check-package
 	@echo "Full CI pipeline completed successfully!"
 	@echo "Package is ready for release."
 
+# Enhanced CI with pipeline integration
+ci-full: qa test-coverage test-performance build check-package
+	@echo "Running enhanced CI pipeline with remote pipeline verification..."
+	@if [ "$$ENABLE_PIPELINE_CHECK" = "true" ]; then \
+		echo "Verifying remote GitHub Actions pipelines..."; \
+		python scripts/github_pipeline_monitor.py --status-only --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/') || \
+		(echo "❌ Remote pipelines failed - CI pipeline blocked"; exit 1); \
+		echo "✅ Remote pipelines passed"; \
+	else \
+		echo "Remote pipeline checking disabled (set ENABLE_PIPELINE_CHECK=true to enable)"; \
+	fi
+	@echo "Enhanced CI pipeline completed successfully!"
+	@echo "Package is ready for release with verified remote pipelines."
+
 # Complete test suite runner
 test-complete:
 	@echo "Running complete test suite with comprehensive reporting..."
@@ -146,7 +172,7 @@ test-complete:
 
 test-complete-fast:
 	@echo "Running fast test suite verification..."
-	./scripts/run-complete-test-suite.sh --fast
+	./scripts/run-complete-test-suite.sh --verbose
 
 test-complete-performance:
 	@echo "Running complete test suite with performance benchmarks..."
@@ -170,6 +196,18 @@ benchmark: test-performance
 quality-gate: qa test-coverage
 	@echo "Quality gate passed!"
 	@echo "Code meets all quality standards."
+
+# Enhanced quality gate with optional pipeline checking
+quality-gate-full: qa test-coverage
+	@echo "Running enhanced quality gate..."
+	@if [ "$$ENABLE_PIPELINE_CHECK" = "true" ]; then \
+		echo "Pipeline checking enabled - verifying remote pipelines..."; \
+		./scripts/run-complete-test-suite.sh --check-pipeline --verbose; \
+	else \
+		echo "Pipeline checking disabled (set ENABLE_PIPELINE_CHECK=true to enable)"; \
+		./scripts/run-complete-test-suite.sh --verbose; \
+	fi
+	@echo "Enhanced quality gate passed!"
 
 # Development server/tools
 dev-server:
@@ -200,7 +238,55 @@ pre-push: qa test-coverage
 	@echo "Pre-push checks complete!"
 	@echo "Safe to push to repository."
 
+# Enhanced pre-push with pipeline awareness
+pre-push-full: qa test-coverage
+	@echo "Running enhanced pre-push checks..."
+	@if [ "$$ENABLE_PIPELINE_CHECK" = "true" ]; then \
+		echo "Checking current pipeline status before push..."; \
+		python scripts/github_pipeline_monitor.py --status-only --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/') && \
+		echo "✅ Current pipelines are passing - safe to push" || \
+		(echo "⚠️  Current pipelines have issues - consider waiting or fixing before push"; exit 1); \
+	else \
+		echo "Pipeline checking disabled (set ENABLE_PIPELINE_CHECK=true to enable)"; \
+	fi
+	@echo "Enhanced pre-push checks complete!"
+
 # Release preparation
 prepare-release: ci
 	@echo "Release preparation complete!"
 	@echo "Ready for version tagging and PyPI publication."
+
+# Pipeline monitoring commands
+monitor-pipeline:
+	@echo "Monitoring current commit's pipeline status..."
+	python scripts/github_pipeline_monitor.py --status-only --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/')
+
+monitor-after-push:
+	@echo "Monitoring pipeline after push to pre-release..."
+	python scripts/github_pipeline_monitor.py --after-push --branch pre-release --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/')
+
+check-pipeline-status:
+	@echo "Quick pipeline status check..."
+	python scripts/github_pipeline_monitor.py --status-only --format minimal --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/')
+
+wait-for-pipeline:
+	@echo "Waiting for pipeline completion (30 minute timeout)..."
+	python scripts/github_pipeline_monitor.py --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/')
+
+wait-for-pipeline-extended:
+	@echo "Waiting for pipeline completion (60 minute timeout)..."
+	python scripts/github_pipeline_monitor.py --timeout 60 --repo $(shell git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\)\.git/\1/')
+
+# Pipeline-integrated quality gates
+test-complete-with-pipeline:
+	@echo "Running complete test suite with pipeline quality gate..."
+	./scripts/run-complete-test-suite.sh --check-pipeline
+
+test-complete-wait-pipeline:
+	@echo "Running complete test suite and waiting for pipeline completion..."
+	./scripts/run-complete-test-suite.sh --check-pipeline --pipeline-wait
+
+# Emergency bypass for pipeline issues
+test-complete-bypass-pipeline:
+	@echo "Running complete test suite with pipeline bypass (emergency mode)..."
+	./scripts/run-complete-test-suite.sh --check-pipeline --pipeline-bypass

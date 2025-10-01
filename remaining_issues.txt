@@ -1,0 +1,48 @@
+Command: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+./scripts/github_help_system.py:450:23: F821 undefined name 'Request'
+            request = Request("https://api.github.com")
+                      ^
+./scripts/github_help_system.py:451:18: F821 undefined name 'urlopen'
+            with urlopen(request, timeout=10) as response:
+                 ^
+./scripts/github_help_system.py:466:16: F821 undefined name 'URLError'
+        except URLError as e:
+               ^
+./scripts/github_help_system.py:493:23: F821 undefined name 'Request'
+            request = Request("https://api.github.com/user")
+                      ^
+./scripts/github_help_system.py:497:18: F821 undefined name 'urlopen'
+            with urlopen(request, timeout=10) as response:
+                 ^
+./scripts/github_help_system.py:512:16: F821 undefined name 'HTTPError'
+        except HTTPError as e:
+               ^
+./scripts/github_help_system.py:561:23: F821 undefined name 'Request'
+            request = Request(f"https://api.github.com/repos/{owner}/{repo}")
+                      ^
+./scripts/github_help_system.py:565:18: F821 undefined name 'urlopen'
+            with urlopen(request, timeout=10) as response:
+                 ^
+./scripts/github_help_system.py:580:16: F821 undefined name 'HTTPError'
+        except HTTPError as e:
+               ^
+./scripts/github_pipeline_monitor.py:337:22: F821 undefined name 'time'
+        start_time = time.time()
+                     ^
+./scripts/github_pipeline_monitor.py:356:32: F821 undefined name 'time'
+                current_time = time.time()
+                               ^
+./scripts/github_pipeline_monitor.py:370:27: F821 undefined name 'time'
+                elapsed = time.time() - start_time
+                          ^
+./scripts/github_pipeline_monitor.py:420:17: F821 undefined name 'time'
+                time.sleep(next_poll_interval)
+                ^
+./scripts/github_pipeline_monitor.py:486:9: F821 undefined name 'time'
+        time.sleep(10)
+        ^
+./scripts/github_pipeline_monitor.py:647:21: F821 undefined name 'json'
+                    json.dumps(
+                    ^
+15    F821 undefined name 'Request'
+15

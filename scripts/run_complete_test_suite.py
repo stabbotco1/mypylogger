@@ -56,11 +56,21 @@ class TestSuiteRunner:
         fast: bool = False,
         performance: bool = False,
         subset: Optional[str] = None,
+        check_pipeline: bool = False,
+        pipeline_branch: str = "pre-release",
+        pipeline_timeout: int = 30,
+        pipeline_bypass: bool = False,
+        pipeline_wait: bool = False,
     ):
         self.verbose = verbose
         self.fast = fast
         self.performance = performance
         self.subset = subset
+        self.check_pipeline = check_pipeline
+        self.pipeline_branch = pipeline_branch
+        self.pipeline_timeout = pipeline_timeout
+        self.pipeline_bypass = pipeline_bypass
+        self.pipeline_wait = pipeline_wait
         self.coverage_threshold = 90
         self.start_time = time.time()
         self.results: Dict[str, TestResult] = {}
@@ -205,6 +215,199 @@ class TestSuiteRunner:
         )
 
         return success
+
+    def check_pipeline_status(self) -> bool:
+        """Check GitHub Actions pipeline status with quality gate enforcement."""
+        if not self.check_pipeline:
+            return True
+
+        # Check for bypass option
+        if self.pipeline_bypass:
+            if self.verbose:
+                self.print_warning(
+                    "Pipeline checking bypassed - emergency mode enabled"
+                )
+            self.results["pipeline_check"] = TestResult("pipeline_check", "SKIP", 0.0)
+            return True
+
+        if self.verbose:
+            self.print_header("GITHUB PIPELINE STATUS")
+            self.print_step(
+                "Checking remote pipeline status for quality gate enforcement"
+            )
+
+        try:
+            # Import GitHub pipeline monitor
+            import sys
+            from pathlib import Path
+
+            # Add scripts directory to path for imports
+            scripts_dir = Path(__file__).parent
+            sys.path.insert(0, str(scripts_dir))
+
+            from github_monitor_config import ConfigManager, MonitoringMode
+            from github_pipeline_monitor import GitHubPipelineMonitor
+
+            # Load configuration
+            config_manager = ConfigManager()
+            config = config_manager.load_config()
+
+            # Check if monitoring is available
+            monitoring_mode = config_manager.determine_monitoring_mode(config)
+            if monitoring_mode == MonitoringMode.DISABLED:
+                if self.verbose:
+                    self.print_warning(
+                        "GitHub pipeline monitoring disabled - no token configured"
+                    )
+                    self.print_warning(
+                        "Set GITHUB_TOKEN environment variable to enable pipeline checking"
+                    )
+                self.results["pipeline_check"] = TestResult(
+                    "pipeline_check", "SKIP", 0.0
+                )
+                return True
+
+            # Create monitor and check status
+            monitor = GitHubPipelineMonitor(config)
+
+            start_time = time.time()
+            status = monitor.get_pipeline_status()
+            duration = time.time() - start_time
+
+            # Override timeout from command line
+            if self.pipeline_timeout:
+                config.timeout_minutes = self.pipeline_timeout
+
+            if self.pipeline_wait:
+                # Wait for pipeline completion with timeout
+                if self.verbose:
+                    self.print_step(
+                        f"Waiting for pipeline completion (timeout: {self.pipeline_timeout}m)"
+                    )
+                status = monitor.wait_for_pipeline_completion(
+                    timeout_minutes=self.pipeline_timeout
+                )
+            else:
+                # Just check current status
+                status = monitor.get_pipeline_status()
+
+            duration = time.time() - start_time
+
+            # Quality gate enforcement logic
+            if status.overall_status == "success":
+                self.results["pipeline_check"] = TestResult(
+                    "pipeline_check", "PASS", duration
+                )
+                self.print_success(
+                    f"✅ Pipeline quality gate: PASSED ({duration:.1f}s)"
+                )
+                if self.verbose:
+                    for workflow in status.success_workflows:
+                        print(f"   ✅ {workflow}")
+                return True
+
+            elif status.overall_status == "failure":
+                self.results["pipeline_check"] = TestResult(
+                    "pipeline_check", "FAIL", duration
+                )
+                self.print_error("❌ Pipeline quality gate: FAILED")
+                self.print_error(
+                    f"   {len(status.failed_workflows)} workflow(s) failed - blocking test suite completion"
+                )
+
+                if self.verbose:
+                    print(f"\n{Colors.RED}Failed Workflows:{Colors.NC}")
+                    for workflow in status.failed_workflows:
+                        print(f"   ❌ {workflow}")
+                        # Find the workflow run for more details
+                        for run in status.workflow_runs:
+                            if run.name == workflow:
+                                print(f"      🔗 {run.html_url}")
+                                break
+
+                # Provide resolution guidance
+                print(f"\n{Colors.YELLOW}💡 Resolution Options:{Colors.NC}")
+                print("   1. Fix the failing workflows and push new commits")
+                print("   2. Use --pipeline-bypass for emergency situations")
+                print("   3. Use --pipeline-wait to wait for completion")
+                print(
+                    f"   4. Check workflow details: https://github.com/{config.repo_owner}/{config.repo_name}/actions"
+                )
+
+                return False
+
+            elif status.overall_status == "pending":
+                self.results["pipeline_check"] = TestResult(
+                    "pipeline_check", "FAIL", duration
+                )
+                self.print_error("⏳ Pipeline quality gate: PENDING")
+                self.print_error(
+                    f"   {len(status.pending_workflows)} workflow(s) still running - blocking test suite completion"
+                )
+
+                if self.verbose:
+                    print(f"\n{Colors.YELLOW}Pending Workflows:{Colors.NC}")
+                    for workflow in status.pending_workflows:
+                        print(f"   🔄 {workflow}")
+                        # Find the workflow run for more details
+                        for run in status.workflow_runs:
+                            if run.name == workflow:
+                                print(f"      🔗 {run.html_url}")
+                                break
+
+                    if status.estimated_completion_seconds:
+                        est_minutes = status.estimated_completion_seconds // 60
+                        print(f"   ⏱️  Estimated completion: ~{est_minutes}m")
+
+                # Provide resolution guidance
+                print(f"\n{Colors.YELLOW}💡 Resolution Options:{Colors.NC}")
+                print(
+                    f"   1. Use --pipeline-wait to wait for completion (timeout: {self.pipeline_timeout}m)"
+                )
+                print("   2. Use --pipeline-bypass for emergency situations")
+                print(
+                    f"   3. Monitor progress: https://github.com/{config.repo_owner}/{config.repo_name}/actions"
+                )
+
+                return False
+
+            else:  # no_workflows
+                self.results["pipeline_check"] = TestResult(
+                    "pipeline_check", "SKIP", duration
+                )
+                if self.verbose:
+                    self.print_warning(
+                        "No workflows found for current commit - quality gate skipped"
+                    )
+                return True
+
+        except ImportError as e:
+            if self.verbose:
+                self.print_warning(f"GitHub monitoring not available: {e}")
+                self.print_warning("Use --pipeline-bypass if monitoring is not needed")
+            self.results["pipeline_check"] = TestResult("pipeline_check", "SKIP", 0.0)
+            return True
+
+        except Exception as e:
+            duration = time.time() - start_time if "start_time" in locals() else 0.0
+            self.results["pipeline_check"] = TestResult(
+                "pipeline_check", "FAIL", duration
+            )
+            self.print_error(f"❌ Pipeline quality gate: ERROR - {e}")
+
+            if self.verbose:
+                import traceback
+
+                traceback.print_exc()
+
+            # Provide resolution guidance for errors
+            print(f"\n{Colors.YELLOW}💡 Resolution Options:{Colors.NC}")
+            print("   1. Check your GITHUB_TOKEN environment variable")
+            print("   2. Verify repository access permissions")
+            print("   3. Use --pipeline-bypass for emergency situations")
+            print("   4. Run with --verbose for detailed error information")
+
+            return False
 
     def run_tests(self) -> bool:
         """Run the test suite."""
@@ -378,6 +581,7 @@ class TestSuiteRunner:
             "package_validation",
             "badges",
             "documentation",
+            "pipeline_check",
         ]
 
         for check in check_order:
@@ -455,6 +659,10 @@ class TestSuiteRunner:
             overall_success &= self.verify_package_build()
             overall_success &= self.verify_documentation()
 
+            # Check pipeline status (after all local checks pass)
+            if overall_success or not self.check_pipeline:
+                overall_success &= self.check_pipeline_status()
+
         # Generate report
         self.generate_report()
 
@@ -473,8 +681,21 @@ Examples:
   python scripts/run_complete_test_suite.py --verbose         # Summary output only
   python scripts/run_complete_test_suite.py --subset quality  # Quality checks
   python scripts/run_complete_test_suite.py --subset tests    # Tests only
+  python scripts/run_complete_test_suite.py --check-pipeline  # Include pipeline status
+
+Pipeline Integration:
+  --check-pipeline                                            # Check GitHub Actions status
+  --pipeline-branch main                                      # Monitor specific branch
+  --pipeline-timeout 60                                       # Custom timeout (minutes)
+  --pipeline-bypass                                           # Emergency bypass option
+  --pipeline-wait                                             # Wait for completion
+
+Quality Gate Enforcement:
+  python scripts/run_complete_test_suite.py --check-pipeline --pipeline-wait  # Wait for pipelines
+  python scripts/run_complete_test_suite.py --check-pipeline --pipeline-bypass # Emergency mode
 
 Note: Fast mode is temporarily disabled until full test suite passes consistently.
+Pipeline checking requires GITHUB_TOKEN environment variable.
         """,
     )
 
@@ -497,6 +718,32 @@ Note: Fast mode is temporarily disabled until full test suite passes consistentl
         choices=["quality", "tests", "security", "build", "docs"],
         help="Run only specific test subset",
     )
+    parser.add_argument(
+        "--check-pipeline",
+        action="store_true",
+        help="Check GitHub Actions pipeline status before completing",
+    )
+    parser.add_argument(
+        "--pipeline-branch",
+        default="pre-release",
+        help="Branch to monitor for pipeline status (default: pre-release)",
+    )
+    parser.add_argument(
+        "--pipeline-timeout",
+        type=int,
+        default=30,
+        help="Timeout in minutes for pipeline completion (default: 30)",
+    )
+    parser.add_argument(
+        "--pipeline-bypass",
+        action="store_true",
+        help="Bypass pipeline checking for emergency situations",
+    )
+    parser.add_argument(
+        "--pipeline-wait",
+        action="store_true",
+        help="Wait for pipeline completion instead of just checking current status",
+    )
 
     args = parser.parse_args()
 
@@ -506,6 +753,11 @@ Note: Fast mode is temporarily disabled until full test suite passes consistentl
         fast=False,  # Disabled fast mode until full test suite passes
         performance=args.performance,
         subset=args.subset,
+        check_pipeline=args.check_pipeline,
+        pipeline_branch=args.pipeline_branch,
+        pipeline_timeout=args.pipeline_timeout,
+        pipeline_bypass=args.pipeline_bypass,
+        pipeline_wait=args.pipeline_wait,
     )
 
     success = runner.run()

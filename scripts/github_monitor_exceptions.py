@@ -27,6 +27,23 @@ class GitHubMonitorError(Exception):
             return f"{self.message} (Details: {self.details})"
         return self.message
 
+    def get_setup_guidance(self) -> str:
+        """
+        Get contextual setup guidance for this error.
+
+        Returns:
+            Formatted help text with specific guidance
+        """
+        try:
+            from github_help_system import GitHubHelpSystem
+
+            help_system = GitHubHelpSystem()
+            return help_system.get_setup_guidance(self)
+        except ImportError:
+            return (
+                "For setup help, run: python scripts/github_help_system.py --setup-help"
+            )
+
 
 class GitHubAuthenticationError(GitHubMonitorError):
     """Raised when GitHub API authentication fails."""

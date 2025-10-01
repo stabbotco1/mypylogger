@@ -408,6 +408,9 @@ def main():
         "--validate", action="store_true", help="Validate current configuration"
     )
     parser.add_argument(
+        "--diagnose", action="store_true", help="Run comprehensive diagnostics"
+    )
+    parser.add_argument(
         "--show-config", action="store_true", help="Show current configuration"
     )
     parser.add_argument(
@@ -424,6 +427,18 @@ def main():
             config_manager.create_sample_config()
         elif args.setup_help:
             print(config_manager.get_setup_instructions())
+        elif args.diagnose:
+            # Import help system for comprehensive diagnostics
+            try:
+                from github_help_system import GitHubHelpSystem
+
+                help_system = GitHubHelpSystem()
+                success = help_system.validate_setup()
+                exit(0 if success else 1)
+            except ImportError:
+                print("❌ Help system not available")
+                print("💡 Try: python scripts/github_help_system.py --diagnose")
+                exit(1)
         elif args.validate or args.show_config:
             config = config_manager.load_config(args.config_file)
             mode = config_manager.determine_monitoring_mode(config)
@@ -440,6 +455,26 @@ def main():
             if args.validate:
                 print("✅ Configuration is valid")
                 print(f"Monitoring mode: {mode.value}")
+
+                # Run basic diagnostics
+                try:
+                    from github_help_system import GitHubHelpSystem
+
+                    help_system = GitHubHelpSystem()
+                    results = help_system.run_diagnostics()
+                    failed_checks = [r for r in results if not r.passed]
+
+                    if failed_checks:
+                        print(f"\n⚠️  {len(failed_checks)} diagnostic check(s) failed:")
+                        for result in failed_checks:
+                            print(f"   ❌ {result.name}: {result.message}")
+                        print("\n💡 Run --diagnose for detailed troubleshooting")
+                    else:
+                        print("✅ All diagnostic checks passed")
+                except ImportError:
+                    print(
+                        "💡 For comprehensive diagnostics: python scripts/github_help_system.py --diagnose"
+                    )
         else:
             parser.print_help()
 

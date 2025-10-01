@@ -195,15 +195,94 @@ With AI assistance, documentation quality can be dramatically improved:
 
 ## Quality Gates
 
+### Task Completion Strategy
+
+**Rule: "Proceed on formatting/linting issues, pause on functional failures"**
+
+#### Continue Through (Don't Block Progress):
+- ❌ **Formatting issues** - Black code formatting violations
+- ❌ **Import sorting** - isort violations  
+- ❌ **Style linting** - flake8 style issues (line length, etc.)
+- ❌ **Minor linting** - Non-functional code style violations
+
+#### Stop and Fix (Block Progress):
+- ✅ **Test failures** - Broken functionality or logic errors
+- ✅ **Import errors** - Missing dependencies or circular imports
+- ✅ **Runtime exceptions** - Code that crashes or fails to execute
+- ✅ **Type checking errors** - Serious type mismatches
+- ✅ **Security vulnerabilities** - Actual security issues
+
+#### Rationale:
+- **Maintain momentum** during initial implementation
+- **Batch efficiency** - Fix all formatting at milestone completion
+- **Focus on functionality** - Ensure features work before polishing
+- **Faster iteration** - Complete features without constant style interruption
+
 ### Before Moving to Next Task
 - [ ] **Complete test suite passes** - Run `make test-complete-fast` for verification
 - [ ] **Coverage maintained** - ≥90% test coverage requirement met
 - [ ] **No regressions introduced** - All existing functionality intact
-- [ ] **Quality gates pass** - Code formatting, linting, type checking, security
+- [ ] **Core functionality works** - Features operate as designed (ignore style issues)
 - [ ] **Documentation updated** - Any new features or changes documented
 - [ ] **Performance validated** - Run `make test-complete-performance` for critical changes
 
 **Quick Verification Command**: `make test-complete-fast`
+
+### Batch Formatting Cleanup
+- **At milestone completion** - Run `black . && isort . && flake8 .` to clean up all style issues
+- **Before final delivery** - Comprehensive formatting and linting pass
+- **When convenient** - During natural breaks in development flow
+
+## Command Output Workflow Improvement
+
+### Problem
+AI agents often need to see command output to debug issues, but chat windows have limited capacity for large outputs, creating inefficient back-and-forth communication.
+
+### Solution: Tee Pattern
+Use the `tee` command to simultaneously display output to console AND save to workspace file:
+
+```bash
+# Pattern: command | tee output_file.txt
+python -m pytest tests/test_file.py -v --no-cov | tee test_results.txt
+make quality-gate-full | tee build_results.txt
+./scripts/run-complete-test-suite.sh | tee suite_results.txt
+```
+
+### Enhanced Tee Pattern for AI Workflow
+For AI agents to effectively analyze command output, include the command itself in the output file:
+
+```bash
+# Pattern: Include command in output for AI analysis
+echo "Command: python scripts/github_help_system.py --diagnose" | tee test_results.txt
+python scripts/github_help_system.py --diagnose | tee -a test_results.txt
+```
+
+**File Format**: The output file should contain:
+1. **Command executed** (for context)
+2. **Complete output** (stdout and stderr)
+3. **Clear separation** between command and output
+
+### Benefits
+✅ **Immediate visibility** - User sees output in real-time
+✅ **AI accessibility** - Agent can read file directly with `readFile` tool
+✅ **Efficient debugging** - No need to paste large outputs in chat
+✅ **Complete capture** - Both stdout and stderr captured
+✅ **Workspace persistence** - Results available for later reference
+
+### Usage Pattern
+1. **User runs command** with `| tee results.txt`
+2. **User confirms completion** ("done")  
+3. **AI reads file directly** with `readFile` tool
+4. **AI analyzes and responds** with specific fixes/next steps
+
+### Implementation Notes
+- Use descriptive filenames: `test_results.txt`, `build_output.txt`, `error_log.txt`
+- Files are created in workspace root for easy AI access
+- Pattern works for any command that produces significant output
+- Particularly valuable for: test runs, build processes, linting, error diagnosis
+
+### Future Enhancement Opportunity
+This pattern could be automated in development tooling or IDE integrations to always capture command output for AI analysis.
 
 ### Before Project Completion
 - [ ] **Complete test suite passes** - Run `make test-complete-performance` for full validation

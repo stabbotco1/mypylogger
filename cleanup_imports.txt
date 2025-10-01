@@ -1,0 +1,41 @@
+Command: python -c "
+import re
+
+# Fix remaining unused imports
+fixes = [
+    ('scripts/github_help_system.py', [
+        (r'from github_monitor_config import ConfigManager, MonitoringConfig', 'from github_monitor_config import ConfigManager'),
+        (r'from github_monitor_exceptions import \(\s*GitHubAuthenticationError,\s*GitHubConfigurationError,\s*GitHubMonitorError,', 'from github_monitor_exceptions import (
+        GitHubAuthenticationError,
+        GitHubConfigurationError,'),
+        (r'result = subprocess\.run\(', '_ = subprocess.run(')
+    ]),
+    ('scripts/github_intelligent_polling.py', [
+        (r'from datetime import datetime, timedelta, timezone', 'from datetime import datetime, timezone'),
+        (r'from typing import Dict, List, Optional, Set', 'from typing import Dict, List, Optional'),
+        (r'from github_data_models import PipelineStatus, WorkflowRun', 'from github_data_models import WorkflowRun'),
+        (r'old_status = history\.last_seen_status', '_ = history.last_seen_status')
+    ]),
+    ('scripts/github_pipeline_monitor.py', [
+        (r'from urllib\.parse import urljoin', ''),
+        (r'from github_monitor_exceptions import \([^)]+\)', '')
+    ])
+]
+
+for file_path, file_fixes in fixes:
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+        
+        for pattern, replacement in file_fixes:
+            content = re.sub(pattern, replacement, content, flags=re.MULTILINE | re.DOTALL)
+        
+        with open(file_path, 'w') as f:
+            f.write(content)
+        print(f'Fixed {file_path}')
+    except Exception as e:
+        print(f'Error fixing {file_path}: {e}')
+"
+Fixed scripts/github_help_system.py
+Fixed scripts/github_intelligent_polling.py
+Fixed scripts/github_pipeline_monitor.py

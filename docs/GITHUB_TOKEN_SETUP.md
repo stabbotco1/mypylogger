@@ -9,6 +9,14 @@ The GitHub Actions monitoring system requires a GitHub Personal Access Token to:
 - Monitor pipeline progress in real-time
 - Integrate pipeline status with local development tools
 
+## Quick Setup (TL;DR)
+
+1. Go to [GitHub Settings → Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select **Actions: Read** permission only
+4. Copy token and set: `export GITHUB_TOKEN="your_token_here"`
+5. Test: `python scripts/github_pipeline_monitor.py --status-only`
+
 ## Step-by-Step Setup
 
 ### 1. Create a GitHub Personal Access Token

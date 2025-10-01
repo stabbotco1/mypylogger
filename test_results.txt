@@ -1,0 +1,31 @@
+Quick status check
+Import sorting:
+Skipped 4 files
+Linting:
+Tests:
+........................................................................ [ 22%]
+........................................................................ [ 45%]
+........................................................................ [ 68%]
+........................................................................ [ 90%]
+.............................                                            [100%]
+=============================== warnings summary ===============================
+scripts/run_complete_test_suite.py:50
+  /Users/stephenabbot/projects/mypylogger/scripts/run_complete_test_suite.py:50: PytestCollectionWarning: cannot collect test class 'TestSuiteRunner' because it has a __init__ constructor (from: tests/test_test_suite_integration.py)
+    class TestSuiteRunner:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.11.9-final-0 _______________
+
+Name                       Stmts   Miss   Cover   Missing
+---------------------------------------------------------
+mypylogger/__init__.py        17      0 100.00%
+mypylogger/config.py          35      0 100.00%
+mypylogger/core.py            61      1  98.36%   67
+mypylogger/formatters.py      92     12  86.96%   16-32, 108
+mypylogger/handlers.py        27      0 100.00%
+---------------------------------------------------------
+TOTAL                        232     13  94.40%
+Coverage HTML written to dir htmlcov
+Required test coverage of 90% reached. Total coverage: 94.40%
+317 passed, 1 warning in 8.86s

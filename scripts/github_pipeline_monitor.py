@@ -10,10 +10,7 @@ import json
 import os
 import subprocess
 import time
-from typing import Dict, List, Optional, Tuple
-from urllib.error import HTTPError, URLError
-from urllib.parse import urljoin
-from urllib.request import Request, urlopen
+from typing import Any, Dict, List, Optional, Tuple
 
 # Import configuration management and error handling
 try:
@@ -25,15 +22,8 @@ try:
         MonitoringMode,
     )
     from github_monitor_exceptions import (
-        GitHubAuthenticationError,
         GitHubConfigurationError,
         GitHubMonitorError,
-        GitHubNetworkError,
-        GitHubPermissionError,
-        GitHubRateLimitError,
-        GitHubRepositoryError,
-        handle_github_api_error,
-        retry_with_exponential_backoff,
     )
 except ImportError:
     # Fallback for when running from different directory
@@ -47,17 +37,6 @@ except ImportError:
         MonitoringConfig,
         MonitoringMode,
     )
-    from github_monitor_exceptions import (
-        GitHubAuthenticationError,
-        GitHubConfigurationError,
-        GitHubMonitorError,
-        GitHubNetworkError,
-        GitHubPermissionError,
-        GitHubRateLimitError,
-        GitHubRepositoryError,
-        handle_github_api_error,
-        retry_with_exponential_backoff,
-    )
 
 
 # Legacy exception class for backward compatibility
@@ -68,7 +47,12 @@ class GitHubAPIError(GitHubMonitorError):
 
 
 class GitHubPipelineMonitor:
-    """Monitor GitHub Actions pipeline status via API."""
+    """
+    Monitor GitHub Actions pipeline status with intelligent polling and caching.
+
+    This class focuses on monitoring logic and delegates API interactions
+    to the dedicated GitHubAPIClient.
+    """
 
     def __init__(
         self,
@@ -99,13 +83,19 @@ class GitHubPipelineMonitor:
             if github_token:
                 self.config.github_token = github_token
 
-        self.repo_owner = self.config.repo_owner
-        self.repo_name = self.config.repo_name
-        self.github_token = self.config.github_token
-        self.base_url = "https://api.github.com"
+        # Create API client for GitHub interactions
+        from github_api_client import create_api_client
+
+        self._api_client = create_api_client(self.config)
 
         # Status reporter will be created when needed to avoid circular imports
         self._status_reporter = None
+
+        # Intelligent polling manager for optimized API usage
+        self._polling_manager = None
+
+        # Cache manager for response caching and rate limiting
+        self._cache_manager = None
 
     @property
     def status_reporter(self):
@@ -115,6 +105,47 @@ class GitHubPipelineMonitor:
 
             self._status_reporter = create_status_reporter(self.config)
         return self._status_reporter
+
+    @property
+    def polling_manager(self):
+        """Lazy-load intelligent polling manager."""
+        if self._polling_manager is None:
+            from github_intelligent_polling import (
+                PollingStrategy,
+                create_intelligent_polling_manager,
+            )
+
+            # Create polling strategy from config
+            strategy = PollingStrategy(
+                queued_interval=max(60, self.config.poll_interval_seconds * 2),
+                starting_interval=self.config.poll_interval_seconds,
+                active_interval=max(10, self.config.poll_interval_seconds // 2),
+                completing_interval=max(5, self.config.poll_interval_seconds // 3),
+                max_interval=min(300, self.config.poll_interval_seconds * 10),
+            )
+
+            self._polling_manager = create_intelligent_polling_manager(strategy)
+        return self._polling_manager
+
+    @property
+    def cache_manager(self):
+        """Lazy-load cache manager."""
+        if self._cache_manager is None:
+            from github_cache_manager import CacheConfig, create_cache_manager
+
+            # Create cache config based on monitoring config
+            cache_config = CacheConfig(
+                workflow_runs_ttl=max(15, self.config.poll_interval_seconds // 2),
+                allow_stale_responses=True,  # Allow stale responses for better availability
+                rate_limit_threshold=20,  # Conservative threshold
+            )
+
+            self._cache_manager = create_cache_manager(cache_config)
+
+            # Inject cache manager into API client
+            self._api_client.set_cache_manager(self._cache_manager)
+
+        return self._cache_manager
 
         # Colors for output (respect config setting) - kept for backward compatibility
         if self.config.colors_enabled:
@@ -133,116 +164,6 @@ class GitHubPipelineMonitor:
                 key: ""
                 for key in ["GREEN", "RED", "YELLOW", "BLUE", "PURPLE", "CYAN", "NC"]
             }
-
-    @retry_with_exponential_backoff(
-        max_retries=3,
-        base_delay=1.0,
-        retryable_exceptions=(GitHubNetworkError, GitHubRateLimitError),
-    )
-    def _make_api_request(self, endpoint: str) -> Dict:
-        """Make a request to the GitHub API with enhanced error handling and retry logic."""
-        url = urljoin(self.base_url, endpoint)
-
-        headers = {
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "mypylogger-pipeline-monitor/1.0",
-        }
-
-        if self.github_token:
-            headers["Authorization"] = f"token {self.github_token}"
-        else:
-            raise GitHubAuthenticationError(
-                "GitHub token not provided", token_provided=False
-            )
-
-        try:
-            request = Request(url, headers=headers)
-            with urlopen(request) as response:
-                # Extract rate limit information from headers
-                rate_limit_remaining = response.headers.get("X-RateLimit-Remaining")
-                rate_limit_reset = response.headers.get("X-RateLimit-Reset")
-
-                # Warn if approaching rate limit
-                if rate_limit_remaining and int(rate_limit_remaining) < 10:
-                    reset_time = int(rate_limit_reset) if rate_limit_reset else None
-                    print(
-                        f"⚠️  GitHub API rate limit warning: {rate_limit_remaining} requests remaining"
-                    )
-                    if reset_time:
-                        reset_minutes = max(0, (reset_time - int(time.time())) // 60)
-                        print(f"   Rate limit resets in {reset_minutes} minutes")
-
-                return json.loads(response.read().decode())
-
-        except HTTPError as e:
-            # Read response body for more detailed error information
-            response_text = ""
-            try:
-                response_text = e.read().decode() if hasattr(e, "read") else str(e)
-            except Exception:
-                response_text = str(e)
-
-            # Extract rate limit info from headers if available
-            rate_limit_reset = None
-            rate_limit_remaining = None
-            if hasattr(e, "headers"):
-                rate_limit_reset = e.headers.get("X-RateLimit-Reset")
-                rate_limit_remaining = e.headers.get("X-RateLimit-Remaining")
-
-            # Convert to specific exception types
-            if e.code == 401:
-                raise GitHubAuthenticationError(
-                    "GitHub API authentication failed - invalid or missing token",
-                    token_provided=bool(self.github_token),
-                    details={"status_code": e.code, "response": response_text},
-                )
-            elif e.code == 403:
-                if "rate limit" in response_text.lower() or rate_limit_remaining == "0":
-                    reset_time = int(rate_limit_reset) if rate_limit_reset else None
-                    raise GitHubRateLimitError(
-                        "GitHub API rate limit exceeded",
-                        reset_time=reset_time,
-                        remaining=(
-                            int(rate_limit_remaining) if rate_limit_remaining else 0
-                        ),
-                        details={"status_code": e.code, "response": response_text},
-                    )
-                else:
-                    raise GitHubPermissionError(
-                        "GitHub API access denied - insufficient permissions",
-                        repo_owner=self.repo_owner,
-                        repo_name=self.repo_name,
-                        details={"status_code": e.code, "response": response_text},
-                    )
-            elif e.code == 404:
-                raise GitHubRepositoryError(
-                    f"Repository {self.repo_owner}/{self.repo_name} not found or not accessible",
-                    repo_owner=self.repo_owner,
-                    repo_name=self.repo_name,
-                    details={"status_code": e.code, "response": response_text},
-                )
-            else:
-                # Use the generic error handler for other HTTP errors
-                raise handle_github_api_error(
-                    e.code, response_text, self.repo_owner, self.repo_name
-                )
-
-        except URLError as e:
-            raise GitHubNetworkError(
-                f"Network connectivity error: {e.reason}",
-                original_error=e,
-                details={"url": url, "reason": str(e.reason)},
-            )
-        except json.JSONDecodeError as e:
-            raise GitHubMonitorError(
-                "Invalid JSON response from GitHub API",
-                details={"url": url, "error": str(e)},
-            )
-        except Exception as e:
-            raise GitHubMonitorError(
-                f"Unexpected error during API request: {str(e)}",
-                details={"url": url, "error_type": type(e).__name__},
-            )
 
     def get_current_commit_sha(self) -> str:
         """Get the current commit SHA from git."""
@@ -276,48 +197,20 @@ class GitHubPipelineMonitor:
             )
 
     def get_workflow_runs_for_commit(self, commit_sha: str) -> List[WorkflowRun]:
-        """Get all workflow runs for a specific commit."""
-        endpoint = f"/repos/{self.repo_owner}/{self.repo_name}/actions/runs"
-        params = f"?head_sha={commit_sha}&per_page=100"
+        """
+        Get all workflow runs for a specific commit.
 
-        data = self._make_api_request(endpoint + params)
+        Args:
+            commit_sha: Commit SHA to get workflow runs for
 
-        workflow_runs = []
-        for run_data in data.get("workflow_runs", []):
-            # Calculate duration if workflow is completed
-            duration_seconds = None
-            if (
-                run_data["status"] == "completed"
-                and run_data.get("created_at")
-                and run_data.get("updated_at")
-            ):
-                try:
-                    from datetime import datetime
+        Returns:
+            List of workflow runs for the commit
+        """
+        # Ensure cache manager is initialized (which also injects it into API client)
+        _ = self.cache_manager
 
-                    created = datetime.fromisoformat(
-                        run_data["created_at"].replace("Z", "+00:00")
-                    )
-                    updated = datetime.fromisoformat(
-                        run_data["updated_at"].replace("Z", "+00:00")
-                    )
-                    duration_seconds = int((updated - created).total_seconds())
-                except (ValueError, TypeError):
-                    pass  # Keep duration as None if parsing fails
-
-            workflow_run = WorkflowRun(
-                id=run_data["id"],
-                name=run_data["name"],
-                status=run_data["status"],
-                conclusion=run_data["conclusion"],
-                html_url=run_data["html_url"],
-                created_at=run_data["created_at"],
-                updated_at=run_data["updated_at"],
-                head_sha=run_data["head_sha"],
-                duration_seconds=duration_seconds,
-            )
-            workflow_runs.append(workflow_run)
-
-        return workflow_runs
+        # Delegate to API client
+        return self._api_client.get_workflow_runs_for_commit(commit_sha)
 
     def get_pipeline_status(self, commit_sha: Optional[str] = None) -> PipelineStatus:
         """Get the overall pipeline status for a commit."""
@@ -363,11 +256,24 @@ class GitHubPipelineMonitor:
         else:
             overall_status = "success"
 
-        # Calculate estimated completion for pending workflows
+        # Calculate estimated completion using intelligent polling manager
         estimated_completion = None
-        if pending_workflows and completed_count > 0:
-            avg_duration = total_duration / completed_count
-            estimated_completion = int(avg_duration * len(pending_workflows))
+        if pending_workflows:
+            # Try to get intelligent estimates for each pending workflow
+            estimates = []
+            for run in workflow_runs:
+                if run.status != "completed":
+                    estimate = self.polling_manager.estimate_completion_time(run)
+                    if estimate is not None:
+                        estimates.append(estimate)
+
+            if estimates:
+                # Use the maximum estimate (longest running workflow)
+                estimated_completion = max(estimates)
+            elif completed_count > 0:
+                # Fallback to simple average-based estimation
+                avg_duration = total_duration / completed_count
+                estimated_completion = int(avg_duration * len(pending_workflows))
 
         return PipelineStatus(
             commit_sha=commit_sha,
@@ -387,12 +293,12 @@ class GitHubPipelineMonitor:
         poll_interval_seconds: Optional[int] = None,
     ) -> PipelineStatus:
         """
-        Wait for all pipeline workflows to complete for a commit.
+        Wait for all pipeline workflows to complete for a commit using intelligent polling.
 
         Args:
             commit_sha: Commit SHA to monitor (defaults to current HEAD)
             timeout_minutes: Maximum time to wait for completion (uses config default if None)
-            poll_interval_seconds: How often to check status (uses config default if None)
+            poll_interval_seconds: Base poll interval (adaptive polling will adjust this)
 
         Returns:
             Final pipeline status
@@ -406,15 +312,14 @@ class GitHubPipelineMonitor:
         # Use config defaults if not specified
         if timeout_minutes is None:
             timeout_minutes = self.config.timeout_minutes
-        if poll_interval_seconds is None:
-            poll_interval_seconds = self.config.poll_interval_seconds
 
         print(
-            f"{self.colors['CYAN']}🔍 Monitoring GitHub Actions pipeline for commit {commit_sha[:8]}...{self.colors['NC']}"
+            f"{self.colors['CYAN']}🔍 Monitoring GitHub Actions pipeline for commit {commit_sha[:8]} (intelligent polling)...{self.colors['NC']}"
         )
 
         start_time = time.time()
         timeout_seconds = timeout_minutes * 60
+        last_status_display = 0
 
         while True:
             try:
@@ -426,10 +331,22 @@ class GitHubPipelineMonitor:
                     )
                     return status
 
-                # Print current status
-                self._print_pipeline_status(status)
+                # Update polling manager with current workflow states
+                for workflow_run in status.workflow_runs:
+                    self.polling_manager.update_workflow_history(workflow_run)
+
+                # Display status periodically (not on every poll)
+                current_time = time.time()
+                if (
+                    current_time - last_status_display > 30
+                ):  # Show status every 30 seconds
+                    self._print_pipeline_status(status)
+                    last_status_display = current_time
 
                 if status.overall_status in ["success", "failure"]:
+                    # Final status display
+                    self._print_pipeline_status(status)
+                    self.polling_manager.cleanup_completed_workflows()
                     return status
 
                 # Check timeout
@@ -443,9 +360,47 @@ class GitHubPipelineMonitor:
                         },
                     )
 
-                # Show progress and wait before next poll
+                # Show progress
                 self.status_reporter.display_progress(status)
-                time.sleep(poll_interval_seconds)
+
+                # Use intelligent polling to determine next poll interval
+                workflows_to_poll = self.polling_manager.get_workflows_to_poll(
+                    status.workflow_runs
+                )
+
+                if workflows_to_poll:
+                    # Calculate adaptive poll interval based on active workflows
+                    intervals = []
+                    for workflow in workflows_to_poll:
+                        interval = self.polling_manager.get_next_poll_interval(workflow)
+                        intervals.append(interval)
+                        self.polling_manager.record_poll_time(workflow.id)
+
+                    # Use the minimum interval of active workflows
+                    next_poll_interval = (
+                        min(intervals)
+                        if intervals
+                        else poll_interval_seconds or self.config.poll_interval_seconds
+                    )
+                else:
+                    # No workflows need immediate polling, use longer interval
+                    next_poll_interval = 30
+
+                # Display polling and cache statistics in verbose mode
+                if self.config.verbose:
+                    polling_stats = self.polling_manager.get_polling_statistics()
+                    cache_stats = self.cache_manager.get_request_statistics()
+                    print(
+                        f"   Polling: {polling_stats['active_workflows']} active, next poll in {next_poll_interval}s"
+                    )
+                    print(
+                        f"   Cache: {cache_stats['cache']['total_entries']} entries, {cache_stats['cache']['hit_ratio']:.1%} hit rate"
+                    )
+                    if cache_stats["rate_limit"]:
+                        remaining = cache_stats["rate_limit"]["remaining"]
+                        print(f"   Rate limit: {remaining} requests remaining")
+
+                time.sleep(next_poll_interval)
 
             except KeyboardInterrupt:
                 print(
@@ -456,6 +411,37 @@ class GitHubPipelineMonitor:
     def _print_pipeline_status(self, status: PipelineStatus) -> None:
         """Print a formatted pipeline status report using the enhanced StatusReporter."""
         self.status_reporter.display_status(status)
+
+    def invalidate_workflow_cache(self, commit_sha: Optional[str] = None) -> int:
+        """
+        Invalidate cached workflow data to force fresh API requests.
+
+        Args:
+            commit_sha: Specific commit to invalidate, or None for all workflows
+
+        Returns:
+            Number of cache entries invalidated
+        """
+        from github_cache_manager import CacheEntryType
+
+        if commit_sha:
+            # Invalidate specific commit's workflow runs
+            pattern = f"actions/runs.*head_sha={commit_sha}"
+            return self.cache_manager.invalidate_cache(endpoint_pattern=pattern)
+        else:
+            # Invalidate all workflow run caches
+            return self.cache_manager.invalidate_cache(
+                entry_type=CacheEntryType.WORKFLOW_RUNS
+            )
+
+    def get_cache_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about API caching and rate limiting.
+
+        Returns:
+            Dictionary with cache and rate limit statistics
+        """
+        return self.cache_manager.get_request_statistics()
 
     def check_pipeline_after_push(self, branch: str = "pre-release") -> PipelineStatus:
         """
@@ -566,6 +552,11 @@ def main():
     parser.add_argument(
         "--format", choices=["console", "json", "minimal"], help="Output format"
     )
+    parser.add_argument(
+        "--cache-stats",
+        action="store_true",
+        help="Show cache and rate limit statistics",
+    )
 
     args = parser.parse_args()
 
@@ -609,6 +600,24 @@ def main():
 
         # Create monitor with configuration
         monitor = GitHubPipelineMonitor(config)
+
+        # Show cache statistics if requested
+        if args.cache_stats:
+            stats = monitor.get_cache_statistics()
+            print("📊 Cache and Rate Limit Statistics:")
+            print(f"  Cache entries: {stats['cache']['total_entries']}")
+            print(f"  Cache hit ratio: {stats['cache']['hit_ratio']:.1%}")
+            print(
+                f"  Recent requests (10min): {stats['requests']['recent_requests_10min']}"
+            )
+            if stats["rate_limit"]:
+                print(
+                    f"  Rate limit remaining: {stats['rate_limit']['remaining']}/{stats['rate_limit']['limit']}"
+                )
+                print(
+                    f"  Rate limit resets in: {stats['rate_limit']['time_until_reset_seconds']:.0f}s"
+                )
+            return
 
         if args.after_push:
             # Monitor after push
@@ -661,6 +670,11 @@ def main():
         if hasattr(e, "get_setup_guidance"):
             print("\n💡 Setup Guidance:")
             print(e.get_setup_guidance())
+        else:
+            # Fallback help for configuration errors
+            print("\n💡 For help with setup and configuration:")
+            print("   python scripts/github_help_system.py --setup-help")
+            print("   python scripts/github_help_system.py --diagnose")
 
         exit(1)
     except KeyboardInterrupt:
