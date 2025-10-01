@@ -10,7 +10,6 @@ import json
 import os
 import subprocess
 import time
-from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
@@ -113,6 +112,7 @@ class GitHubPipelineMonitor:
         """Lazy-load status reporter to avoid circular imports."""
         if self._status_reporter is None:
             from github_status_reporter import create_status_reporter
+
             self._status_reporter = create_status_reporter(self.config)
         return self._status_reporter
 
