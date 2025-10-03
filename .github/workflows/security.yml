@@ -112,6 +112,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [security-scan, trivy-scan]
     if: always()
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - name: Download security reports
         uses: actions/download-artifact@v4
