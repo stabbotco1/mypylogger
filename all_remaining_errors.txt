@@ -1,0 +1,79 @@
+scripts/github_monitor_exceptions.py:306: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_monitor_exceptions.py:306: error: Missing return statement  [return]
+scripts/github_monitor_exceptions.py:426: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_api_client.py:196: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:201: error: Right operand of "and" is never evaluated  [unreachable]
+scripts/github_api_client.py:202: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:231: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:239: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:243: error: Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+kiro_research_script.py:15: error: Function is missing a type annotation  [no-untyped-def]
+kiro_research_script.py:61: error: Function is missing a return type annotation  [no-untyped-def]
+kiro_research_script.py:103: error: Function is missing a return type annotation  [no-untyped-def]
+kiro_research_script.py:182: error: Function is missing a return type annotation  [no-untyped-def]
+kiro_research_script.py:210: error: "Collection[str]" has no attribute "extend"  [attr-defined]
+kiro_research_script.py:235: error: "str" has no attribute "get"  [attr-defined]
+kiro_research_script.py:242: error: "Collection[str]" has no attribute "append"  [attr-defined]
+kiro_research_script.py:247: error: "Collection[str]" has no attribute "append"  [attr-defined]
+kiro_research_script.py:252: error: "Collection[str]" has no attribute "append"  [attr-defined]
+kiro_research_script.py:263: error: Value of type "Collection[str]" is not indexable  [index]
+kiro_research_script.py:264: error: Value of type "Collection[str]" is not indexable  [index]
+kiro_research_script.py:266: error: Value of type "Collection[str]" is not indexable  [index]
+tests/unit/test_integration_scenarios.py:192: error: Argument "lineno" to "LogRecord" has incompatible type "None"; expected "int"  [arg-type]
+tests/test_coverage_improvements.py:147: error: Incompatible types in assignment (expression has type "None", variable has type "str")  [assignment]
+tests/test_coverage_improvements.py:151: error: Incompatible types in assignment (expression has type "None", variable has type "str")  [assignment]
+tests/test_coverage_improvements.py:153: error: Need type annotation for "log_record" (hint: "log_record: dict[<type>, <type>] = ...")  [var-annotated]
+tests/test_coverage_improvements.py:177: error: Need type annotation for "log_record" (hint: "log_record: dict[<type>, <type>] = ...")  [var-annotated]
+examples/production_mode.py:72: error: Function is missing a return type annotation  [no-untyped-def]
+examples/production_mode.py:72: note: Use "-> None" if function does not return a value
+examples/production_mode.py:118: error: Function is missing a return type annotation  [no-untyped-def]
+examples/production_mode.py:118: note: Use "-> None" if function does not return a value
+examples/environment_variations.py:21: error: Function is missing a return type annotation  [no-untyped-def]
+examples/environment_variations.py:21: note: Use "-> None" if function does not return a value
+examples/environment_variations.py:40: error: Function is missing a type annotation  [no-untyped-def]
+examples/environment_variations.py:85: error: Function is missing a return type annotation  [no-untyped-def]
+examples/environment_variations.py:85: note: Use "-> None" if function does not return a value
+examples/development_mode.py:23: error: Function is missing a return type annotation  [no-untyped-def]
+examples/development_mode.py:23: note: Use "-> None" if function does not return a value
+examples/development_mode.py:57: error: Function is missing a return type annotation  [no-untyped-def]
+examples/development_mode.py:57: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:22: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:22: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:30: error: Function is missing a type annotation  [no-untyped-def]
+examples/cli_demo.py:47: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:47: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:67: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:67: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:94: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:94: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:137: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:137: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:163: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:163: note: Use "-> None" if function does not return a value
+examples/cli_demo.py:193: error: Need type annotation for "level_counts" (hint: "level_counts: dict[<type>, <type>] = ...")  [var-annotated]
+examples/cli_demo.py:237: error: Function is missing a type annotation  [no-untyped-def]
+examples/cli_demo.py:264: error: Function is missing a return type annotation  [no-untyped-def]
+examples/cli_demo.py:264: note: Use "-> None" if function does not return a value
+tests/test_make_integration.py:526: error: Argument 2 to "assertIn" of "TestCase" has incompatible type "Optional[str]"; expected "Union[Iterable[Any], Container[Any]]"  [arg-type]
+tests/test_performance.py:165: error: Need type annotation for "results_queue"  [var-annotated]
+tests/test_github_status_reporter.py:60: error: Incompatible default for argument "workflow_runs" (default has type "None", argument has type "list[Any]")  [assignment]
+tests/test_github_status_reporter.py:60: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+tests/test_github_status_reporter.py:60: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+tests/test_github_status_reporter.py:61: error: Incompatible default for argument "failed_workflows" (default has type "None", argument has type "list[Any]")  [assignment]
+tests/test_github_status_reporter.py:61: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+tests/test_github_status_reporter.py:61: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+tests/test_github_status_reporter.py:62: error: Incompatible default for argument "pending_workflows" (default has type "None", argument has type "list[Any]")  [assignment]
+tests/test_github_status_reporter.py:62: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+tests/test_github_status_reporter.py:62: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+tests/test_github_status_reporter.py:63: error: Incompatible default for argument "success_workflows" (default has type "None", argument has type "list[Any]")  [assignment]
+tests/test_github_status_reporter.py:63: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+tests/test_github_status_reporter.py:63: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+tests/test_github_status_reporter.py:67: error: Statement is unreachable  [unreachable]
+tests/test_github_status_reporter.py:711: error: Unsupported operand types for - ("None" and "float")  [operator]
+tests/test_github_status_reporter.py:711: note: Left operand is of type "Optional[float]"
+tests/test_complete_workflows.py:499: error: Need type annotation for "thread_counts" (hint: "thread_counts: dict[<type>, <type>] = ...")  [var-annotated]
+tests/test_complete_workflows.py:520: error: Need type annotation for "completion_events" (hint: "completion_events: list[<type>] = ...")  [var-annotated]
+tests/test_complete_workflows.py:659: error: Need type annotation for "thread_messages" (hint: "thread_messages: dict[<type>, <type>] = ...")  [var-annotated]
+tests/test_cache_manager.py:303: error: Need type annotation for "response_data"  [var-annotated]
+tests/test_cache_manager.py:323: error: Need type annotation for "response_data"  [var-annotated]
+tests/test_cache_manager.py:348: error: Need type annotation for "response_data"  [var-annotated]

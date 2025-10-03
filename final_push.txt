@@ -1,0 +1,1 @@
+Command: git push origin pre-release

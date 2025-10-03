@@ -1,0 +1,49 @@
+=== Test Suite Venv Creation Check ===
+1. Check if test suite tries to create venv:
+
+2. Check steering documents for venv requirements:
+.kiro/steering/development-standards.md-21-
+.kiro/steering/development-standards.md-22-### Environment Setup
+.kiro/steering/development-standards.md-23-```bash
+.kiro/steering/development-standards.md:24:# Create virtual environment
+.kiro/steering/development-standards.md:25:python -m venv venv
+.kiro/steering/development-standards.md:26:source venv/bin/activate  # Linux/Mac
+.kiro/steering/development-standards.md-27-# or
+.kiro/steering/development-standards.md:28:venv\Scripts\activate     # Windows
+.kiro/steering/development-standards.md-29-
+.kiro/steering/development-standards.md-30-# Install development dependencies
+.kiro/steering/development-standards.md-31-pip install -e ".[dev]"
+--
+.kiro/steering/kiro-learning-objectives.md-52-
+.kiro/steering/kiro-learning-objectives.md-53-**Project Context Precision:**
+.kiro/steering/kiro-learning-objectives.md-54-- **Explicit Paths**: Documenting exact repository URLs and local paths prevents confusion
+.kiro/steering/kiro-learning-objectives.md:55:- **Environment Constraints**: Specifying venv usage and dependency policies maintains consistency
+.kiro/steering/kiro-learning-objectives.md-56-- **Priority Clarity**: "Deliver code concisely, in logical order, and incrementally" provides clear execution guidance
+.kiro/steering/kiro-learning-objectives.md-57-
+.kiro/steering/kiro-learning-objectives.md-58-**Key Learning**: Project-specific steering should capture environmental context and execution priorities explicitly.
+--
+.kiro/steering/task-completion-verification.md-94-- **Minimum Coverage**: 90%
+.kiro/steering/task-completion-verification.md-95-- **Target Coverage**: 95%+
+.kiro/steering/task-completion-verification.md-96-- **Coverage Scope**: All production code in `mypylogger/`
+.kiro/steering/task-completion-verification.md:97:- **Exclusions**: Test files, build artifacts, virtual environments
+.kiro/steering/task-completion-verification.md-98-
+.kiro/steering/task-completion-verification.md-99-### Performance Requirements
+.kiro/steering/task-completion-verification.md-100-- **Latency**: Average <0.5ms, 95th percentile <1ms
+--
+.kiro/steering/task-completion-verification.md-244-### Common Issues
+.kiro/steering/task-completion-verification.md-245-
+.kiro/steering/task-completion-verification.md-246-#### Virtual Environment Issues
+.kiro/steering/task-completion-verification.md:247:The test suite now automatically handles virtual environment setup:
+.kiro/steering/task-completion-verification.md:248:- **Auto-detects** existing virtual environments
+.kiro/steering/task-completion-verification.md:249:- **Auto-activates** found virtual environments
+.kiro/steering/task-completion-verification.md:250:- **Auto-creates** virtual environment if none exists
+.kiro/steering/task-completion-verification.md-251-- **Auto-installs** dependencies if missing
+.kiro/steering/task-completion-verification.md-252-
+.kiro/steering/task-completion-verification.md-253-If automatic setup fails:
+.kiro/steering/task-completion-verification.md-254-```bash
+.kiro/steering/task-completion-verification.md:255:# Manual virtual environment setup
+.kiro/steering/task-completion-verification.md:256:python3 -m venv venv
+.kiro/steering/task-completion-verification.md:257:source venv/bin/activate
+.kiro/steering/task-completion-verification.md-258-pip install -e ".[dev]"
+.kiro/steering/task-completion-verification.md-259-./scripts/run-complete-test-suite.sh
+.kiro/steering/task-completion-verification.md-260-```

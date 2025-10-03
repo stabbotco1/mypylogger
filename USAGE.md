@@ -138,11 +138,11 @@ logger = mypylogger.get_logger()
 
 def debug_function():
     logger.debug("Entering debug_function")
-    
+
     # Your code here
     data = {"key": "value"}
     logger.debug(f"Processing data: {data}")
-    
+
     try:
         # Some operation
         result = process_data(data)
@@ -172,13 +172,13 @@ def test_with_log_level(level):
     """Test function with specific log level."""
     os.environ['LOG_LEVEL'] = level
     os.environ['APP_NAME'] = f'test_{level.lower()}'
-    
+
     # Force re-initialization by clearing singleton
     mypylogger.SingletonLogger._instance = None
     mypylogger.SingletonLogger._logger = None
-    
+
     logger = mypylogger.get_logger()
-    
+
     logger.debug("Debug message")
     logger.info("Info message")
     logger.warning("Warning message")
@@ -234,14 +234,14 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def main():
     logger.info("Service starting up")
-    
+
     try:
         # Your application logic here
         while True:
             # Service loop
             logger.debug("Service heartbeat")
             time.sleep(60)
-            
+
     except Exception as e:
         logger.critical(f"Service crashed: {e}")
         raise
@@ -304,8 +304,8 @@ def log_with_context(level, message, **context):
     getattr(logger, level.lower())(message, extra=context)
 
 # Usage
-log_with_context('info', 'User login', 
-                user_id=12345, 
+log_with_context('info', 'User login',
+                user_id=12345,
                 ip_address='192.168.1.1',
                 user_agent='Mozilla/5.0...')
 
@@ -328,11 +328,11 @@ logger = mypylogger.get_logger()
 
 def main():
     logger.info("Application starting")
-    
+
     # All modules will use the same logger configuration
     user_service.process_users()
     data_processor.process_data()
-    
+
     logger.info("Application finished")
 
 if __name__ == "__main__":
@@ -374,13 +374,13 @@ logger = mypylogger.get_logger()
 
 def process_file(filename):
     logger.info(f"Processing file: {filename}")
-    
+
     try:
         with open(filename, 'r') as f:
             data = f.read()
             # Process data
             logger.info(f"Successfully processed {len(data)} characters")
-            
+
     except FileNotFoundError:
         logger.error(f"File not found: {filename}")
         raise
@@ -414,7 +414,7 @@ def log_performance(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
         logger.debug(f"Starting {func.__name__}")
-        
+
         try:
             result = func(*args, **kwargs)
             duration = time.time() - start_time
@@ -424,7 +424,7 @@ def log_performance(func):
             duration = time.time() - start_time
             logger.error(f"{func.__name__} failed after {duration:.3f}s: {e}")
             raise
-    
+
     return wrapper
 
 @log_performance
@@ -446,20 +446,20 @@ def validate_configuration():
     """Validate current logging configuration."""
     config = LogConfig.from_environment()
     logger = mypylogger.get_logger()
-    
+
     logger.info("Validating logging configuration")
     logger.info(f"App name: {config.app_name}")
     logger.info(f"Log level: {config.log_level}")
     logger.info(f"Empty log file on run: {config.empty_log_file_on_run}")
     logger.info(f"Parallel stdout logging: {config.parallel_stdout_logging}")
-    
+
     # Test all log levels
     logger.debug("Debug level test")
     logger.info("Info level test")
     logger.warning("Warning level test")
     logger.error("Error level test")
     logger.critical("Critical level test")
-    
+
     logger.info("Configuration validation completed")
 
 if __name__ == "__main__":
@@ -609,19 +609,19 @@ def analyze_log_file(filename):
                 entries.append(entry)
             except json.JSONDecodeError:
                 print(f"Invalid JSON line: {line.strip()}")
-    
+
     print(f"Total log entries: {len(entries)}")
-    
+
     # Count by level
     levels = {}
     for entry in entries:
         level = entry.get('levelname', 'UNKNOWN')
         levels[level] = levels.get(level, 0) + 1
-    
+
     print("Log levels:")
     for level, count in sorted(levels.items()):
         print(f"  {level}: {count}")
-    
+
     # Show time range
     if entries:
         first_time = entries[0].get('time', 'Unknown')

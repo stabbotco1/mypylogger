@@ -1,0 +1,3 @@
+Command: git add .github/workflows/ci.yml final_quality_check.txt && git commit -m "fix: add missing aws-region parameter to upload-coverage job"
+[pre-release 45e424a] fix: add missing aws-region parameter to upload-coverage job
+ 2 files changed, 13 insertions(+)

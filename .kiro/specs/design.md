@@ -42,10 +42,10 @@ mypylogger/
 class SingletonLogger:
     @staticmethod
     def get_logger() -> logging.Logger
-    
+
     @staticmethod
     def get_effective_level() -> int
-    
+
     # Expose logging constants
     DEBUG = logging.DEBUG
     INFO = logging.INFO

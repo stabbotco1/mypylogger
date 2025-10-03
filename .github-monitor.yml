@@ -1,0 +1,18 @@
+github:
+  token: ${GITHUB_TOKEN}
+  repository: auto
+monitoring:
+  branches:
+  - pre-release
+  - main
+  poll_interval: 30
+  timeout: 30
+  auto_monitor: true
+integration:
+  test_suite_runner: true
+  make_commands: true
+  block_on_failure: true
+output:
+  format: console
+  colors: true
+  progress_indicators: true

@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0 -- /Users/stephenabbot/projects/mypylogger/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/stephenabbot/projects/mypylogger
+configfile: pyproject.toml
+plugins: cov-7.0.0
+collecting ... collected 1 item
+
+tests/test_test_suite_integration.py::TestTestSuiteRunnerIntegration::test_failed_pipeline_blocks_completion PASSED [100%]
+
+============================== 1 passed in 0.04s ===============================

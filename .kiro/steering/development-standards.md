@@ -147,12 +147,12 @@ def test_production_logging_scenario():
 def test_logging_performance():
     import time
     logger = SingletonLogger.get_logger()
-    
+
     start = time.perf_counter()
     for _ in range(1000):
         logger.info("Performance test message")
     duration = time.perf_counter() - start
-    
+
     assert duration < 1.0  # <1ms per log entry
 ```
 

@@ -1,0 +1,5 @@
+=== Progress Check ===
+MyPy errors remaining:
+      40
+
+=== Bandit issues remaining in fixed files ===

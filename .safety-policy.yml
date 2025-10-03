@@ -1,0 +1,22 @@
+# Safety policy configuration for mypylogger
+# This file configures the Safety tool for dependency vulnerability scanning
+
+security:
+  # Ignore specific vulnerabilities (use sparingly and with justification)
+  ignore-vulnerabilities: []
+    # Example format:
+    # - id: "12345"
+    #   reason: "False positive - not applicable to our usage pattern"
+    #   expires: "2024-12-31"
+
+  # Continue on vulnerability errors (set to false for strict mode)
+  continue-on-vulnerability-error: false
+
+  # Ignore CVSS severity below this threshold (0.0 to 10.0)
+  ignore-cvss-severity-below: 0.0
+
+  # Ignore unknown CVSS severity
+  ignore-cvss-unknown-severity: false
+
+  # Ignore unpinned requirements
+  ignore-unpinned-requirements: false

@@ -1,0 +1,3 @@
+Command: make test-complete-fast
+Running fast test suite verification...
+./scripts/run-complete-test-suite.sh --verbose

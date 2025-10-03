@@ -12,7 +12,7 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Verify dependency license compatibility
   - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 2. PyPI Package Configuration
+- [x] 2. PyPI Package Configuration
   - Create comprehensive pyproject.toml with all metadata
   - Configure build system and dependencies
   - Add project URLs (homepage, repository, documentation, bug tracker)
@@ -20,7 +20,7 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Test package building locally with `python -m build`
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 3. Git Workflow and Branch Protection Setup
+- [x] 3. Git Workflow and Branch Protection Setup
   - Create pre-release branch from main
   - Configure branch protection rules for main and pre-release
   - Set up conventional commit message requirements
@@ -28,7 +28,7 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Document git workflow in CONTRIBUTING.md
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 4. Security Infrastructure Setup
+- [x] 4. Security Infrastructure Setup
   - Create VULNERABILITIES.md for vulnerability tracking
   - Set up bandit configuration for Python security linting
   - Configure safety for dependency vulnerability scanning
@@ -36,15 +36,21 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Create security policy templates
   - _Requirements: 3.1, 3.2, 3.3, 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 5. GitHub Actions CI/CD Pipeline
-  - Create .github/workflows/ci.yml for main CI pipeline
+- [x] 5. GitHub Actions CI/CD Pipeline with OIDC Security
+  - Create .github/workflows/ci.yml with GitHub OIDC authentication to AWS
+  - Configure AWS role assumption for secure, credential-free access
+  - Retrieve PyPI and Codecov tokens from AWS SSM Parameter Store
   - Configure quality gates (lint, format, type check, tests)
   - Set up test matrix for multiple Python versions and OS
-  - Add coverage reporting with codecov integration
-  - Configure automated PyPI publishing on tag creation
-  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+  - Add coverage reporting with codecov integration via AWS-stored token
+  - Configure automated PyPI publishing using AWS SSM-stored API token
+  - Add post-deployment smoke test to verify PyPI publication success
+  - Configure basic GitHub API status monitoring and notification
+  - Document required GitHub repository variables (AWS_GITHUB_ROLE_ARN, AWS_REGION)
+  - Document required AWS SSM parameters (/mypylogger/prod/pypi-token, /mypylogger/prod/codecov-token)
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5 + Enterprise-grade OIDC security_
 
-- [ ] 6. Security Scanning Automation
+- [x] 6. Security Scanning Automation
   - Create .github/workflows/security.yml for security scans
   - Configure CodeQL analysis for semantic code scanning
   - Set up Trivy for comprehensive vulnerability scanning
@@ -52,7 +58,7 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Configure automated security alerts and notifications
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 7. Quality Assurance Automation
+- [x] 7. Quality Assurance Automation
   - Configure pre-commit hooks for local development
   - Set up pytest configuration with coverage requirements
   - Add performance benchmarking tests
@@ -60,7 +66,7 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Set up quality gate enforcement in CI/CD
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 8. Badge Integration and Status Display
+- [x] 8. Badge Integration and Status Display
   - Add comprehensive badge section to README.md
   - Configure build status badges from GitHub Actions
   - Set up coverage badges with codecov
@@ -121,8 +127,40 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Update all documentation with current project status
   - Create roadmap for future enhancements (Java, Node.js versions)
   - Document lessons learned and best practices
+  - **Add future feature note**: Expand GitHub API integration for comprehensive pipeline observability
   - Prepare project for community handoff and contributions
   - _Requirements: Community readiness and knowledge transfer_
+
+- [ ] 16. CI/CD Observability and Resilience Specification
+  - [ ] 16.1 **USER REVIEW CHECKPOINT**: Present observability problem statement and approach
+    - Document the "silent failure" and "manual monitoring" anti-patterns
+    - Present proposed solution architecture for automated monitoring
+    - Seek user guidance on scope, priorities, and implementation approach
+    - **STOP**: Wait for explicit user approval before proceeding
+  - [ ] 16.2 Create Observability Requirements Document
+    - Define requirements for GitHub API pipeline monitoring
+    - Specify post-deployment smoke test and validation requirements
+    - Document failure detection, notification, and escalation needs
+    - Include rollback and recovery capability requirements
+    - **USER REVIEW**: Present requirements for validation and approval
+  - [ ] 16.3 Design Observability Architecture
+    - Design GitHub API integration patterns for status monitoring
+    - Architect notification systems (Slack, email, dashboard)
+    - Design smoke test framework and validation workflows
+    - Plan failure handling and automatic recovery mechanisms
+    - **USER REVIEW**: Present design for technical validation and approval
+  - [ ] 16.4 Create Implementation Task List
+    - Break down observability implementation into discrete tasks
+    - Define integration points with existing CI/CD pipeline
+    - Specify testing and validation approaches for observability features
+    - Document success criteria and acceptance tests
+    - **FINAL USER APPROVAL**: Review complete spec before any implementation
+  - [ ] 16.5 **MANDATORY PAUSE**: Complete spec review and approval
+    - Present complete observability spec (requirements + design + tasks)
+    - Demonstrate how it addresses the identified anti-patterns
+    - Seek final approval for implementation approach
+    - **NO IMPLEMENTATION** until explicit user approval received
+  - _Requirements: End-to-end pipeline observability, failure resilience, and proactive monitoring_
 
 ## Success Criteria
 - Package successfully published to PyPI and installable

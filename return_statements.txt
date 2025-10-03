@@ -1,0 +1,10 @@
+99:            return False
+104:        return bool(re.match(pattern, name)) and len(name) <= 100
+164:        return sanitized
+198:                return cached_response
+243:                return response_data
+373:        return workflow_runs
+415:        return WorkflowRun(
+438:        return self._make_api_request(endpoint)
+451:        return self._make_api_request(endpoint)
+464:    return GitHubAPIClient(config)

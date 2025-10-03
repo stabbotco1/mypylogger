@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0 -- /Users/stephenabbot/.pyenv/versions/3.11.9/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/stephenabbot/projects/mypylogger
+configfile: pyproject.toml
+plugins: mock-3.15.1, anyio-4.11.0, cov-7.0.0
+collecting ... collected 13 items
+
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_complete_pipeline_monitoring_workflow FAILED [  7%]
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_concurrent_monitoring_workflow FAILED [ 15%]
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_configuration_validation_workflow PASSED [ 23%]
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_error_handling_and_recovery FAILED [ 30%]
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_make_command_integration PASSED [ 38%]
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_pipeline_failure_workflow FAILED [ 46%]
+tests/test_end_to_end_integration.py::TestEndToEndWorkflows::test_test_suite_integration_workflow

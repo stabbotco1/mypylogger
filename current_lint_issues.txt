@@ -1,0 +1,3 @@
+Checking current linting issues
+./tests/integration/test_git_hooks.py:9:1: F401 'tempfile' imported but unused
+./tests/integration/test_git_hooks.py:11:1: F401 'unittest.mock.patch' imported but unused

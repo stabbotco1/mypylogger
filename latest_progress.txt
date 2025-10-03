@@ -1,0 +1,18 @@
+=== Latest Progress Check ===
+66
+Sample remaining errors:
+scripts/github_monitor_exceptions.py:303: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_monitor_exceptions.py:303: error: Missing return statement  [return]
+scripts/github_monitor_exceptions.py:309: error: Exception type must be derived from BaseException (or be a tuple of exception classes)  [misc]
+scripts/github_monitor_exceptions.py:422: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_pipeline_monitor.py:159: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:196: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:201: error: Right operand of "and" is never evaluated  [unreachable]
+scripts/github_api_client.py:202: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:231: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:239: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:243: error: Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+scripts/github_api_client.py:336: error: Need type annotation for "data"  [var-annotated]
+scripts/github_api_client.py:393: error: Need type annotation for "run_data"  [var-annotated]
+tests/unit/test_formatters.py:246: error: Cannot assign to a method  [method-assign]
+kiro_research_script.py:15: error: Function is missing a type annotation  [no-untyped-def]
