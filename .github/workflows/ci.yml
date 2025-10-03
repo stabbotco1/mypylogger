@@ -123,12 +123,14 @@ jobs:
           pytest --cov=mypylogger --cov-report=xml --cov-report=term-missing --cov-fail-under=90
 
       - name: Configure AWS credentials via OIDC
+        if: vars.AWS_GITHUB_ROLE_ARN != '' && vars.AWS_REGION != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_GITHUB_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Get Codecov token from AWS SSM
+        if: vars.AWS_GITHUB_ROLE_ARN != '' && vars.AWS_REGION != ''
         run: |
           CODECOV_TOKEN=$(aws ssm get-parameter \
             --name "/mypylogger/prod/codecov-token" \
@@ -138,6 +140,7 @@ jobs:
           echo "CODECOV_TOKEN=$CODECOV_TOKEN" >> $GITHUB_ENV
 
       - name: Upload coverage to Codecov
+        if: env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
