@@ -1,0 +1,2 @@
+[pre-release 3f9dcbd] Fix security workflow permissions - add issues write permission for PR comments
+ 2 files changed, 5 insertions(+), 1 deletion(-)
