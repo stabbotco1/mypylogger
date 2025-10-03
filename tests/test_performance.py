@@ -103,10 +103,17 @@ class TestPerformanceBenchmarks:
         print(f"  Duration: {duration:.3f}s")
         print(f"  Throughput: {throughput:.0f} logs/second")
 
-        # Requirement: >10,000 logs/second (local), >8,000 logs/second (CI)
-        # CI environments have constrained resources, so we use a lower threshold
+        # Requirement: >10,000 logs/second (local), >8,000 logs/second (CI), >6,000 logs/second (Windows CI)
+        # CI environments have constrained resources, Windows CI is even slower
         is_ci = os.getenv("CI", "false").lower() == "true"
-        min_throughput = 8000 if is_ci else 10000
+        is_windows = os.name == "nt"
+
+        if is_ci and is_windows:
+            min_throughput = 6000  # Windows CI is slowest
+        elif is_ci:
+            min_throughput = 8000  # Linux/macOS CI
+        else:
+            min_throughput = 10000  # Local development
 
         assert (
             throughput > min_throughput

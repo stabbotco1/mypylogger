@@ -3,6 +3,7 @@ Integration tests for file handler functionality.
 """
 
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -21,7 +22,8 @@ class TestFileHandlerIntegration:
 
         result = get_log_file_path(app_name)
 
-        assert result == f"logs/{expected_filename}"
+        expected_path = os.path.join("logs", expected_filename)
+        assert result == expected_path
 
     def test_get_log_file_path_custom_directory(self):
         """Test that get_log_file_path works with custom directory."""
@@ -32,7 +34,8 @@ class TestFileHandlerIntegration:
 
         result = get_log_file_path(app_name, custom_dir)
 
-        assert result == f"{custom_dir}/{expected_filename}"
+        expected_path = os.path.join(custom_dir, expected_filename)
+        assert result == expected_path
 
     def test_file_handler_with_config_integration(self, tmp_path, monkeypatch):
         """Test file handler integration with configuration."""
