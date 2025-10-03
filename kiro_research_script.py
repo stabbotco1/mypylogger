@@ -7,12 +7,13 @@ Searches for recent information about Kiro IDE to help create getting started do
 import json
 import time
 from datetime import datetime
+from typing import Any, Dict, List
 from urllib.parse import quote_plus
 
 import requests
 
 
-def search_web(query, max_results=10):
+def search_web(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
     """Search using DuckDuckGo's instant answer API (no API key required)"""
     results = []
 
@@ -58,7 +59,7 @@ def search_web(query, max_results=10):
     return results
 
 
-def check_common_sites():
+def check_common_sites() -> List[Dict[str, Any]]:
     """Check common sites that might have Kiro information"""
     sites_to_check = [
         "https://kiro.ai",
@@ -100,7 +101,7 @@ def check_common_sites():
     return results
 
 
-def search_package_managers():
+def search_package_managers() -> List[Dict[str, Any]]:
     """Check if Kiro is available through package managers"""
     results = []
 
@@ -179,11 +180,11 @@ def search_package_managers():
     return results
 
 
-def main():
+def main() -> str:
     """Main research function"""
     print("🔍 Starting Kiro IDE research...")
 
-    research_data = {
+    research_data: Dict[str, Any] = {
         "timestamp": datetime.now().isoformat(),
         "research_date": "September 24, 2025",
         "searches_performed": [],

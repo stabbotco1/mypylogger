@@ -244,15 +244,16 @@ make docs-check
 ### Common Issues
 
 #### Virtual Environment Issues
-The test suite now automatically handles virtual environment setup:
-- **Auto-detects** existing virtual environments
-- **Auto-activates** found virtual environments  
-- **Auto-creates** virtual environment if none exists
-- **Auto-installs** dependencies if missing
+The test suite requires a virtual environment and will fail-fast if not detected:
+- **Detects** if running in virtual environment
+- **Fails immediately** with clear setup instructions if not in venv
+- **Never auto-creates** - setup is developer responsibility
 
-If automatic setup fails:
+If you see venv errors:
 ```bash
-# Manual virtual environment setup
+# Create and setup virtual environment
+make setup
+# or manually:
 python3 -m venv venv
 source venv/bin/activate
 pip install -e ".[dev]"

@@ -9,6 +9,7 @@ import json
 import logging
 import threading
 import time
+from typing import Dict, List
 
 import pytest
 
@@ -496,14 +497,14 @@ class TestConcurrentWorkflows:
             log_entries.append(log_entry)
 
         # Verify thread distribution
-        thread_counts = {}
+        thread_counts: Dict[int, int] = {}
         for entry in log_entries:
             thread_id = entry["thread_id"]
             thread_counts[thread_id] = thread_counts.get(thread_id, 0) + 1
 
         # Each thread should have contributed the expected number of messages
         assert len(thread_counts) == num_threads
-        for thread_id, count in thread_counts.items():
+        for thread_id, count in thread_counts.items():  # thread_id is str, count is int
             assert count == messages_per_thread
 
     def test_singleton_thread_safety_workflow(self, tmp_path, monkeypatch):
@@ -517,7 +518,7 @@ class TestConcurrentWorkflows:
 
         loggers = []
         exceptions = []
-        completion_events = []
+        completion_events: List[threading.Event] = []
 
         def get_logger_and_log(thread_id):
             try:
@@ -656,7 +657,7 @@ class TestConcurrentWorkflows:
             ), f"Expected messages from at least 1 thread, found: {thread_ids_found}"
 
         # Verify message distribution
-        thread_messages = {}
+        thread_messages: Dict[int, List[str]] = {}
         for log_line in log_lines:
             log_entry = json.loads(log_line.strip())
             message = log_entry["message"]

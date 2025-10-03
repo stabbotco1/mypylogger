@@ -169,7 +169,7 @@ curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/OWNER/
    ```bash
    # Should show GitHub URL
    git remote get-url origin
-   
+
    # If wrong, update it
    git remote set-url origin https://github.com/OWNER/REPO.git
    ```
@@ -268,11 +268,11 @@ python scripts/github_pipeline_monitor.py --cache-stats
    python -c "
    from scripts.github_pipeline_monitor import GitHubPipelineMonitor
    from scripts.github_monitor_config import ConfigManager
-   
+
    config = ConfigManager().load_config()
    monitor = GitHubPipelineMonitor(config)
    stats = monitor.get_cache_statistics()
-   
+
    if 'rate_limit' in stats and stats['rate_limit']:
        reset_time = stats['rate_limit']['time_until_reset_seconds']
        print(f'Rate limit resets in {reset_time/60:.1f} minutes')
@@ -354,7 +354,7 @@ time curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/O
    ```bash
    # Increase polling interval
    export GITHUB_PIPELINE_POLL_INTERVAL=60  # 1 minute
-   
+
    # Use intelligent polling (default)
    python scripts/github_pipeline_monitor.py --status-only
    ```
@@ -363,7 +363,7 @@ time curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/O
    ```bash
    # Check cache statistics
    python scripts/github_pipeline_monitor.py --cache-stats
-   
+
    # If hit ratio is low, consider increasing cache TTL
    ```
 
@@ -404,7 +404,7 @@ print(f'Cache entries: {stats[\"cache\"][\"total_entries\"]}')
    ```python
    # Custom cache configuration
    from scripts.github_cache_manager import CacheConfig, create_cache_manager
-   
+
    config = CacheConfig(max_entries=100)  # Smaller cache
    cache = create_cache_manager(config)
    ```
@@ -440,7 +440,7 @@ export GITHUB_PIPELINE_CHECK=true
    ```bash
    # Verify script exists and is executable
    ls -la ./scripts/run-complete-test-suite.sh
-   
+
    # Test without pipeline checking
    export GITHUB_PIPELINE_CHECK=false
    ./scripts/run-complete-test-suite.sh

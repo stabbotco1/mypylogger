@@ -521,6 +521,7 @@ class TestMakeTargetDocumentation(unittest.TestCase):
                 self.assertIsNotNone(
                     target_line, f"Target '{target}' should be in help"
                 )
+                assert target_line is not None  # Type narrowing for MyPy
                 self.assertIn(
                     description,
                     target_line,

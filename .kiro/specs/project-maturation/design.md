@@ -17,16 +17,16 @@ graph TD
     E --> F[Test Matrix]
     F --> G[Build & Package]
     G --> H[Deploy to PyPI]
-    
+
     D --> D1[Lint & Format]
     D --> D2[Type Check]
     D --> D3[Unit Tests]
-    
+
     E --> E1[Bandit Scan]
     E --> E2[Safety Check]
     E --> E3[CodeQL Analysis]
     E --> E4[Trivy Scan]
-    
+
     F --> F1[Python 3.8-3.12]
     F --> F2[Ubuntu/macOS/Windows]
     F --> F3[Integration Tests]
@@ -40,7 +40,7 @@ graph LR
     B --> C[Vulnerability Database]
     C --> D[Alert System]
     D --> E[Automated Fixes]
-    
+
     B --> B1[Static Analysis]
     B --> B2[Dependency Scan]
     B --> B3[Container Scan]
@@ -66,14 +66,14 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Run quality checks
         run: make lint test-coverage
-        
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run security scans
         run: make security-scan
-        
+
   test-matrix:
     strategy:
       matrix:
@@ -169,7 +169,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_GITHUB_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-          
+
       - name: Get secrets from AWS SSM
         run: |
           PYPI_TOKEN=$(aws ssm get-parameter \
@@ -359,13 +359,13 @@ pytest --cov=mypylogger --cov-report=xml --cov-fail-under=90
 def test_logging_performance():
     """Ensure logging performance meets requirements."""
     logger = SingletonLogger.get_logger()
-    
+
     # Test latency requirement (<1ms per log)
     start = time.perf_counter()
     logger.info("Performance test")
     latency = time.perf_counter() - start
     assert latency < 0.001
-    
+
     # Test throughput requirement (>10,000 logs/second)
     start = time.perf_counter()
     for _ in range(10000):

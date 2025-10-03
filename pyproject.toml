@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=78.1.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mypylogger"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Production-ready Python logging library with structured JSON output, environment-driven configuration, and real-time development support"
 authors = [{name = "Stephen Abbot", email = "stephen.abbot@example.com"}]
 license = "MIT"

@@ -9,9 +9,10 @@ help:
 	@echo "==============================="
 	@echo ""
 	@echo "Setup Commands:"
+	@echo "  setup          Create venv and setup complete development environment"
 	@echo "  install        Install package in development mode"
 	@echo "  install-dev    Install with development dependencies"
-	@echo "  setup-dev      Complete development environment setup"
+	@echo "  setup-dev      Complete development environment setup (requires active venv)"
 	@echo ""
 	@echo "Quality Assurance:"
 	@echo "  lint           Run all linting checks"
@@ -54,6 +55,11 @@ help:
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  ENABLE_PIPELINE_CHECK=true   Enable pipeline checking in enhanced targets"
+
+# Setup commands
+setup:
+	@echo "Setting up complete development environment..."
+	./scripts/setup-dev.sh
 
 # Installation commands
 install:

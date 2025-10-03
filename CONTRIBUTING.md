@@ -49,7 +49,7 @@ We use a GitFlow-inspired workflow with the following branches:
 
 ### Branch Structure
 - **`main`**: Production-ready code, protected branch
-- **`pre-release`**: Release candidate testing, protected branch  
+- **`pre-release`**: Release candidate testing, protected branch
 - **`feature/feature-name`**: New features, branched from pre-release
 - **`bugfix/issue-description`**: Bug fixes, branched from pre-release
 - **`hotfix/critical-issue`**: Emergency fixes, branched from main

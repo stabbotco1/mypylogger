@@ -14,6 +14,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Dict
 
 import mypylogger
 
@@ -21,7 +22,7 @@ import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-def simulate_production_workflow():
+def simulate_production_workflow() -> None:
     """Simulate a typical production workflow with logging."""
     logger = mypylogger.get_logger()
 
@@ -68,7 +69,7 @@ def simulate_production_workflow():
     logger.info("Production service shutdown initiated")
 
 
-def analyze_log_output():
+def analyze_log_output() -> None:
     """Analyze the JSON log output to demonstrate structured logging benefits."""
     log_file_path = Path("logs") / f"prod_service_{time.strftime('%Y_%m_%d')}.log"
 
@@ -90,7 +91,7 @@ def analyze_log_output():
     print(f"Total log entries: {len(log_entries)}")
 
     # Analyze by level
-    level_counts = {}
+    level_counts: Dict[str, int] = {}
     for entry in log_entries:
         level = entry.get("levelname", "UNKNOWN")
         level_counts[level] = level_counts.get(level, 0) + 1
@@ -114,7 +115,7 @@ def analyze_log_output():
             )
 
 
-def main():
+def main() -> None:
     """Demonstrate production mode configuration."""
     print("=== Production Mode Example ===\n")
 

@@ -10,7 +10,7 @@ better user experience.
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from github_data_models import WorkflowRun
 
@@ -353,14 +353,14 @@ class IntelligentPollingManager:
             self.last_poll_times.pop(workflow_id, None)
             self.backoff_multipliers.pop(workflow_id, None)
 
-    def get_polling_statistics(self) -> Dict[str, any]:
+    def get_polling_statistics(self) -> Dict[str, Any]:
         """
         Get statistics about current polling state.
 
         Returns:
             Dictionary with polling statistics
         """
-        phase_counts = {}
+        phase_counts: Dict[str, int] = {}
         for phase in self.workflow_phases.values():
             phase_counts[phase.value] = phase_counts.get(phase.value, 0) + 1
 

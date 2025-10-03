@@ -1,19 +1,115 @@
-Quick status check
-Import sorting:
-Skipped 4 files
-Linting:
-Tests:
-........................................................................ [ 22%]
-........................................................................ [ 45%]
-........................................................................ [ 68%]
-........................................................................ [ 90%]
-.............................                                            [100%]
-=============================== warnings summary ===============================
-scripts/run_complete_test_suite.py:50
-  /Users/stephenabbot/projects/mypylogger/scripts/run_complete_test_suite.py:50: PytestCollectionWarning: cannot collect test class 'TestSuiteRunner' because it has a __init__ constructor (from: tests/test_test_suite_integration.py)
-    class TestSuiteRunner:
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0 -- /Users/stephenabbot/projects/mypylogger/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/stephenabbot/projects/mypylogger
+configfile: pyproject.toml
+plugins: cov-7.0.0
+collecting ... collected 103 items
 
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+tests/unit/test_config.py::TestLogConfig::test_default_configuration PASSED [  0%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_no_env_vars PASSED [  1%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_app_name PASSED [  2%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_log_level PASSED [  3%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_empty_log_file_true PASSED [  4%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_empty_log_file_false PASSED [  5%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_parallel_stdout_logging PASSED [  6%]
+tests/unit/test_config.py::TestLogConfig::test_from_environment_with_all_variables PASSED [  7%]
+tests/unit/test_config.py::TestLogConfig::test_get_log_level_int_valid_levels PASSED [  8%]
+tests/unit/test_config.py::TestLogConfig::test_get_log_level_int_invalid_level PASSED [  9%]
+tests/unit/test_config.py::TestLogConfig::test_get_log_level_int_case_insensitive PASSED [ 10%]
+tests/unit/test_config.py::TestLogConfig::test_boolean_parsing_variations PASSED [ 11%]
+tests/unit/test_config.py::TestLogConfig::test_validation_with_empty_strings PASSED [ 12%]
+tests/unit/test_config_stubs.py::TestLogConfigStubs::test_logconfig_default_values PASSED [ 13%]
+tests/unit/test_config_stubs.py::TestLogConfigStubs::test_from_environment_stub_returns_default PASSED [ 14%]
+tests/unit/test_config_stubs.py::TestLogConfigStubs::test_get_log_level_int_stub_returns_info PASSED [ 15%]
+tests/unit/test_core_stubs.py::TestSingletonLoggerStubs::test_get_logger_returns_configured_logger PASSED [ 16%]
+tests/unit/test_core_stubs.py::TestSingletonLoggerStubs::test_get_effective_level_returns_configured_level PASSED [ 17%]
+tests/unit/test_core_stubs.py::TestSingletonLoggerStubs::test_singleton_instance_creation PASSED [ 18%]
+tests/unit/test_error_conditions.py::TestErrorConditions::test_logger_initialization_failure PASSED [ 19%]
+tests/unit/test_error_conditions.py::TestErrorConditions::test_stdout_handler_creation_failure PASSED [ 20%]
+tests/unit/test_error_conditions.py::TestImportErrorHandling::test_missing_pythonjsonlogger_dependency PASSED [ 21%]
+tests/unit/test_error_conditions.py::TestConfigurationErrorHandling::test_invalid_log_level_handling PASSED [ 22%]
+tests/unit/test_error_conditions.py::TestConfigurationErrorHandling::test_invalid_boolean_values PASSED [ 23%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_handle_file_handler_error PASSED [ 24%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_handle_stdout_handler_error PASSED [ 25%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_add_file_handler_success PASSED [ 26%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_add_file_handler_failure PASSED [ 27%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_add_stdout_handler_success PASSED [ 28%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_add_stdout_handler_disabled PASSED [ 29%]
+tests/unit/test_error_handling_refactored.py::TestRefactoredErrorHandling::test_add_stdout_handler_failure PASSED [ 30%]
+tests/unit/test_error_handling_refactored.py::TestFallbackJsonLogger::test_create_fallback_jsonlogger PASSED [ 31%]
+tests/unit/test_error_handling_refactored.py::TestFallbackJsonLogger::test_fallback_formatter_functionality PASSED [ 32%]
+tests/unit/test_error_handling_refactored.py::TestFallbackJsonLogger::test_import_fallback_integration PASSED [ 33%]
+tests/unit/test_formatters.py::TestCustomJsonFormatter::test_formatter_inherits_from_json_formatter PASSED [ 33%]
+tests/unit/test_formatters.py::TestCustomJsonFormatter::test_formatter_initialization PASSED [ 34%]
+tests/unit/test_formatters.py::TestFieldOrdering::test_parse_returns_correct_field_order PASSED [ 35%]
+tests/unit/test_formatters.py::TestFieldOrdering::test_custom_format_string_preserves_time_first PASSED [ 36%]
+tests/unit/test_formatters.py::TestFieldOrdering::test_field_order_consistency PASSED [ 37%]
+tests/unit/test_formatters.py::TestTimestampFormatting::test_timestamp_format_utc_iso8601 PASSED [ 38%]
+tests/unit/test_formatters.py::TestTimestampFormatting::test_timestamp_is_utc PASSED [ 39%]
+tests/unit/test_formatters.py::TestTimestampFormatting::test_millisecond_precision PASSED [ 40%]
+tests/unit/test_formatters.py::TestFieldProcessing::test_line_numbers_converted_to_strings PASSED [ 41%]
+tests/unit/test_formatters.py::TestFieldProcessing::test_null_values_normalized PASSED [ 42%]
+tests/unit/test_formatters.py::TestFieldProcessing::test_process_log_record_called PASSED [ 43%]
+tests/unit/test_formatters.py::TestFieldProcessing::test_field_processing_preserves_required_fields PASSED [ 44%]
+tests/unit/test_formatters.py::TestFieldRemoval::test_unwanted_fields_removed PASSED [ 45%]
+tests/unit/test_formatters.py::TestFieldRemoval::test_process_log_record_removes_fields PASSED [ 46%]
+tests/unit/test_formatters.py::TestJSONOutput::test_output_is_valid_json PASSED [ 47%]
+tests/unit/test_formatters.py::TestJSONOutput::test_time_field_is_first_in_output PASSED [ 48%]
+tests/unit/test_formatters.py::TestJSONOutput::test_complete_log_entry_format PASSED [ 49%]
+tests/unit/test_formatters.py::TestErrorHandling::test_handles_missing_fields_gracefully PASSED [ 50%]
+tests/unit/test_formatters.py::TestErrorHandling::test_handles_unicode_messages PASSED [ 51%]
+tests/unit/test_formatters.py::TestErrorHandling::test_handles_exception_info PASSED [ 52%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_creates_log_directory_if_not_exists PASSED [ 53%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_log_file_naming_format PASSED [ 54%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_immediate_flush_behavior PASSED [ 55%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_file_truncation_when_empty_log_file_on_run_true PASSED [ 56%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_file_append_when_empty_log_file_on_run_false PASSED [ 57%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_real_time_visibility PASSED [ 58%]
+tests/unit/test_handlers.py::TestImmediateFlushFileHandler::test_creates_logs_directory_in_project_root PASSED [ 59%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_handler_creation_with_default_level PASSED [ 60%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_handler_creation_with_custom_level PASSED [ 61%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_level_filtering_info_level PASSED [ 62%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_level_filtering_warning_level PASSED [ 63%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_level_filtering_error_level PASSED [ 64%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_stdout_output_format PASSED [ 65%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_multiple_records_output PASSED [ 66%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_handler_with_file_handler_integration PASSED [ 66%]
+tests/unit/test_handlers.py::TestParallelStdoutHandler::test_conditional_stdout_logging_disabled PASSED [ 67%]
+tests/unit/test_init.py::TestPublicAPI::test_get_logger_function PASSED  [ 68%]
+tests/unit/test_init.py::TestPublicAPI::test_get_effective_level_function PASSED [ 69%]
+tests/unit/test_init.py::TestPublicAPI::test_logging_constants_exist PASSED [ 70%]
+tests/unit/test_init.py::TestPublicAPI::test_logging_constants_values PASSED [ 71%]
+tests/unit/test_init.py::TestPublicAPI::test_package_metadata PASSED     [ 72%]
+tests/unit/test_init.py::TestPublicAPI::test_all_exports PASSED          [ 73%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_stdout_logging_enabled_scenario PASSED [ 74%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_file_truncation_scenario PASSED [ 75%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_parallel_stdout_logging_levels PASSED [ 76%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_configuration_edge_cases PASSED [ 77%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_formatter_edge_cases PASSED [ 78%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_handler_edge_cases PASSED [ 79%]
+tests/unit/test_integration_scenarios.py::TestIntegrationScenarios::test_formatter_import_stub_coverage PASSED [ 80%]
+tests/unit/test_singleton.py::TestSingletonBehavior::test_singleton_returns_same_instance PASSED [ 81%]
+tests/unit/test_singleton.py::TestSingletonBehavior::test_get_logger_returns_same_logger PASSED [ 82%]
+tests/unit/test_singleton.py::TestSingletonBehavior::test_singleton_persists_across_modules PASSED [ 83%]
+tests/unit/test_singleton.py::TestThreadSafety::test_concurrent_singleton_creation PASSED [ 84%]
+tests/unit/test_singleton.py::TestThreadSafety::test_concurrent_get_logger_calls PASSED [ 85%]
+tests/unit/test_singleton.py::TestThreadSafety::test_mixed_concurrent_access PASSED [ 86%]
+tests/unit/test_singleton.py::TestLoggingLevelConstants::test_logging_constants_exist PASSED [ 87%]
+tests/unit/test_singleton.py::TestLoggingLevelConstants::test_logging_constants_values PASSED [ 88%]
+tests/unit/test_singleton.py::TestLoggingLevelConstants::test_constants_are_integers PASSED [ 89%]
+tests/unit/test_singleton.py::TestGetEffectiveLevel::test_get_effective_level_returns_int PASSED [ 90%]
+tests/unit/test_singleton.py::TestGetEffectiveLevel::test_get_effective_level_static_method PASSED [ 91%]
+tests/unit/test_singleton.py::TestGetEffectiveLevel::test_get_effective_level_instance_method PASSED [ 92%]
+tests/unit/test_singleton.py::TestLoggerConfiguration::test_logger_uses_app_name_from_config PASSED [ 93%]
+tests/unit/test_singleton.py::TestLoggerConfiguration::test_logger_uses_default_app_name PASSED [ 94%]
+tests/unit/test_singleton.py::TestLoggerConfiguration::test_logger_level_from_config PASSED [ 95%]
+tests/unit/test_singleton.py::TestLoggerConfiguration::test_logger_default_level PASSED [ 96%]
+tests/unit/test_singleton.py::TestLoggerConfiguration::test_no_duplicate_handlers PASSED [ 97%]
+tests/unit/test_singleton.py::TestLoggerConfiguration::test_get_effective_level_matches_logger PASSED [ 98%]
+tests/unit/test_singleton.py::TestConfigurationIntegration::test_configuration_loaded_once PASSED [ 99%]
+tests/unit/test_singleton.py::TestConfigurationIntegration::test_thread_safe_configuration_loading PASSED [100%]
+
 ================================ tests coverage ================================
 _______________ coverage: platform darwin, python 3.11.9-final-0 _______________
 
@@ -21,11 +117,11 @@ Name                       Stmts   Miss   Cover   Missing
 ---------------------------------------------------------
 mypylogger/__init__.py        17      0 100.00%
 mypylogger/config.py          35      0 100.00%
-mypylogger/core.py            61      1  98.36%   67
-mypylogger/formatters.py      92     12  86.96%   16-32, 108
-mypylogger/handlers.py        27      0 100.00%
+mypylogger/core.py            82      4  95.12%   102, 104, 118, 120
+mypylogger/formatters.py      95      9  90.53%   20-22, 38-40, 116, 143, 155, 230-232
+mypylogger/handlers.py        27      2  92.59%   102-105
 ---------------------------------------------------------
-TOTAL                        232     13  94.40%
+TOTAL                        256     15  94.14%
 Coverage HTML written to dir htmlcov
-Required test coverage of 90% reached. Total coverage: 94.40%
-317 passed, 1 warning in 8.86s
+Required test coverage of 90% reached. Total coverage: 94.14%
+============================= 103 passed in 0.15s ==============================

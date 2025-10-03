@@ -100,7 +100,7 @@ make test-complete-with-pipeline
    ```bash
    # Add to your shell profile (.bashrc, .zshrc, etc.)
    export GITHUB_TOKEN="your_token_here"
-   
+
    # Optional: Configure default settings
    export GITHUB_PIPELINE_TIMEOUT=30  # minutes
    export GITHUB_PIPELINE_POLL_INTERVAL=15  # seconds
@@ -135,7 +135,7 @@ Create a `.github-monitor.yml` file in your project root for persistent configur
 github:
   token: ${GITHUB_TOKEN}  # Environment variable reference
   repository: auto        # Auto-detect from git remote
-  
+
 monitoring:
   branches:
     - pre-release
@@ -143,12 +143,12 @@ monitoring:
   poll_interval: 30       # seconds
   timeout: 30            # minutes
   auto_monitor: true     # Monitor on push automatically
-  
+
 integration:
   test_suite_runner: true
   make_commands: true
   block_on_failure: true
-  
+
 output:
   format: console        # console, json, minimal
   colors: true
@@ -282,10 +282,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
+
       - name: Install dependencies
         run: pip install -r requirements.txt
-      
+
       - name: Run tests with pipeline monitoring
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

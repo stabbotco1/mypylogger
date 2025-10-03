@@ -22,7 +22,7 @@ Code Push → Quality Gates → Security Scan → Test Matrix → Deploy
 
 ### Stage 1: Code Quality
 **Triggers**: Every push, every PR
-**Tools**: 
+**Tools**:
 - **Black**: Code formatting enforcement
 - **isort**: Import statement organization
 - **flake8**: PEP 8 compliance and linting
@@ -150,7 +150,7 @@ Display in README.md header:
 # Daily automated scan
 - name: Safety Check
   run: safety check --json
-  
+
 - name: Trivy Scan
   run: trivy fs --security-checks vuln .
 ```
@@ -160,7 +160,7 @@ Display in README.md header:
 # On every PR
 - name: CodeQL Analysis
   uses: github/codeql-action/analyze
-  
+
 - name: Semgrep Scan
   run: semgrep --config=auto .
 ```
@@ -199,7 +199,7 @@ Display in README.md header:
 # On git tag creation
 - name: Build Package
   run: python -m build
-  
+
 - name: Publish to PyPI
   uses: pypa/gh-action-pypi-publish@release/v1
   with:
@@ -211,7 +211,7 @@ Display in README.md header:
 # On merge to main
 - name: Build Docs
   run: mkdocs build
-  
+
 - name: Deploy to GitHub Pages
   uses: peaceiris/actions-gh-pages@v3
 ```

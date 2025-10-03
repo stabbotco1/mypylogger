@@ -201,7 +201,7 @@ With AI assistance, documentation quality can be dramatically improved:
 
 #### Continue Through (Don't Block Progress):
 - ❌ **Formatting issues** - Black code formatting violations
-- ❌ **Import sorting** - isort violations  
+- ❌ **Import sorting** - isort violations
 - ❌ **Style linting** - flake8 style issues (line length, etc.)
 - ❌ **Minor linting** - Non-functional code style violations
 
@@ -271,7 +271,7 @@ python scripts/github_help_system.py --diagnose | tee -a test_results.txt
 
 ### Usage Pattern
 1. **User runs command** with `| tee results.txt`
-2. **User confirms completion** ("done")  
+2. **User confirms completion** ("done")
 3. **AI reads file directly** with `readFile` tool
 4. **AI analyzes and responds** with specific fixes/next steps
 

@@ -12,6 +12,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any, Dict
 
 import mypylogger
 
@@ -19,7 +20,7 @@ import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-def reset_logger():
+def reset_logger() -> None:
     """Reset the singleton logger for fresh configuration."""
     if hasattr(mypylogger.SingletonLogger, "_instance"):
         mypylogger.SingletonLogger._instance = None
@@ -27,7 +28,7 @@ def reset_logger():
         mypylogger.SingletonLogger._config = None
 
 
-def setup_environment(args):
+def setup_environment(args: Any) -> None:
     """Set up environment variables based on CLI arguments."""
     if args.app_name:
         os.environ["APP_NAME"] = args.app_name
@@ -44,7 +45,7 @@ def setup_environment(args):
             os.environ["PARALLEL_STDOUT_LOGGING"] = "false"
 
 
-def show_configuration():
+def show_configuration() -> None:
     """Display current configuration."""
     config = mypylogger.LogConfig.from_environment()
     logger = mypylogger.get_logger()
@@ -64,7 +65,7 @@ def show_configuration():
         print(f"    Handler {i + 1}: {handler_type}")
 
 
-def test_all_log_levels():
+def test_all_log_levels() -> None:
     """Test logging at all levels."""
     logger = mypylogger.get_logger()
 
@@ -91,7 +92,7 @@ def test_all_log_levels():
         logger.log(level, message)
 
 
-def test_structured_logging():
+def test_structured_logging() -> None:
     """Test structured logging with extra fields."""
     logger = mypylogger.get_logger()
 
@@ -134,7 +135,7 @@ def test_structured_logging():
     print("  Structured log entries created with extra context")
 
 
-def test_exception_logging():
+def test_exception_logging() -> None:
     """Test exception logging."""
     logger = mypylogger.get_logger()
 
@@ -160,7 +161,7 @@ def test_exception_logging():
         print("  File error logged with context")
 
 
-def analyze_log_file():
+def analyze_log_file() -> None:
     """Analyze the generated log file."""
     config = mypylogger.LogConfig.from_environment()
     log_file_path = Path("logs") / f"{config.app_name}_{time.strftime('%Y_%m_%d')}.log"
@@ -190,7 +191,7 @@ def analyze_log_file():
         print(f"Valid JSON entries: {len(json_entries)}")
 
         # Count by level
-        level_counts = {}
+        level_counts: Dict[str, int] = {}
         for entry in json_entries:
             level = entry.get("levelname", "UNKNOWN")
             level_counts[level] = level_counts.get(level, 0) + 1
@@ -234,7 +235,7 @@ def analyze_log_file():
                     print(f"     Extra: {extra_fields}")
 
 
-def run_performance_test(num_messages=1000):
+def run_performance_test(num_messages: int = 1000) -> None:
     """Run a performance test with many log messages."""
     logger = mypylogger.get_logger()
 
@@ -261,7 +262,7 @@ def run_performance_test(num_messages=1000):
     print(f"  Rate: {num_messages / duration:.1f} messages/second")
 
 
-def main():
+def main() -> None:
     """Main CLI interface."""
     parser = argparse.ArgumentParser(
         description="CLI demo for mypylogger - test all functionality",

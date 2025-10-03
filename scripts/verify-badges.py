@@ -9,9 +9,10 @@ and will display properly on GitHub and PyPI.
 import re
 import sys
 from pathlib import Path
+from typing import List, Tuple
 
 
-def extract_badges_from_readme():
+def extract_badges_from_readme() -> List[Tuple[str, str, str]]:
     """Extract all badge URLs from README.md."""
     readme_path = Path("README.md")
     if not readme_path.exists():
@@ -27,7 +28,7 @@ def extract_badges_from_readme():
     return badges
 
 
-def verify_badge_urls():
+def verify_badge_urls() -> bool:
     """Verify that badge URLs are correctly formatted."""
     badges = extract_badges_from_readme()
 
@@ -60,7 +61,7 @@ def verify_badge_urls():
     return all_valid
 
 
-def check_required_badges():
+def check_required_badges() -> bool:
     """Check that all required badges are present."""
     badges = extract_badges_from_readme()
     badge_texts = [badge[0].lower() for badge in badges]
@@ -97,7 +98,7 @@ def check_required_badges():
     return all_present
 
 
-def verify_workflow_names():
+def verify_workflow_names() -> bool:
     """Verify that GitHub Actions workflow names match badge URLs."""
     print("\n🔧 Verifying GitHub Actions workflow names:")
 
@@ -124,7 +125,7 @@ def verify_workflow_names():
     return all_match
 
 
-def main():
+def main() -> int:
     """Main verification function."""
     print("🏷️  Badge Verification for mypylogger")
     print("=" * 40)

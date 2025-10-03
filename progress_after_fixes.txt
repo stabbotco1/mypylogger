@@ -1,0 +1,23 @@
+=== Progress Check After Fixes ===
+72
+Remaining errors:
+scripts/github_monitor_exceptions.py:303: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_monitor_exceptions.py:303: error: Missing return statement  [return]
+scripts/github_monitor_exceptions.py:422: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_pipeline_monitor.py:156: error: Statement is unreachable  [unreachable]
+scripts/github_pipeline_monitor.py:322: error: Cannot determine type of "colors"  [has-type]
+scripts/github_pipeline_monitor.py:335: error: Cannot determine type of "colors"  [has-type]
+scripts/github_pipeline_monitor.py:349: error: Incompatible types in assignment (expression has type "float", variable has type "int")  [assignment]
+scripts/github_pipeline_monitor.py:412: error: Cannot determine type of "colors"  [has-type]
+scripts/github_pipeline_monitor.py:462: error: Cannot determine type of "colors"  [has-type]
+scripts/github_pipeline_monitor.py:467: error: Cannot determine type of "colors"  [has-type]
+scripts/github_pipeline_monitor.py:472: error: Cannot determine type of "colors"  [has-type]
+scripts/github_api_client.py:196: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:201: error: Right operand of "and" is never evaluated  [unreachable]
+scripts/github_api_client.py:202: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:231: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:239: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:243: error: Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+scripts/github_api_client.py:438: error: Returning Any from function declared to return "dict[str, Any]"  [no-any-return]
+scripts/github_api_client.py:451: error: Returning Any from function declared to return "dict[str, int]"  [no-any-return]
+tests/unit/test_formatters.py:246: error: Cannot assign to a method  [method-assign]

@@ -34,10 +34,10 @@ self = <tests.test_performance_and_security_validation.TestPerformanceRequiremen
             "GITHUB_PIPELINE_CHECK": "false",
             "GITHUB_TOKEN": "test_token"
         }
-    
+
         for key, value in test_env_vars.items():
             os.environ[key] = value
-    
+
         # Test that test suite runner can run without pipeline checking
         test_suite_script = Path("scripts/run_complete_test_suite.py")
         if test_suite_script.exists():
@@ -50,19 +50,19 @@ self = <tests.test_performance_and_security_validation.TestPerformanceRequiremen
                                "Test suite runner should compile without errors")
             except subprocess.TimeoutExpired:
                 self.fail("Test suite runner compilation timed out")
-    
+
         # Test that bypass options are documented
         docs_path = Path("docs/GITHUB_ACTION_MONITORING.md")
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             bypass_terms = [
                 "bypass",
                 "GITHUB_PIPELINE_CHECK=false",  # This exact term is in the docs
                 "emergency"
             ]
-    
+
             for term in bypass_terms:
                 with self.subTest(bypass_term=term):
 >                   self.assertIn(term, docs_content,
@@ -81,32 +81,32 @@ self = <tests.test_performance_and_security_validation.TestSecurityRequirements 
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             security_terms = [
                 "Security",  # This section exists in GITHUB_TOKEN_SETUP.md
                 "environment variable",  # This term is in the docs
                 "GITHUB_TOKEN",  # This is definitely in the docs
                 "secure"  # This term appears in the docs
             ]
-    
+
             for term in security_terms:
                 with self.subTest(security_term=term):
                     self.assertIn(term, docs_content,
                                 f"Security term '{term}' should be documented")
-    
+
         # Test that scripts don't hardcode tokens
         script_files = [
             "scripts/github_pipeline_monitor.py",
             "scripts/github_monitor_config.py"
         ]
-    
+
         for script_path in script_files:
             script_file = Path(script_path)
             if script_file.exists():
                 with self.subTest(script=script_path):
                     with open(script_file, 'r') as f:
                         script_content = f.read()
-    
+
                     # Should not contain hardcoded tokens
                     suspicious_patterns = [
                         "ghp_",  # GitHub personal access token prefix
@@ -114,7 +114,7 @@ self = <tests.test_performance_and_security_validation.TestSecurityRequirements 
                         "token = \"",  # Hardcoded token assignment
                         "TOKEN = \""
                     ]
-    
+
                     for pattern in suspicious_patterns:
 >                       self.assertNotIn(pattern, script_content,
                                        f"Script should not contain hardcoded token pattern: {pattern}")
@@ -132,24 +132,24 @@ self = <tests.test_performance_and_security_validation.TestErrorHandlingAndRecov
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             degradation_terms = [
                 "bypass",  # This term is definitely in the docs
                 "emergency",  # This term is in the docs
                 "Bypass Options"  # This exact phrase is in the docs
             ]
-    
+
             for term in degradation_terms:
                 with self.subTest(degradation_term=term):
                     self.assertIn(term, docs_content,
                                 f"Graceful degradation term '{term}' should be documented")
-    
+
         # Test that bypass mechanisms exist
         bypass_env_vars = [
             "GITHUB_PIPELINE_CHECK=false",
             "GITHUB_PIPELINE_BYPASS=true"
         ]
-    
+
         for env_var in bypass_env_vars:
             with self.subTest(bypass_var=env_var):
                 if docs_path.exists():

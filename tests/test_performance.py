@@ -10,6 +10,7 @@ These tests validate that the library meets performance requirements:
 import os
 import time
 from statistics import median
+from typing import List, Tuple
 
 import psutil
 import pytest
@@ -162,7 +163,7 @@ class TestPerformanceBenchmarks:
         # Test concurrent logging from multiple threads
         num_threads = 4
         messages_per_thread = 1000
-        results_queue = queue.Queue()
+        results_queue: queue.Queue[Tuple[int, float, float]] = queue.Queue()
 
         def log_worker(thread_id, num_messages):
             """Worker function for concurrent logging."""
@@ -197,7 +198,7 @@ class TestPerformanceBenchmarks:
         overall_throughput = total_messages / overall_duration
 
         # Collect results
-        thread_results = []
+        thread_results: List[Tuple[int, float, float]] = []
         while not results_queue.empty():
             thread_results.append(results_queue.get())
 

@@ -7,6 +7,7 @@ to ensure we meet the quality gate requirements.
 
 import logging
 import os
+from typing import Any, Dict
 from unittest.mock import patch
 
 import mypylogger
@@ -144,13 +145,13 @@ class TestFormattersCoverage:
             args=(),
             exc_info=None,
         )
-        record.pathname = None  # Explicitly set to None
+        record.pathname = None  # type: ignore[assignment]
         # Remove filename attribute entirely to test the 'unknown' fallback
         if hasattr(record, "filename"):
             delattr(record, "filename")
-        record.funcName = None
+        record.funcName = None  # type: ignore[assignment]
 
-        log_record = {}
+        log_record: Dict[str, Any] = {}
         message_dict = {"message": "test"}
 
         formatter.add_fields(log_record, record, message_dict)
@@ -174,7 +175,7 @@ class TestFormattersCoverage:
         )
         record.exc_text = "Exception text here"
 
-        log_record = {}
+        log_record: Dict[str, Any] = {}
         message_dict = {"message": "test"}
 
         formatter.add_fields(log_record, record, message_dict)

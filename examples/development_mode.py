@@ -20,7 +20,7 @@ import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-def simulate_development_workflow():
+def simulate_development_workflow() -> None:
     """Simulate a typical development workflow with logging."""
     logger = mypylogger.get_logger()
 
@@ -54,7 +54,7 @@ def simulate_development_workflow():
     logger.info("Development server ready")
 
 
-def main():
+def main() -> None:
     """Demonstrate development mode configuration."""
     print("=== Development Mode Example ===\n")
 

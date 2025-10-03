@@ -74,7 +74,7 @@ class ConfigurationError(Exception):
 class ConfigManager:
     """Manages configuration loading, validation, and repository detection."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.config_file_paths = [
             ".github-monitor.yml",
             ".github-monitor.yaml",
@@ -185,46 +185,56 @@ class ConfigManager:
         """Load configuration from environment variables."""
 
         # GitHub settings
-        if os.getenv("GITHUB_TOKEN"):
-            config.github_token = os.getenv("GITHUB_TOKEN")
-        if os.getenv("GITHUB_REPOSITORY"):
-            repo = os.getenv("GITHUB_REPOSITORY")
-            if "/" in repo:
-                config.repo_owner, config.repo_name = repo.split("/", 1)
+        github_token = os.getenv("GITHUB_TOKEN")
+        if github_token:
+            config.github_token = github_token
+
+        repo = os.getenv("GITHUB_REPOSITORY")
+        if repo and "/" in repo:
+            config.repo_owner, config.repo_name = repo.split("/", 1)
 
         # Monitoring settings
-        if os.getenv("GITHUB_MONITOR_BRANCHES"):
-            config.monitored_branches = os.getenv("GITHUB_MONITOR_BRANCHES").split(",")
-        if os.getenv("GITHUB_MONITOR_POLL_INTERVAL"):
-            config.poll_interval_seconds = int(
-                os.getenv("GITHUB_MONITOR_POLL_INTERVAL")
-            )
-        if os.getenv("GITHUB_MONITOR_TIMEOUT"):
-            config.timeout_minutes = int(os.getenv("GITHUB_MONITOR_TIMEOUT"))
-        if os.getenv("GITHUB_MONITOR_AUTO"):
-            config.auto_monitor_on_push = os.getenv("GITHUB_MONITOR_AUTO").lower() in (
+        branches = os.getenv("GITHUB_MONITOR_BRANCHES")
+        if branches:
+            config.monitored_branches = branches.split(",")
+
+        poll_interval = os.getenv("GITHUB_MONITOR_POLL_INTERVAL")
+        if poll_interval:
+            config.poll_interval_seconds = int(poll_interval)
+
+        timeout = os.getenv("GITHUB_MONITOR_TIMEOUT")
+        if timeout:
+            config.timeout_minutes = int(timeout)
+
+        auto_monitor = os.getenv("GITHUB_MONITOR_AUTO")
+        if auto_monitor:
+            config.auto_monitor_on_push = auto_monitor.lower() in (
                 "true",
                 "1",
                 "yes",
             )
 
         # Integration settings
-        if os.getenv("GITHUB_MONITOR_BLOCK_ON_FAILURE"):
-            config.block_on_failure = os.getenv(
-                "GITHUB_MONITOR_BLOCK_ON_FAILURE"
-            ).lower() in ("true", "1", "yes")
+        block_on_failure = os.getenv("GITHUB_MONITOR_BLOCK_ON_FAILURE")
+        if block_on_failure:
+            config.block_on_failure = block_on_failure.lower() in ("true", "1", "yes")
 
         # Output settings
-        if os.getenv("GITHUB_MONITOR_FORMAT"):
-            config.output_format = OutputFormat(os.getenv("GITHUB_MONITOR_FORMAT"))
-        if os.getenv("GITHUB_MONITOR_COLORS"):
-            config.colors_enabled = os.getenv("GITHUB_MONITOR_COLORS").lower() in (
+        format_setting = os.getenv("GITHUB_MONITOR_FORMAT")
+        if format_setting:
+            config.output_format = OutputFormat(format_setting)
+
+        colors_setting = os.getenv("GITHUB_MONITOR_COLORS")
+        if colors_setting:
+            config.colors_enabled = colors_setting.lower() in (
                 "true",
                 "1",
                 "yes",
             )
-        if os.getenv("GITHUB_MONITOR_VERBOSE"):
-            config.verbose = os.getenv("GITHUB_MONITOR_VERBOSE").lower() in (
+
+        verbose_setting = os.getenv("GITHUB_MONITOR_VERBOSE")
+        if verbose_setting:
+            config.verbose = verbose_setting.lower() in (
                 "true",
                 "1",
                 "yes",
@@ -396,7 +406,7 @@ For detailed troubleshooting and security considerations, see docs/GITHUB_TOKEN_
 """
 
 
-def main():
+def main() -> None:
     """CLI interface for configuration management."""
     import argparse
 

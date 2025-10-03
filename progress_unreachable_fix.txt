@@ -1,0 +1,13 @@
+=== Progress After Unreachable Code Fix ===
+58
+First 10 errors:
+scripts/github_monitor_exceptions.py:303: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_monitor_exceptions.py:303: error: Missing return statement  [return]
+scripts/github_monitor_exceptions.py:423: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_api_client.py:196: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:201: error: Right operand of "and" is never evaluated  [unreachable]
+scripts/github_api_client.py:202: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:231: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:239: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:243: error: Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+kiro_research_script.py:15: error: Function is missing a type annotation  [no-untyped-def]

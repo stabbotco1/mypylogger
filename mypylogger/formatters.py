@@ -11,14 +11,15 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-try:
-    from pythonjsonlogger import json as jsonlogger
-except ImportError:
-    # Stub for when dependency is not available
+
+def _create_fallback_jsonlogger() -> Any:
+    """Create fallback JSON logger when pythonjsonlogger is not available."""
     from typing import TYPE_CHECKING
 
     if TYPE_CHECKING:
         from pythonjsonlogger import json as jsonlogger
+
+        return jsonlogger
     else:
 
         class _JsonLoggerStub:
@@ -29,7 +30,14 @@ except ImportError:
                 def format(self, record: logging.LogRecord) -> str:
                     return super().format(record)
 
-        jsonlogger = _JsonLoggerStub()
+        return _JsonLoggerStub()
+
+
+try:
+    from pythonjsonlogger import json as jsonlogger
+except ImportError:
+    # Fallback implementation when pythonjsonlogger is not available
+    jsonlogger = _create_fallback_jsonlogger()
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):

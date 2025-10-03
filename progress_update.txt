@@ -1,0 +1,13 @@
+=== Progress Update ===
+MyPy error count:
+83
+
+Remaining error types:
+  61
+   7  = ...")
+   4 ")
+   3 " is not indexable
+   3 " has no attribute "append"
+   3 "
+   1 "; expected "Union
+   1 " has no attribute "extend"

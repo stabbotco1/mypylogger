@@ -31,14 +31,14 @@ self = <tests.test_end_to_end_integration.TestProductionLikeScenarios testMethod
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             recovery_topics = [
                 "Troubleshooting",
                 "Network",
                 "Authentication",
                 "retry"
             ]
-    
+
             for topic in recovery_topics:
                 with self.subTest(topic=topic):
 >                   self.assertIn(topic, docs_content,
@@ -59,19 +59,19 @@ self = <tests.test_end_to_end_integration.TestRealWorldIntegration testMethod=te
             "GITHUB_REPOSITORY": "test/repo",
             "GITHUB_SHA": "abc123def456"
         }
-    
+
         for key, value in ci_env_vars.items():
             os.environ[key] = value
-    
+
         # Test that monitoring works in CI environment
         with patch('scripts.github_pipeline_monitor.GitHubPipelineMonitor') as mock_monitor_class:
             mock_monitor = Mock()
             mock_monitor_class.return_value = mock_monitor
-    
+
             mock_status = Mock()
             mock_status.overall_status = "success"
             mock_monitor.get_pipeline_status.return_value = mock_status
-    
+
             try:
 >               config_manager = ConfigManager()
                                  ^^^^^^^^^^^^^
@@ -92,27 +92,27 @@ self = <tests.test_end_to_end_integration.TestRealWorldIntegration testMethod=te
             "GITHUB_REPOSITORY": "test/repo",
             "GITHUB_SHA": "abc123def456"
         }
-    
+
         for key, value in ci_env_vars.items():
             os.environ[key] = value
-    
+
         # Test that monitoring works in CI environment
         with patch('scripts.github_pipeline_monitor.GitHubPipelineMonitor') as mock_monitor_class:
             mock_monitor = Mock()
             mock_monitor_class.return_value = mock_monitor
-    
+
             mock_status = Mock()
             mock_status.overall_status = "success"
             mock_monitor.get_pipeline_status.return_value = mock_status
-    
+
             try:
                 config_manager = ConfigManager()
                 config = config_manager.load_config()
                 monitor = GitHubPipelineMonitor(config)
-    
+
                 status = monitor.get_pipeline_status()
                 self.assertEqual(status.overall_status, "success")
-    
+
             except Exception as e:
                 # If imports failed, just verify the test structure is correct
 >               self.assertIsInstance(e, (ImportError, AttributeError))

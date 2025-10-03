@@ -9,6 +9,7 @@ for GitHub API requests.
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
 from unittest.mock import patch
 
 import pytest
@@ -300,7 +301,7 @@ class TestGitHubCacheManager:
         """Test caching and retrieving responses."""
         endpoint = "/repos/owner/repo/actions/runs"
         params = {"head_sha": "abc123"}
-        response_data = {"workflow_runs": []}
+        response_data: Dict[str, Any] = {"workflow_runs": []}
 
         # Initially no cached response
         cached = self.manager.get_cached_response(endpoint, params)
@@ -320,7 +321,7 @@ class TestGitHubCacheManager:
         mock_datetime.now.return_value = base_time
 
         endpoint = "/repos/owner/repo/actions/runs"
-        response_data = {"workflow_runs": []}
+        response_data: Dict[str, Any] = {"workflow_runs": []}
 
         # Cache the response
         self.manager.cache_response(endpoint, None, response_data)
@@ -345,7 +346,7 @@ class TestGitHubCacheManager:
         mock_datetime.now.return_value = base_time
 
         endpoint = "/repos/owner/repo/actions/runs"
-        response_data = {"workflow_runs": []}
+        response_data: Dict[str, Any] = {"workflow_runs": []}
 
         # Cache the response
         self.manager.cache_response(endpoint, None, response_data)

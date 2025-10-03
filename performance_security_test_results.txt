@@ -34,7 +34,7 @@ self = <tests.test_performance_and_security_validation.TestPerformanceRequiremen
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             performance_terms = [
                 "Performance",
                 "memory",
@@ -42,7 +42,7 @@ self = <tests.test_performance_and_security_validation.TestPerformanceRequiremen
                 "resource usage",
                 "Memory Optimization"
             ]
-    
+
             for term in performance_terms:
                 with self.subTest(performance_term=term):
 >                   self.assertIn(term, docs_content,
@@ -61,10 +61,10 @@ self = <tests.test_performance_and_security_validation.TestPerformanceRequiremen
             "GITHUB_PIPELINE_CHECK": "false",
             "GITHUB_TOKEN": "test_token"
         }
-    
+
         for key, value in test_env_vars.items():
             os.environ[key] = value
-    
+
         # Test that test suite runner can run without pipeline checking
         test_suite_script = Path("scripts/run_complete_test_suite.py")
         if test_suite_script.exists():
@@ -77,20 +77,20 @@ self = <tests.test_performance_and_security_validation.TestPerformanceRequiremen
                                "Test suite runner should compile without errors")
             except subprocess.TimeoutExpired:
                 self.fail("Test suite runner compilation timed out")
-    
+
         # Test that bypass options are documented
         docs_path = Path("docs/GITHUB_ACTION_MONITORING.md")
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             bypass_terms = [
                 "bypass",
                 "disable",
                 "GITHUB_PIPELINE_CHECK=false",
                 "emergency"
             ]
-    
+
             for term in bypass_terms:
                 with self.subTest(bypass_term=term):
 >                   self.assertIn(term, docs_content,
@@ -109,14 +109,14 @@ self = <tests.test_performance_and_security_validation.TestSecurityRequirements 
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             config_security_terms = [
                 "configuration",
                 "permissions",
                 "secure",
                 ".github-monitor.yml"
             ]
-    
+
             for term in config_security_terms:
                 with self.subTest(config_term=term):
 >                   self.assertIn(term, docs_content,
@@ -135,7 +135,7 @@ self = <tests.test_performance_and_security_validation.TestSecurityRequirements 
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             security_terms = [
                 "Security",
                 "environment variable",
@@ -143,7 +143,7 @@ self = <tests.test_performance_and_security_validation.TestSecurityRequirements 
                 "never commit",
                 "secure"
             ]
-    
+
             for term in security_terms:
                 with self.subTest(security_term=term):
 >                   self.assertIn(term, docs_content,
@@ -162,7 +162,7 @@ self = <tests.test_performance_and_security_validation.TestErrorHandlingAndRecov
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             degradation_terms = [
                 "graceful",
                 "degrade",
@@ -170,7 +170,7 @@ self = <tests.test_performance_and_security_validation.TestErrorHandlingAndRecov
                 "continue",
                 "bypass"
             ]
-    
+
             for term in degradation_terms:
                 with self.subTest(degradation_term=term):
 >                   self.assertIn(term, docs_content,
@@ -189,7 +189,7 @@ self = <tests.test_performance_and_security_validation.TestErrorHandlingAndRecov
         if docs_path.exists():
             with open(docs_path, 'r') as f:
                 docs_content = f.read()
-    
+
             network_error_terms = [
                 "Network connectivity",
                 "network issues",
@@ -197,7 +197,7 @@ self = <tests.test_performance_and_security_validation.TestErrorHandlingAndRecov
                 "connection",
                 "offline"
             ]
-    
+
             for term in network_error_terms:
                 with self.subTest(network_term=term):
 >                   self.assertIn(term, docs_content,

@@ -1,0 +1,3 @@
+Reinstalling pre-commit hooks
+pre-commit uninstalled
+pre-commit installed at .git/hooks/pre-commit

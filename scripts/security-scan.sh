@@ -155,7 +155,7 @@ cat > reports/security/summary.md << EOF
 
 - \`bandit-report.json\` - Detailed Bandit findings (JSON)
 - \`bandit-report.txt\` - Human-readable Bandit report
-- \`safety-report.json\` - Safety vulnerability findings (JSON)  
+- \`safety-report.json\` - Safety vulnerability findings (JSON)
 - \`safety-report.txt\` - Human-readable Safety report
 - \`permissions-report.txt\` - File permission issues
 - \`summary.md\` - This summary report

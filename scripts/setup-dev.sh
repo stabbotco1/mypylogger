@@ -6,15 +6,27 @@ set -e  # Exit on any error
 
 echo "🚀 Setting up mypylogger development environment..."
 
-# Check if we're in a virtual environment
+# Check if we're in a virtual environment, create if needed
 if [[ "$VIRTUAL_ENV" == "" ]]; then
-    echo "⚠️  Warning: Not in a virtual environment"
-    echo "   Consider running: python -m venv venv && source venv/bin/activate"
-    read -p "   Continue anyway? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
+    echo "⚠️  Not in a virtual environment"
+
+    # Check if venv directory exists
+    if [[ -d "venv" ]]; then
+        echo "📁 Found existing venv directory"
+        echo "🔧 Activating virtual environment..."
+        source venv/bin/activate
+    else
+        echo "🔧 Creating virtual environment..."
+        python -m venv venv
+        echo "🔧 Activating virtual environment..."
+        source venv/bin/activate
+        echo "📦 Upgrading pip to latest version..."
+        pip install --upgrade pip
+        echo "📦 Upgrading setuptools to latest version..."
+        pip install --upgrade setuptools
     fi
+
+    echo "✅ Virtual environment activated: $VIRTUAL_ENV"
 fi
 
 # Install package in development mode

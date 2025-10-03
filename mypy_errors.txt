@@ -1,0 +1,10 @@
+scripts/github_monitor_exceptions.py:306: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_monitor_exceptions.py:306: error: Missing return statement  [return]
+scripts/github_monitor_exceptions.py:426: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+scripts/github_api_client.py:196: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:201: error: Right operand of "and" is never evaluated  [unreachable]
+scripts/github_api_client.py:202: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:231: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:239: error: Statement is unreachable  [unreachable]
+scripts/github_api_client.py:243: error: Returning Any from function declared to return "dict[Any, Any]"  [no-any-return]
+Found 9 errors in 2 files (checked 1 source file)

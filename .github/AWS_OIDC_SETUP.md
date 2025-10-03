@@ -136,7 +136,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_GITHUB_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-          
+
       - name: Test SSM access
         run: |
           echo "Testing SSM parameter access..."

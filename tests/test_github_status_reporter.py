@@ -9,6 +9,7 @@ progress indicators, output formats, and terminal compatibility.
 import io
 import json
 import sys
+from typing import Any, List, Optional
 
 import pytest
 
@@ -57,10 +58,10 @@ class TestStatusReporter:
     def create_test_pipeline_status(
         self,
         overall_status: str = "success",
-        workflow_runs: list = None,
-        failed_workflows: list = None,
-        pending_workflows: list = None,
-        success_workflows: list = None,
+        workflow_runs: Optional[List[Any]] = None,
+        failed_workflows: Optional[List[Any]] = None,
+        pending_workflows: Optional[List[Any]] = None,
+        success_workflows: Optional[List[Any]] = None,
     ) -> PipelineStatus:
         """Create a test pipeline status."""
         if workflow_runs is None:
@@ -707,6 +708,7 @@ class TestErrorHandling:
         )
 
         percentage = self.reporter._calculate_progress_percentage(status)
+        assert percentage is not None  # Type narrowing for MyPy
         assert (
             abs(percentage - 33.33333333333333) < 0.0001
         )  # 1 out of 3 completed (floating point tolerance)

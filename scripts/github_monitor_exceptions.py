@@ -9,7 +9,7 @@ and recovery strategies.
 
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar
 
 T = TypeVar("T")
 
@@ -282,8 +282,11 @@ def retry_with_exponential_backoff(
     base_delay: float = 1.0,
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
-    retryable_exceptions: tuple = (GitHubNetworkError, GitHubRateLimitError),
-) -> Callable:
+    retryable_exceptions: Tuple[Type[Exception], ...] = (
+        GitHubNetworkError,
+        GitHubRateLimitError,
+    ),
+) -> Callable[..., Callable[..., T]]:
     """
     Decorator that implements retry logic with exponential backoff.
 
@@ -300,7 +303,7 @@ def retry_with_exponential_backoff(
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def wrapper(*args, **kwargs) -> T:
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             last_exception = None
 
             for attempt in range(max_retries + 1):
@@ -320,7 +323,8 @@ def retry_with_exponential_backoff(
                     if isinstance(e, GitHubRateLimitError):
                         delay = max(delay, e.get_wait_time())
 
-                    print(f"⚠️  Attempt {attempt + 1} failed: {e.message}")
+                    error_msg = getattr(e, "message", str(e))
+                    print(f"⚠️  Attempt {attempt + 1} failed: {error_msg}")
                     print(f"🔄 Retrying in {delay:.1f} seconds...")
                     time.sleep(delay)
                 except Exception as e:
@@ -330,6 +334,9 @@ def retry_with_exponential_backoff(
             # This should never be reached, but just in case
             if last_exception:
                 raise last_exception
+
+            # Fallback return (should never be reached)
+            raise RuntimeError("Unexpected state in retry logic")
 
         return wrapper
 
@@ -419,7 +426,7 @@ def graceful_degradation_handler(
     """
 
     @wraps(func)
-    def wrapper(*args, **kwargs) -> T:
+    def wrapper(*args: Any, **kwargs: Any) -> T:
         try:
             return func(*args, **kwargs)
         except GitHubMonitorError as e:

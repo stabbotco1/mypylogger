@@ -275,23 +275,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-      
+
       - name: Run tests with pipeline monitoring
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PIPELINE_CHECK: true
         run: |
           ./scripts/run-complete-test-suite.sh
-      
+
       - name: Monitor dependent pipelines
         if: github.ref == 'refs/heads/pre-release'
         env:
@@ -308,19 +308,19 @@ For Jenkins CI/CD pipelines:
 // Jenkinsfile
 pipeline {
     agent any
-    
+
     environment {
         GITHUB_TOKEN = credentials('github-token')
         GITHUB_PIPELINE_CHECK = 'true'
     }
-    
+
     stages {
         stage('Test') {
             steps {
                 sh './scripts/run-complete-test-suite.sh'
             }
         }
-        
+
         stage('Monitor Pipelines') {
             when {
                 branch 'pre-release'
@@ -333,7 +333,7 @@ pipeline {
                 archiveArtifacts artifacts: 'pipeline_status.json'
             }
         }
-        
+
         stage('Wait for Dependencies') {
             when {
                 branch 'main'
@@ -345,7 +345,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         failure {
             sh '''

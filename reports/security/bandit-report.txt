@@ -10,7 +10,7 @@ Test results:
 94	            except Exception as e:
 95	                # If file handler fails, continue without it (graceful degradation)
 96	                pass
-97	            
+97
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -22,7 +22,7 @@ Test results:
 108	                except Exception as e:
 109	                    # If stdout handler fails, continue without it
 110	                    pass
-111	    
+111
 
 --------------------------------------------------
 

@@ -36,7 +36,7 @@ The system consists of three main components: a GitHub API client for workflow m
 
 #### 1. GitHub API Client (`GitHubPipelineMonitor`)
 - **Purpose**: Interface with GitHub Actions API
-- **Responsibilities**: 
+- **Responsibilities**:
   - Authenticate with GitHub API using tokens
   - Query workflow runs for specific commits
   - Poll workflow status with intelligent intervals
@@ -206,11 +206,11 @@ fi
 def calculate_overall_status(workflow_runs: List[WorkflowRun]) -> str:
     if not workflow_runs:
         return "no_workflows"
-    
+
     completed_runs = [r for r in workflow_runs if r.status == "completed"]
     failed_runs = [r for r in completed_runs if r.conclusion in ["failure", "cancelled", "timed_out"]]
     pending_runs = [r for r in workflow_runs if r.status != "completed"]
-    
+
     if failed_runs:
         return "failure"
     elif pending_runs:
@@ -225,7 +225,7 @@ def calculate_overall_status(workflow_runs: List[WorkflowRun]) -> str:
 github:
   token: ${GITHUB_TOKEN}  # Environment variable reference
   repository: auto        # Auto-detect from git remote
-  
+
 monitoring:
   branches:
     - pre-release
@@ -233,12 +233,12 @@ monitoring:
   poll_interval: 30       # seconds
   timeout: 30            # minutes
   auto_monitor: true     # Monitor on push automatically
-  
+
 integration:
   test_suite_runner: true
   make_commands: true
   block_on_failure: true
-  
+
 output:
   format: console        # console, json, minimal
   colors: true
@@ -276,7 +276,7 @@ class MonitoringMode(Enum):
     FULL = "full"           # All features available
     LIMITED = "limited"     # Basic monitoring only
     DISABLED = "disabled"   # Monitoring unavailable
-    
+
 def determine_monitoring_mode(config: MonitoringConfig) -> MonitoringMode:
     if not config.github_token:
         return MonitoringMode.DISABLED
@@ -314,13 +314,13 @@ def retry_with_backoff(func, max_retries=3, base_delay=1):
 class TestGitHubAPIClient:
     def test_successful_workflow_retrieval(self, mock_api):
         # Test successful API calls with mocked responses
-        
+
     def test_authentication_failure_handling(self, mock_api):
         # Test 401 response handling
-        
+
     def test_rate_limit_handling(self, mock_api):
         # Test 403 rate limit response
-        
+
     def test_network_error_recovery(self, mock_api):
         # Test network timeout and retry logic
 ```
@@ -330,10 +330,10 @@ class TestGitHubAPIClient:
 class TestPipelineMonitor:
     def test_monitoring_workflow_completion(self, mock_client):
         # Test end-to-end monitoring workflow
-        
+
     def test_timeout_handling(self, mock_client):
         # Test monitoring timeout scenarios
-        
+
     def test_multiple_workflow_coordination(self, mock_client):
         # Test monitoring multiple concurrent workflows
 ```
@@ -343,7 +343,7 @@ class TestPipelineMonitor:
 class TestTestSuiteIntegration:
     def test_pipeline_blocking_on_failure(self, mock_monitor):
         # Test that failed pipelines block test suite
-        
+
     def test_successful_pipeline_continuation(self, mock_monitor):
         # Test that successful pipelines allow continuation
 ```
@@ -452,7 +452,7 @@ class TestTestSuiteIntegration:
 ### GitHub Token Setup and Authentication Issues
 - **Problem**: During development session, encountered GitHub token setup complexity where user needed to configure Personal Access Token with appropriate permissions for GitHub Actions monitoring
 - **Specific Issue**: User was presented with extensive permission options in GitHub's token creation interface (Actions, Administration, Artifact metadata, Attestations, Code scanning alerts, Codespaces, etc.) and needed guidance on minimal required permissions
-- **Required Solution**: 
+- **Required Solution**:
   - Create streamlined setup documentation that clearly identifies only **Actions: Read-only** permission is needed for pipeline monitoring
   - Implement automated token validation to verify correct permissions are set
   - Add setup wizard or guided configuration that walks users through minimal token creation

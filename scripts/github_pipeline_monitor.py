@@ -10,7 +10,12 @@ import json
 import os
 import subprocess
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from github_cache_manager import GitHubCacheManager
+    from github_intelligent_polling import IntelligentPollingManager
+    from github_status_reporter import StatusReporter
 
 # Import configuration management and error handling
 try:
@@ -89,16 +94,34 @@ class GitHubPipelineMonitor:
         self._api_client = create_api_client(self.config)
 
         # Status reporter will be created when needed to avoid circular imports
-        self._status_reporter = None
+        self._status_reporter: Optional["StatusReporter"] = None
 
         # Intelligent polling manager for optimized API usage
-        self._polling_manager = None
+        self._polling_manager: Optional["IntelligentPollingManager"] = None
 
         # Cache manager for response caching and rate limiting
-        self._cache_manager = None
+        self._cache_manager: Optional["GitHubCacheManager"] = None
+
+        # Colors for output formatting
+        if self.config.colors_enabled:
+            self.colors = {
+                "GREEN": "\033[0;32m",
+                "RED": "\033[0;31m",
+                "YELLOW": "\033[1;33m",
+                "BLUE": "\033[0;34m",
+                "PURPLE": "\033[0;35m",
+                "CYAN": "\033[0;36m",
+                "NC": "\033[0m",  # No Color
+            }
+        else:
+            # No colors
+            self.colors = {
+                key: ""
+                for key in ["GREEN", "RED", "YELLOW", "BLUE", "PURPLE", "CYAN", "NC"]
+            }
 
     @property
-    def status_reporter(self):
+    def status_reporter(self) -> "StatusReporter":
         """Lazy-load status reporter to avoid circular imports."""
         if self._status_reporter is None:
             from github_status_reporter import create_status_reporter
@@ -107,7 +130,7 @@ class GitHubPipelineMonitor:
         return self._status_reporter
 
     @property
-    def polling_manager(self):
+    def polling_manager(self) -> "IntelligentPollingManager":
         """Lazy-load intelligent polling manager."""
         if self._polling_manager is None:
             from github_intelligent_polling import (
@@ -128,7 +151,7 @@ class GitHubPipelineMonitor:
         return self._polling_manager
 
     @property
-    def cache_manager(self):
+    def cache_manager(self) -> "GitHubCacheManager":
         """Lazy-load cache manager."""
         if self._cache_manager is None:
             from github_cache_manager import CacheConfig, create_cache_manager
@@ -146,24 +169,6 @@ class GitHubPipelineMonitor:
             self._api_client.set_cache_manager(self._cache_manager)
 
         return self._cache_manager
-
-        # Colors for output (respect config setting) - kept for backward compatibility
-        if self.config.colors_enabled:
-            self.colors = {
-                "GREEN": "\033[0;32m",
-                "RED": "\033[0;31m",
-                "YELLOW": "\033[1;33m",
-                "BLUE": "\033[0;34m",
-                "PURPLE": "\033[0;35m",
-                "CYAN": "\033[0;36m",
-                "NC": "\033[0m",  # No Color
-            }
-        else:
-            # No colors
-            self.colors = {
-                key: ""
-                for key in ["GREEN", "RED", "YELLOW", "BLUE", "PURPLE", "CYAN", "NC"]
-            }
 
     def get_current_commit_sha(self) -> str:
         """Get the current commit SHA from git."""
@@ -319,7 +324,7 @@ class GitHubPipelineMonitor:
 
         start_time = time.time()
         timeout_seconds = timeout_minutes * 60
-        last_status_display = 0
+        last_status_display = 0.0
 
         while True:
             try:
@@ -514,7 +519,7 @@ def parse_github_repo_from_remote() -> Tuple[str, str]:
         )
 
 
-def main():
+def main() -> None:
     """CLI interface for the GitHub pipeline monitor."""
     import argparse
 

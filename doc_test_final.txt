@@ -20,10 +20,10 @@ self = <tests.test_documentation_validation.TestDocumentationCompleteness testMe
         makefile = Path("Makefile")
         if not makefile.exists():
             self.skipTest("Makefile not found")
-    
+
         with open(makefile, 'r') as f:
             makefile_content = f.read()
-    
+
         # Find pipeline monitoring targets (actual make targets, not command lines)
         pipeline_targets = []
         for line in makefile_content.split('\n'):
@@ -37,13 +37,13 @@ self = <tests.test_documentation_validation.TestDocumentationCompleteness testMe
                     not target.startswith('.') and  # Skip .PHONY
                     target not in ['help']):  # Skip help target
                     pipeline_targets.append(target)
-    
+
         # Read documentation
         doc_content = ""
         for doc_file in self.docs_dir.glob("*.md"):
             with open(doc_file, 'r') as f:
                 doc_content += f.read() + "\n"
-    
+
         for target in pipeline_targets:
             with self.subTest(make_target=target):
 >               self.assertIn(target, doc_content,

@@ -1,0 +1,9 @@
+Checking PyPI account ownership
+=== Checking if you can manage the package ===
+Uploading distributions to https://test.pypi.org/legacy/
+[34mINFO    [0m dist/mypylogger-0.1.0a1-py3-none-any.whl (15.6 KB)
+[34mINFO    [0m dist/mypylogger-0.1.0a1.tar.gz (61.5 KB)
+[34mINFO    [0m username set by command options
+[34mINFO    [0m Querying keyring for password
+[34mINFO    [0m Trying to use trusted publishing (no token was explicitly provided)
+[33mWARNING [0m This environment is not supported for trusted publishing

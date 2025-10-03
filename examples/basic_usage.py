@@ -20,7 +20,7 @@ import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-def main():
+def main() -> None:
     """Demonstrate basic mypylogger usage."""
     print("=== Basic mypylogger Usage Example ===\n")
 

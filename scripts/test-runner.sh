@@ -19,12 +19,12 @@ echo -e "${BLUE}====================================${NC}"
 run_test() {
     local test_name="$1"
     local command="$2"
-    
+
     echo ""
     echo -e "${CYAN}Testing: $test_name${NC}"
     echo -e "${YELLOW}Command: $command${NC}"
     echo "----------------------------------------"
-    
+
     if eval "$command"; then
         echo -e "${GREEN}✅ Test passed: $test_name${NC}"
     else
@@ -42,7 +42,7 @@ fi
 # Activate virtual environment if not already active
 if [[ -z "$VIRTUAL_ENV" ]]; then
     echo -e "${YELLOW}⚠️  Virtual environment not active, attempting activation...${NC}"
-    
+
     if [[ -f "venv/bin/activate" ]]; then
         source venv/bin/activate
         echo -e "${GREEN}✅ Virtual environment activated${NC}"

@@ -57,7 +57,7 @@ class GitHubHelpSystem:
     commands for troubleshooting configuration issues.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the help system."""
         self.config_manager = ConfigManager()
 
@@ -448,7 +448,9 @@ class GitHubHelpSystem:
         """Check network connectivity to GitHub."""
         try:
             request = Request("https://api.github.com")
-            with urlopen(request, timeout=10) as response:
+            with urlopen(
+                request, timeout=10
+            ) as response:  # nosec B310 - Hardcoded GitHub API URL
                 if response.status == 200:
                     return DiagnosticResult(
                         name="Network Connectivity",
@@ -494,7 +496,9 @@ class GitHubHelpSystem:
             request.add_header("Authorization", f"token {token}")
             request.add_header("User-Agent", "github-action-monitoring/1.0")
 
-            with urlopen(request, timeout=10) as response:
+            with urlopen(
+                request, timeout=10
+            ) as response:  # nosec B310 - Hardcoded GitHub API URL
                 if response.status == 200:
                     return DiagnosticResult(
                         name="GitHub API Access",
@@ -562,7 +566,9 @@ class GitHubHelpSystem:
             request.add_header("Authorization", f"token {token}")
             request.add_header("User-Agent", "github-action-monitoring/1.0")
 
-            with urlopen(request, timeout=10) as response:
+            with urlopen(
+                request, timeout=10
+            ) as response:  # nosec B310 - Validated GitHub API URL
                 if response.status == 200:
                     return DiagnosticResult(
                         name="Repository Access",
@@ -675,7 +681,7 @@ output:
         return all(result.passed for result in results)
 
 
-def main():
+def main() -> None:
     """CLI interface for the help system."""
     import argparse
 

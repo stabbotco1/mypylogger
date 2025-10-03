@@ -107,6 +107,16 @@ This document captures the meta-learning objectives for using mypylogger as a la
 **Pattern**: Clear communication protocols improve collaboration efficiency
 **Application**: Document communication patterns that work well for different scenarios
 
+#### Virtual Environment Architecture Anti-Pattern
+**Issue Discovered**: Test suite had auto-activation logic instead of fail-fast detection
+**Root Cause**: Persistent import errors and missing dependencies traced to running in system Python
+**Correct Architecture**:
+- **Developer Responsibility**: Create and activate venv before running anything
+- **Test Suite Responsibility**: Detect and fail-fast if not in venv, never auto-create
+- **Setup Scripts Responsibility**: Create venv when explicitly requested
+**Key Learning**: Auto-activation in tests masks setup issues; fail-fast detection prevents confusion
+**Future Pattern**: Always implement venv detection as first check in test suites
+
 ### Technical Pattern Insights
 
 #### Project Structure Evolution
@@ -295,6 +305,6 @@ Derived from project maturation experience:
 
 ---
 
-**Last Updated**: Current session  
-**Next Review**: After project completion  
+**Last Updated**: Current session
+**Next Review**: After project completion
 **Maintainer**: Project lead with Kiro learning objectives

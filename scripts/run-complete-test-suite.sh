@@ -1,6 +1,6 @@
 #!/bin/bash
 # Complete Test Suite Runner for mypylogger
-# 
+#
 # This is a simple wrapper around the Python implementation for better
 # structured error handling and reporting.
 #
@@ -14,19 +14,19 @@ set -e  # Exit on any error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Auto-detect and activate virtual environment if needed
+# Fail-fast if not in virtual environment
 if [[ -z "$VIRTUAL_ENV" ]]; then
-    # Try common virtual environment locations
-    venv_paths=("$PROJECT_ROOT/venv/bin/activate" "$PROJECT_ROOT/.venv/bin/activate" "$PROJECT_ROOT/env/bin/activate")
-    
-    for venv_path in "${venv_paths[@]}"; do
-        if [[ -f "$venv_path" ]]; then
-            source "$venv_path"
-            break
-        fi
-    done
+    echo "❌ ERROR: Not running in a virtual environment"
+    echo ""
+    echo "🔧 To fix this issue:"
+    echo "   1. Create virtual environment: python -m venv venv"
+    echo "   2. Activate it: source venv/bin/activate"
+    echo "   3. Install dependencies: pip install -e \".[dev]\""
+    echo "   4. Re-run this command"
+    echo ""
+    echo "💡 Or use the setup script: ./scripts/setup-dev.sh"
+    exit 1
 fi
 
 # Execute the Python implementation with all arguments passed through
 exec python "$SCRIPT_DIR/run_complete_test_suite.py" "$@"
-

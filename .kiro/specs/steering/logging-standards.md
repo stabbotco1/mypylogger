@@ -169,16 +169,16 @@ tests/
 ```python
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Get or create a configured logger instance.
-    
+
     Args:
         name: Optional logger name. If None, uses APP_NAME from environment.
-        
+
     Returns:
         Configured logger instance with JSON formatting and appropriate handlers.
-        
+
     Raises:
         ConfigurationError: If configuration is invalid.
-        
+
     Example:
         >>> logger = get_logger()
         >>> logger.info("Application started")

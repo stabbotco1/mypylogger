@@ -20,7 +20,7 @@ Navigate to: **Settings → Branches → Add rule**
   - [x] **Require branches to be up to date before merging**
   - **Required status checks:** (Add these when CI/CD is set up)
     - `CI / quality-gates`
-    - `CI / security-scan` 
+    - `CI / security-scan`
     - `CI / test-matrix`
 - [x] **Require conversation resolution before merging**
 - [x] **Require signed commits** (optional but recommended)
@@ -61,7 +61,7 @@ Both protected branches require:
 ### Branch Naming Conventions
 Enforce these patterns through team guidelines:
 - `feature/descriptive-name` - New features
-- `bugfix/issue-description` - Bug fixes  
+- `bugfix/issue-description` - Bug fixes
 - `hotfix/critical-issue` - Emergency fixes
 - `docs/update-description` - Documentation updates
 
@@ -141,7 +141,7 @@ Create `.github/CODEOWNERS` when team grows:
 After setting up branch protection:
 
 - [ ] Cannot push directly to `main` branch
-- [ ] Cannot push directly to `pre-release` branch  
+- [ ] Cannot push directly to `pre-release` branch
 - [ ] Pull requests require approval before merge
 - [ ] Status checks block merging when failing
 - [ ] Force pushes are prevented on protected branches

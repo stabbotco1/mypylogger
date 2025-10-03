@@ -50,9 +50,9 @@ class GitHubAPIClient:
         self._validate_config()
 
         # Cache manager will be injected by the monitoring system
-        self._cache_manager = None
+        self._cache_manager: Optional[Any] = None
 
-    def set_cache_manager(self, cache_manager):
+    def set_cache_manager(self, cache_manager: Any) -> None:
         """
         Set the cache manager for this API client.
 
@@ -143,7 +143,7 @@ class GitHubAPIClient:
         Returns:
             Sanitized parameters
         """
-        sanitized = {}
+        sanitized: Dict[str, Any] = {}
 
         for key, value in params.items():
             # Validate parameter keys
@@ -195,7 +195,7 @@ class GitHubAPIClient:
         if self._cache_manager:
             cached_response = self._cache_manager.get_cached_response(endpoint, params)
             if cached_response is not None:
-                return cached_response
+                return cached_response  # type: ignore[no-any-return]
 
         # Check rate limiting if cache manager is available
         if self._cache_manager and self._cache_manager.should_throttle_request():
@@ -218,8 +218,12 @@ class GitHubAPIClient:
         }
 
         try:
+            # Validate URL is GitHub API endpoint for security
+            if not url.startswith("https://api.github.com/"):
+                raise ValueError(f"Invalid GitHub API URL: {url}")
+
             request = Request(url, headers=headers)
-            with urlopen(request) as response:
+            with urlopen(request) as response:  # nosec B310 - Validated GitHub API URL
                 response_headers = dict(response.headers)
 
                 # Update rate limit information if cache manager is available
@@ -236,7 +240,7 @@ class GitHubAPIClient:
                         endpoint, params, response_data, response_headers
                     )
 
-                return response_data
+                return response_data  # type: ignore[no-any-return]
 
         except HTTPError as e:
             # Read response body for detailed error information
@@ -329,7 +333,7 @@ class GitHubAPIClient:
         )
         params = {"head_sha": commit_sha, "per_page": 100}
 
-        data = self._make_api_request(endpoint, params)
+        data: Dict[str, Any] = self._make_api_request(endpoint, params)
 
         workflow_runs = []
         for run_data in data.get("workflow_runs", []):
@@ -386,7 +390,7 @@ class GitHubAPIClient:
 
         endpoint = f"/repos/{self.config.repo_owner}/{self.config.repo_name}/actions/runs/{run_id}"
 
-        run_data = self._make_api_request(endpoint)
+        run_data: Dict[str, Any] = self._make_api_request(endpoint)
 
         # Calculate duration if workflow is completed
         duration_seconds = None

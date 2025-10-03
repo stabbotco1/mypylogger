@@ -54,13 +54,13 @@ We classify vulnerabilities using the following severity levels:
 - **Fix Timeline**: Emergency release within 1-3 days
 - **Examples**: Remote code execution, authentication bypass
 
-#### High  
+#### High
 - **Response Time**: Within 48 hours
 - **Fix Timeline**: Priority release within 1 week
 - **Examples**: Privilege escalation, data exposure
 
 #### Medium
-- **Response Time**: Within 1 week  
+- **Response Time**: Within 1 week
 - **Fix Timeline**: Regular release within 1 month
 - **Examples**: Information disclosure, denial of service
 
@@ -192,5 +192,5 @@ Currently, we do not offer a formal bug bounty program. However, we deeply appre
 
 ---
 
-**Last Updated**: January 2024  
+**Last Updated**: January 2024
 **Next Review**: Quarterly review scheduled

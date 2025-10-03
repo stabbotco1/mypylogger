@@ -26,10 +26,10 @@ for file_path, file_fixes in fixes:
     try:
         with open(file_path, 'r') as f:
             content = f.read()
-        
+
         for pattern, replacement in file_fixes:
             content = re.sub(pattern, replacement, content, flags=re.MULTILINE | re.DOTALL)
-        
+
         with open(file_path, 'w') as f:
             f.write(content)
         print(f'Fixed {file_path}')

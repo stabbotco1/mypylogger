@@ -71,11 +71,6 @@ class SingletonLogger:
     def _initialize_logger(cls) -> None:
         """Initialize the logger with configuration."""
         from .formatters import CustomJsonFormatter
-        from .handlers import (
-            ImmediateFlushFileHandler,
-            ParallelStdoutHandler,
-            get_log_file_path,
-        )
 
         # Get configuration from environment
         cls._config = LogConfig.from_environment()
@@ -92,39 +87,67 @@ class SingletonLogger:
             formatter = CustomJsonFormatter()
 
             # Add file handler
-            try:
-                log_file_path = get_log_file_path(cls._config.app_name)
-                file_mode = "w" if cls._config.empty_log_file_on_run else "a"
-                file_handler = ImmediateFlushFileHandler(log_file_path, mode=file_mode)
-                file_handler.setFormatter(formatter)
-                cls._logger.addHandler(file_handler)
-            except Exception as e:
-                # If file handler fails, continue without it (graceful degradation)
-                # Log the error to stderr for debugging
-                import sys
-
-                print(f"Warning: Failed to create file handler: {e}", file=sys.stderr)
+            cls._add_file_handler(formatter)
 
             # Add stdout handler if enabled
-            if cls._config.parallel_stdout_logging.lower() != "false":
-                try:
-                    # Parse stdout logging level
-                    stdout_level = cls._config.get_stdout_level_int()
-                    stdout_handler = ParallelStdoutHandler(stdout_level)
-                    # Use simple formatter for stdout (not JSON)
-                    stdout_formatter = logging.Formatter(
-                        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-                    )
-                    stdout_handler.setFormatter(stdout_formatter)
-                    cls._logger.addHandler(stdout_handler)
-                except Exception as e:
-                    # If stdout handler fails, continue without it
-                    import sys
+            cls._add_stdout_handler()
 
-                    print(
-                        f"Warning: Failed to create stdout handler: {e}",
-                        file=sys.stderr,
-                    )
+    @classmethod
+    def _add_file_handler(cls, formatter: logging.Formatter) -> None:
+        """Add file handler with error handling."""
+        try:
+            from .handlers import ImmediateFlushFileHandler, get_log_file_path
+
+            if cls._config is None:
+                raise RuntimeError("Config must be initialized")
+            if cls._logger is None:
+                raise RuntimeError("Logger must be initialized")
+
+            log_file_path = get_log_file_path(cls._config.app_name)
+            file_mode = "w" if cls._config.empty_log_file_on_run else "a"
+            file_handler = ImmediateFlushFileHandler(log_file_path, mode=file_mode)
+            file_handler.setFormatter(formatter)
+            cls._logger.addHandler(file_handler)
+        except Exception as e:
+            cls._handle_file_handler_error(e)
+
+    @classmethod
+    def _add_stdout_handler(cls) -> None:
+        """Add stdout handler with error handling."""
+        if cls._config is None:
+            raise RuntimeError("Config must be initialized")
+        if cls._logger is None:
+            raise RuntimeError("Logger must be initialized")
+
+        if cls._config.parallel_stdout_logging.lower() != "false":
+            try:
+                from .handlers import ParallelStdoutHandler
+
+                # Parse stdout logging level
+                stdout_level = cls._config.get_stdout_level_int()
+                stdout_handler = ParallelStdoutHandler(stdout_level)
+                # Use simple formatter for stdout (not JSON)
+                stdout_formatter = logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+                stdout_handler.setFormatter(stdout_formatter)
+                cls._logger.addHandler(stdout_handler)
+            except Exception as e:
+                cls._handle_stdout_handler_error(e)
+
+    @classmethod
+    def _handle_file_handler_error(cls, error: Exception) -> None:
+        """Handle file handler creation errors with graceful degradation."""
+        import sys
+
+        print(f"Warning: Failed to create file handler: {error}", file=sys.stderr)
+
+    @classmethod
+    def _handle_stdout_handler_error(cls, error: Exception) -> None:
+        """Handle stdout handler creation errors with graceful degradation."""
+        import sys
+
+        print(f"Warning: Failed to create stdout handler: {error}", file=sys.stderr)
 
     @classmethod
     def get_effective_level(cls) -> int:

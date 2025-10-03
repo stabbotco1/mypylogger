@@ -224,11 +224,11 @@ jobs:
         run: |
           # Wait for PyPI to propagate the package
           sleep 60
-          
+
           # Create clean environment for testing
           python -m venv test_env
           source test_env/bin/activate || test_env\Scripts\activate
-          
+
           # Install from PyPI and test
           pip install mypylogger==${{ github.ref_name }}
           python -c "
@@ -262,13 +262,13 @@ jobs:
             const { context } = require('@actions/core');
             const conclusion = '${{ needs.deploy.result }}' || '${{ needs.build-package.result }}';
             const status = conclusion === 'success' ? '✅ SUCCESS' : '❌ FAILED';
-            
+
             console.log(`Pipeline Status: ${status}`);
             console.log(`Quality Gates: ${{ needs.quality-gates.result }}`);
             console.log(`Test Matrix: ${{ needs.test-matrix.result }}`);
             console.log(`Build Package: ${{ needs.build-package.result }}`);
             console.log(`Deploy: ${{ needs.deploy.result }}`);
-            
+
             // Create issue on failure for visibility
             if (conclusion === 'failure') {
               await github.rest.issues.create({
@@ -277,19 +277,19 @@ jobs:
                 title: `CI/CD Pipeline Failed - ${context.sha.substring(0, 7)}`,
                 body: `
             ## Pipeline Failure Report
-            
+
             **Commit**: ${context.sha}
             **Branch**: ${context.ref}
             **Workflow**: ${context.workflow}
-            
+
             **Job Results**:
             - Quality Gates: ${{ needs.quality-gates.result }}
             - Test Matrix: ${{ needs.test-matrix.result }}
             - Build Package: ${{ needs.build-package.result }}
             - Deploy: ${{ needs.deploy.result }}
-            
+
             **Action Required**: Review failed jobs and fix issues.
-            
+
             [View Workflow Run](${context.payload.repository.html_url}/actions/runs/${context.runId})
                 `,
                 labels: ['ci/cd', 'bug', 'high-priority']

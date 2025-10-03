@@ -16,11 +16,11 @@ echo "🔧 Fixing all formatting issues..."
 # Auto-activate virtual environment if not active
 if [[ -z "$VIRTUAL_ENV" ]]; then
     echo -e "${YELLOW}Virtual environment not active, attempting auto-activation...${NC}"
-    
+
     # Try common virtual environment locations
     local venv_paths=("venv/bin/activate" ".venv/bin/activate" "env/bin/activate")
     local venv_activated=false
-    
+
     for venv_path in "${venv_paths[@]}"; do
         if [[ -f "$venv_path" ]]; then
             echo "Found virtual environment at $venv_path"
@@ -32,7 +32,7 @@ if [[ -z "$VIRTUAL_ENV" ]]; then
             fi
         fi
     done
-    
+
     if [[ "$venv_activated" == "false" ]]; then
         echo -e "${RED}❌ No virtual environment found${NC}"
         echo "Please activate your virtual environment first:"

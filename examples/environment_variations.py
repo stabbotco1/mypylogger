@@ -18,7 +18,7 @@ import mypylogger
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-def reset_environment():
+def reset_environment() -> None:
     """Reset environment variables to clean state."""
     env_vars = [
         "APP_NAME",
@@ -37,7 +37,7 @@ def reset_environment():
         mypylogger.SingletonLogger._config = None
 
 
-def test_configuration(name, env_config, description):
+def test_configuration(name: str, env_config: dict, description: str) -> None:
     """Test a specific environment configuration."""
     print(f"\n=== {name} ===")
     print(f"Description: {description}")
@@ -82,7 +82,7 @@ def test_configuration(name, env_config, description):
                     print("Last entry: (not JSON)")
 
 
-def main():
+def main() -> None:
     """Test various environment configurations."""
     print("=== Environment Variations Example ===")
     print("Testing mypylogger with different environment configurations")

@@ -5,7 +5,7 @@ import os
 # Fix unused imports and other linting issues
 files_to_fix = [
     'scripts/github_help_system.py',
-    'scripts/github_intelligent_polling.py', 
+    'scripts/github_intelligent_polling.py',
     'scripts/github_pipeline_monitor.py',
     'tests/test_documentation_validation.py',
     'tests/test_end_to_end_integration.py'
@@ -15,7 +15,7 @@ for file_path in files_to_fix:
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
             content = f.read()
-        
+
         # Remove unused imports (basic patterns)
         content = re.sub(r'^import json
 ', '', content, flags=re.MULTILINE)
@@ -30,7 +30,7 @@ for file_path in files_to_fix:
 ', '', content, flags=re.MULTILINE)
         content = re.sub(r'^from urllib.request import Request, urlopen
 ', '', content, flags=re.MULTILINE)
-        
+
         with open(file_path, 'w') as f:
             f.write(content)
         print(f'Fixed {file_path}')

@@ -4,7 +4,7 @@ Tests for CustomJsonFormatter - JSON output format and field ordering.
 
 import json
 import logging
-from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from mypylogger.formatters import CustomJsonFormatter
 
@@ -242,23 +242,23 @@ class TestFieldProcessing:
         formatter = CustomJsonFormatter()
 
         # Mock the process_log_record method
-        original_method = formatter.process_log_record
-        formatter.process_log_record = MagicMock(side_effect=original_method)
+        with patch.object(
+            formatter, "process_log_record", side_effect=formatter.process_log_record
+        ) as mock_process:
+            record = logging.LogRecord(
+                name="test_logger",
+                level=logging.INFO,
+                pathname="/test/file.py",
+                lineno=42,
+                msg="Test message",
+                args=(),
+                exc_info=None,
+            )
 
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="/test/file.py",
-            lineno=42,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
+            formatter.format(record)
 
-        formatter.format(record)
-
-        # Verify process_log_record was called
-        formatter.process_log_record.assert_called_once()
+            # Verify process_log_record was called
+            mock_process.assert_called_once()
 
     def test_field_processing_preserves_required_fields(self):
         """Test that field processing preserves all required fields."""

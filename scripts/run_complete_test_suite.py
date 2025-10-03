@@ -442,35 +442,138 @@ class TestSuiteRunner:
             coverage = "N/A"
             test_count = "N/A"
 
-            for line in result.stdout.split("\n"):
+            # Combine stdout and stderr for parsing
+            full_output = result.stdout + "\n" + (result.stderr or "")
+
+            # Parse coverage from multiple possible formats
+            import re
+
+            for line in full_output.split("\n"):
+                # Coverage parsing - look for TOTAL line with percentage
                 if "TOTAL" in line and "%" in line:
-                    parts = line.split()
-                    for part in parts:
-                        if "%" in part:
-                            coverage = part
+                    # Match percentage pattern like "98%" or "98.02%"
+                    coverage_match = re.search(r"(\d+(?:\.\d+)?%)", line)
+                    if coverage_match:
+                        coverage = coverage_match.group(1)
+
+                # Test count parsing - look for various pytest summary formats
+                # Format: "15 passed" or "15 passed, 2 warnings" or "===== 15 passed ====="
+                if (
+                    "passed" in line and "PASSED" not in line
+                ):  # Avoid individual test PASSED lines
+                    # Try different patterns
+                    patterns = [
+                        r"(\d+)\s+passed",  # "15 passed"
+                        r"=+\s*(\d+)\s+passed",  # "===== 15 passed ====="
+                        r"(\d+)\s+passed\s*[,\s]",  # "15 passed, 2 warnings"
+                    ]
+
+                    for pattern in patterns:
+                        match = re.search(pattern, line)
+                        if match:
+                            test_count = match.group(1)
                             break
-                if "passed" in line:
-                    words = line.split()
-                    for i, word in enumerate(words):
-                        if word == "passed" and i > 0:
-                            test_count = words[i - 1]
-                            break
+
+                    if test_count != "N/A":
+                        break
+
+            # If verbose, show detailed parsing info
+            if self.verbose and (coverage == "N/A" or test_count == "N/A"):
+                self.print_step("🔍 Parsing test output for coverage and test count")
+                print("Output lines containing relevant keywords:")
+                for line in full_output.split("\n"):
+                    if ("TOTAL" in line and "%" in line) or (
+                        "passed" in line and "PASSED" not in line
+                    ):
+                        print(f"  {line.strip()}")
+                print(f"Extracted: coverage={coverage}, test_count={test_count}")
 
             self.results["tests"] = TestResult("tests", "PASS", duration, result.stdout)
             self.print_success(
                 f"Tests: {test_count} passed, {coverage} coverage ({duration:.1f}s)"
             )
+
+            # Show detailed test output in verbose mode
+            if self.verbose:
+                print("\n📋 Test Summary:")
+                # Show coverage report summary
+                coverage_started = False
+                for line in full_output.split("\n"):
+                    if "Name" in line and "Stmts" in line and "Miss" in line:
+                        coverage_started = True
+                    if coverage_started and (line.strip() == "" or "=" in line):
+                        if "TOTAL" in line:
+                            print(f"  {line}")
+                            break
+                    elif coverage_started:
+                        print(f"  {line}")
+
+                # Show test result summary
+                for line in full_output.split("\n"):
+                    if "passed" in line and (
+                        "warning" in line
+                        or "error" in line
+                        or "failed" in line
+                        or "=" in line
+                    ):
+                        print(f"  {line.strip()}")
+                        break
+
             return True
 
         except subprocess.CalledProcessError as e:
             duration = time.time() - start_time
-            self.results["tests"] = TestResult(
-                "tests", "FAIL", duration, e.stdout or e.stderr or ""
-            )
-            self.print_error("Tests failed")
+
+            # Try to extract coverage and test info even from failed runs
+            coverage = "N/A"
+            test_count = "N/A"
+            failed_count = "N/A"
+
+            full_output = (e.stdout or "") + "\n" + (e.stderr or "")
+
+            import re
+
+            for line in full_output.split("\n"):
+                # Coverage parsing
+                if "TOTAL" in line and "%" in line:
+                    coverage_match = re.search(r"(\d+(?:\.\d+)?%)", line)
+                    if coverage_match:
+                        coverage = coverage_match.group(1)
+
+                # Test results parsing for failures
+                if "failed" in line or "passed" in line:
+                    # Look for patterns like "5 failed, 10 passed" or "15 passed"
+                    failed_match = re.search(r"(\d+)\s+failed", line)
+                    passed_match = re.search(r"(\d+)\s+passed", line)
+
+                    if failed_match:
+                        failed_count = failed_match.group(1)
+                    if passed_match:
+                        test_count = passed_match.group(1)
+
+            self.results["tests"] = TestResult("tests", "FAIL", duration, full_output)
+
+            # Enhanced error reporting
+            if failed_count != "N/A":
+                self.print_error(
+                    f"Tests failed: {failed_count} failed, {test_count} passed, {coverage} coverage ({duration:.1f}s)"
+                )
+            else:
+                self.print_error(f"Tests failed: {coverage} coverage ({duration:.1f}s)")
+
             if self.verbose:
-                print("Test output:")
-                print(e.stdout or e.stderr or "No output available")
+                print("\n📋 Test Failure Details:")
+                # Show failed test details
+                in_failures = False
+                for line in full_output.split("\n"):
+                    if "FAILURES" in line or "ERRORS" in line:
+                        in_failures = True
+                    elif "short test summary" in line.lower():
+                        in_failures = False
+                        print(f"  {line}")
+                    elif in_failures or "FAILED" in line or "ERROR" in line:
+                        print(f"  {line}")
+
             return False
 
     def run_performance_tests(self) -> bool:
@@ -669,7 +772,7 @@ class TestSuiteRunner:
         return overall_success
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser(
         description="Complete Test Suite Runner for mypylogger (defaults to verbose mode)",
