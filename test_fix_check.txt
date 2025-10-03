@@ -1,0 +1,82 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0 -- /Users/stephenabbot/projects/mypylogger/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/stephenabbot/projects/mypylogger
+configfile: pyproject.toml
+plugins: cov-7.0.0
+collecting ... collected 1 item
+
+tests/test_test_suite_integration.py::TestTestSuiteRunnerIntegration::test_failed_pipeline_blocks_completion FAILED [100%]
+ERROR: Coverage failure: total of 0.00 is less than fail-under=90.00
+
+
+=================================== FAILURES ===================================
+____ TestTestSuiteRunnerIntegration.test_failed_pipeline_blocks_completion _____
+
+self = <tests.test_test_suite_integration.TestTestSuiteRunnerIntegration object at 0x10728e050>
+mock_config_manager = <MagicMock name='ConfigManager' id='4398618640'>
+mock_monitor_class = <MagicMock name='GitHubPipelineMonitor' id='4415208592'>
+
+    @patch("scripts.github_pipeline_monitor.GitHubPipelineMonitor")
+    @patch("scripts.github_monitor_config.ConfigManager")
+    def test_failed_pipeline_blocks_completion(
+        self, mock_config_manager, mock_monitor_class
+    ):
+        """Test that failed pipelines block test suite completion."""
+        # Mock configuration
+        mock_config = Mock()
+        mock_config.timeout_minutes = 30
+        mock_config.repo_owner = "test"
+        mock_config.repo_name = "repo"
+        mock_config_manager.return_value.load_config.return_value = mock_config
+        mock_config_manager.return_value.determine_monitoring_mode.return_value = MonitoringMode.FULL
+
+        # Mock failed pipeline status
+        mock_status = Mock()
+        mock_status.overall_status = "failure"
+        mock_status.failed_workflows = ["Security Scan"]
+        mock_status.workflow_runs = [
+            Mock(
+                name="Security Scan",
+                html_url="https://github.com/test/repo/actions/runs/123",
+            )
+        ]
+
+        mock_monitor = Mock()
+        mock_monitor.get_pipeline_status.return_value = mock_status
+        mock_monitor_class.return_value = mock_monitor
+
+        runner = TestSuiteRunner(check_pipeline=True, verbose=True)
+
+        result = runner.check_pipeline_status()
+
+        # Should block completion (return False)
+>       assert result is False
+E       assert True is False
+
+tests/test_test_suite_integration.py:108: AssertionError
+----------------------------- Captured stdout call -----------------------------
+
+[0;34m================================[0m
+[0;34mGITHUB PIPELINE STATUS[0m
+[0;34m================================[0m
+
+[0;36m🔍 Checking remote pipeline status for quality gate enforcement[0m
+[1;33m⚠️  No workflows found for current commit - quality gate skipped[0m
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.11.9-final-0 _______________
+
+Name                       Stmts   Miss  Cover   Missing
+--------------------------------------------------------
+mypylogger/__init__.py        17     17  0.00%   41-94
+mypylogger/config.py          35     35  0.00%   7-143
+mypylogger/core.py            82     82  0.00%   7-175
+mypylogger/formatters.py      95     95  0.00%   7-232
+mypylogger/handlers.py        27     27  0.00%   7-105
+--------------------------------------------------------
+TOTAL                        256    256  0.00%
+Coverage HTML written to dir htmlcov
+FAIL Required test coverage of 90% not reached. Total coverage: 0.00%
+=========================== short test summary info ============================
+FAILED tests/test_test_suite_integration.py::TestTestSuiteRunnerIntegration::test_failed_pipeline_blocks_completion
+============================== 1 failed in 0.54s ===============================

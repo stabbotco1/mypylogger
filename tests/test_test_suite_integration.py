@@ -17,6 +17,7 @@ import pytest
 # Add scripts directory to path for imports
 sys.path.insert(0, "scripts")
 
+from github_monitor_config import MonitoringMode  # noqa: E402
 from run_complete_test_suite import TestSuiteRunner  # noqa: E402
 
 
@@ -70,8 +71,8 @@ class TestTestSuiteRunnerIntegration:
             result = runner.check_pipeline_status()
             assert result is True
 
-    @patch("scripts.github_pipeline_monitor.GitHubPipelineMonitor")
-    @patch("scripts.github_monitor_config.ConfigManager")
+    @patch("github_pipeline_monitor.GitHubPipelineMonitor")
+    @patch("github_monitor_config.ConfigManager")
     def test_failed_pipeline_blocks_completion(
         self, mock_config_manager, mock_monitor_class
     ):
@@ -82,8 +83,8 @@ class TestTestSuiteRunnerIntegration:
         mock_config.repo_owner = "test"
         mock_config.repo_name = "repo"
         mock_config_manager.return_value.load_config.return_value = mock_config
-        mock_config_manager.return_value.determine_monitoring_mode.return_value = Mock(
-            value="full"
+        mock_config_manager.return_value.determine_monitoring_mode.return_value = (
+            MonitoringMode.FULL
         )
 
         # Mock failed pipeline status
@@ -110,8 +111,8 @@ class TestTestSuiteRunnerIntegration:
         assert "pipeline_check" in runner.results
         assert runner.results["pipeline_check"].status == "FAIL"
 
-    @patch("scripts.github_pipeline_monitor.GitHubPipelineMonitor")
-    @patch("scripts.github_monitor_config.ConfigManager")
+    @patch("github_pipeline_monitor.GitHubPipelineMonitor")
+    @patch("github_monitor_config.ConfigManager")
     def test_pending_pipeline_blocks_completion(
         self, mock_config_manager, mock_monitor_class
     ):
@@ -122,8 +123,8 @@ class TestTestSuiteRunnerIntegration:
         mock_config.repo_owner = "test"
         mock_config.repo_name = "repo"
         mock_config_manager.return_value.load_config.return_value = mock_config
-        mock_config_manager.return_value.determine_monitoring_mode.return_value = Mock(
-            value="full"
+        mock_config_manager.return_value.determine_monitoring_mode.return_value = (
+            MonitoringMode.FULL
         )
 
         # Mock pending pipeline status
@@ -198,15 +199,15 @@ class TestTestSuiteRunnerIntegration:
             result = runner.check_pipeline_status()
             assert result is True
 
-    @patch("scripts.github_pipeline_monitor.GitHubPipelineMonitor")
-    @patch("scripts.github_monitor_config.ConfigManager")
+    @patch("github_pipeline_monitor.GitHubPipelineMonitor")
+    @patch("github_monitor_config.ConfigManager")
     def test_pipeline_error_handling(self, mock_config_manager, mock_monitor_class):
         """Test error handling in pipeline integration."""
         # Mock configuration
         mock_config = Mock()
         mock_config_manager.return_value.load_config.return_value = mock_config
-        mock_config_manager.return_value.determine_monitoring_mode.return_value = Mock(
-            value="full"
+        mock_config_manager.return_value.determine_monitoring_mode.return_value = (
+            MonitoringMode.FULL
         )
 
         # Mock exception during pipeline checking
