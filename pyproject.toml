@@ -7,7 +7,7 @@ name = "mypylogger"
 version = "0.1.0a2"
 description = "Production-ready Python logging library with structured JSON output, environment-driven configuration, and real-time development support"
 authors = [{name = "Stephen Abbot", email = "stephen.abbot@example.com"}]
-license = "MIT"
+license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["logging", "json", "structured-logging", "python", "production", "environment-config"]
