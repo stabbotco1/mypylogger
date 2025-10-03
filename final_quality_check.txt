@@ -1,14 +1,1 @@
-=== Final Quality Assessment ===
-1. MyPy Error Count:
-83
-
-2. Bandit Security Issues:
-0
-
-3. Pre-commit Hook Status:
-Fast Unit Tests..........................................................Passed
-
-4. Test Suite Status:
-Coverage HTML written to dir htmlcov
-Required test coverage of 90% reached. Total coverage: 96.48%
-352 passed, 1 skipped, 1 warning in 10.77s
+change to kick of flow to test
