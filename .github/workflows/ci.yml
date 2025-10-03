@@ -258,7 +258,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { context } = require('@actions/core');
+            const { context } = require('@actions/github');
             const conclusion = '${{ needs.deploy.result }}' || '${{ needs.build-package.result }}';
             const status = conclusion === 'success' ? '✅ SUCCESS' : '❌ FAILED';
 
