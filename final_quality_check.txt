@@ -10,3 +10,15 @@ retest1
 **Fix Applied**: Added missing `aws-region: ${{ vars.AWS_REGION }}` parameter to the `Configure AWS credentials via OIDC` step in the `upload-coverage` job.
 
 **Status**: ✅ Fixed - Pipeline should now pass the AWS credentials configuration step
+
+## Actions Taken:
+1. ✅ Identified missing `aws-region` parameter in upload-coverage job
+2. ✅ Added `aws-region: ${{ vars.AWS_REGION }}` to AWS credentials configuration
+3. ✅ Validated YAML syntax is correct
+4. ✅ Committed fix with message: "fix: add missing aws-region parameter to upload-coverage job"
+5. ✅ Pushed changes to pre-release branch
+
+## Next Steps:
+- Monitor GitHub Actions pipeline run to verify the fix resolves the "Upload Coverage" job failure
+- Check that all jobs now pass: Quality Gates, Test Matrix, Upload Coverage, Build Package
+- The pipeline should now successfully configure AWS credentials and upload coverage to Codecov
