@@ -1,5 +1,0 @@
-Fixing linting issues in test files
-=== Removing unused imports ===
-=== Running isort to fix import order ===
-Fixing /Users/stephenabbot/projects/mypylogger/tests/test_cache_manager.py
-=== Checking remaining issues ===

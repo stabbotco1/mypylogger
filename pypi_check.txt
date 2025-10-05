@@ -1,7 +1,0 @@
-Checking if mypylogger exists on PyPI
-pip search not available, trying pip install --dry-run
-Requirement already satisfied: mypylogger in ./venv/lib/python3.11/site-packages (0.1.0a1)
-Requirement already satisfied: python-json-logger>=2.0.0 in ./venv/lib/python3.11/site-packages (from mypylogger) (3.3.0)
-
-[notice] A new release of pip is available: 24.0 -> 25.2
-[notice] To update, run: pip install --upgrade pip
