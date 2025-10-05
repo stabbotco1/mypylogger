@@ -1,8 +1,0 @@
-./verify_pypi_package.sh
-./scripts/pre-commit-branch-check.sh
-./scripts/security-scan.sh
-./scripts/test-runner.sh
-./scripts/version_bump.py
-./scripts/verify-badges.py
-./scripts/setup-dev.sh
-./scripts/run-complete-test-suite.sh
