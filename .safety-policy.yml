@@ -7,7 +7,7 @@ security:
     # Example format:
     # - id: "12345"
     #   reason: "False positive - not applicable to our usage pattern"
-    #   expires: "2024-12-31"
+    #   expires: "2026-12-31"
 
   # Continue on vulnerability errors (set to false for strict mode)
   continue-on-vulnerability-error: false

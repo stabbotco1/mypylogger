@@ -28,7 +28,7 @@ logger.warning("Something might be wrong")
 logger.error("Something is definitely wrong")
 ```
 
-This creates a log file at `logs/default_app_2024_01_15.log` (using current date).
+This creates a log file at `logs/default_app_2025_10_04.log` (using current date).
 
 ### Checking Configuration
 
@@ -120,7 +120,7 @@ for i in range(10):
 
 Monitor in another terminal:
 ```bash
-tail -f logs/default_app_2024_01_15.log
+tail -f logs/default_app_2025_10_04.log
 ```
 
 ### Debug Session Setup
@@ -629,7 +629,7 @@ def analyze_log_file(filename):
         print(f"Time range: {first_time} to {last_time}")
 
 # Usage
-analyze_log_file("logs/my_app_2024_01_15.log")
+analyze_log_file("logs/my_app_2025_10_04.log")
 ```
 
 This usage guide covers the most common scenarios and patterns for using mypylogger effectively in different environments and use cases.

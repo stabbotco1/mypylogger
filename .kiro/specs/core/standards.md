@@ -59,7 +59,7 @@ This document defines coding standards, naming conventions, and implementation g
 ### Timestamp Format
 - **Standard**: ISO 8601 with milliseconds and UTC timezone
 - **Format**: `YYYY-MM-DDTHH:MM:SS.sssZ`
-- **Example**: `2024-01-15T10:30:45.123Z`
+- **Example**: `2025-10-04T22:30:45.123Z`
 - **Implementation**: Use `datetime.utcnow().isoformat(timespec='milliseconds') + 'Z'`
 
 ### Value Normalization

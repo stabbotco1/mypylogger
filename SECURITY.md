@@ -192,5 +192,5 @@ Currently, we do not offer a formal bug bounty program. However, we deeply appre
 
 ---
 
-**Last Updated**: January 2024
+**Last Updated**: October 2025
 **Next Review**: Quarterly review scheduled

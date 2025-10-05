@@ -174,5 +174,8 @@ logs/
 ehthumbs.db
 Thumbs.db
 
+# Test results and temporary output files (tee pattern)
+z_*
+
 # Tee pattern output files (temporary command output)
 z_*

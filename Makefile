@@ -36,9 +36,15 @@ help:
 	@echo "  clean          Clean build artifacts and cache files"
 	@echo ""
 	@echo "Documentation and Verification:"
-	@echo "  docs-check     Check documentation completeness"
-	@echo "  verify-badges  Verify README badge URLs and configuration"
-	@echo "  fix-formatting Fix all code formatting issues automatically"
+	@echo "  docs-check               Check documentation completeness"
+	@echo "  verify-badges            Verify README badge URLs and configuration"
+	@echo "  validate-badges-verbose  Run detailed badge validation with verbose output"
+	@echo "  validate-docs-dates      Check for outdated dates in documentation"
+	@echo "  validate-docs-dates-verbose Show all dates including acceptable ones"
+	@echo "  test-badge-performance   Test badge loading performance and fallback behavior"
+	@echo "  badge-health-check       Run comprehensive badge health monitoring"
+	@echo "  badge-health-ci          Run badge health check for CI/CD integration"
+	@echo "  fix-formatting           Fix all code formatting issues automatically"
 	@echo ""
 	@echo "Pipeline Monitoring:"
 	@echo "  monitor-pipeline       Monitor current commit's pipeline status"
@@ -229,8 +235,36 @@ docs-check:
 # Badge verification
 verify-badges:
 	@echo "Verifying README badges..."
-	python scripts/verify-badges.py
+	python scripts/validate_badges.py
+
+validate-docs-dates:
+	@echo "Validating documentation dates..."
+	python scripts/validate_documentation_dates.py
+
+validate-docs-dates-verbose:
+	@echo "Validating documentation dates (verbose)..."
+	python scripts/validate_documentation_dates.py --verbose
 	@echo "Badge verification complete!"
+
+test-badge-performance:
+	@echo "Testing badge loading performance..."
+	python scripts/test_badge_performance.py
+	@echo "Badge performance test complete!"
+
+validate-badges-verbose:
+	@echo "Running detailed badge validation..."
+	python scripts/validate_badges.py --verbose
+	@echo "Detailed badge validation complete!"
+
+badge-health-check:
+	@echo "Running badge health check..."
+	python scripts/badge_health_monitor.py --verbose
+	@echo "Badge health check complete!"
+
+badge-health-ci:
+	@echo "Running badge health check for CI/CD..."
+	python scripts/badge_health_monitor.py --format github-actions --fail-on-error
+	@echo "CI badge health check complete!"
 
 # Dependency management
 update-deps:
