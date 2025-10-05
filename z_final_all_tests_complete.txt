@@ -12,22 +12,22 @@
 [0;35mRunning: black --check --diff .[0m
 [0;32m✅ Code formatting check (0.5s)[0m
 [0;35mRunning: isort --check-only --diff .[0m
-[0;32m✅ Import sorting check (0.2s)[0m
+[0;32m✅ Import sorting check (0.1s)[0m
 [0;35mRunning: flake8 .[0m
-[0;32m✅ Linting check (0.4s)[0m
+[0;32m✅ Linting check (0.3s)[0m
 [0;35mRunning: mypy mypylogger/[0m
 [0;32m✅ Type checking (0.2s)[0m
 [0;35mRunning: bandit -r mypylogger/ -f txt[0m
 [0;32m✅ Security scan (0.1s)[0m
 [0;35mRunning: pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph[0m
-[0;32m✅ Dependency vulnerability scan (2.2s)[0m
+[0;32m✅ Dependency vulnerability scan (0.6s)[0m
 
 [0;34m================================[0m
 [0;34mTEST EXECUTION[0m
 [0;34m================================[0m
 
 [0;36m🔍 Running complete test suite[0m
-[0;32m✅ Tests: 368 passed, 96.48% coverage (7.4s)[0m
+[0;32m✅ Tests: 368 passed, 96.48% coverage (9.3s)[0m
 
 📋 Test Summary:
   Name                       Stmts   Miss   Cover   Missing
@@ -41,13 +41,13 @@
   TOTAL                        256      9  96.48%
   Coverage HTML written to dir htmlcov
   Required test coverage of 90% reached. Total coverage: 96.48%
-  ================== 368 passed, 1 skipped, 1 warning in 7.22s ===================
+  ================== 368 passed, 1 skipped, 1 warning in 9.09s ===================
 
 [0;34m================================[0m
 [0;34mPACKAGE BUILD VERIFICATION[0m
 [0;34m================================[0m
 [0;35mRunning: /Users/stephenabbot/projects/mypylogger/venv/bin/python -m build[0m
-[0;32m✅ Package build (1.8s)[0m
+[0;32m✅ Package build (1.9s)[0m
 [0;35mRunning: /Users/stephenabbot/projects/mypylogger/venv/bin/python -m twine check dist/*[0m
 [0;32m✅ Package validation (0.1s)[0m
 
@@ -65,19 +65,19 @@
 [0;32m✅ ALL CHECKS PASSED[0m
 
 📊 Execution Summary:
-   Total Duration: 13.0s
+   Total Duration: 13.3s
    Mode: Complete
    Results: 11 passed, 0 failed, 0 skipped
 
 🔍 Check Results:
    ✅ formatting           0.5s
-   ✅ import_sorting       0.2s
-   ✅ linting              0.4s
+   ✅ import_sorting       0.1s
+   ✅ linting              0.3s
    ✅ type_checking        0.2s
    ✅ security_scan        0.1s
-   ✅ vulnerability_scan   2.2s
-   ✅ tests                7.4s
-   ✅ build                1.8s
+   ✅ vulnerability_scan   0.6s
+   ✅ tests                9.3s
+   ✅ build                1.9s
    ✅ package_validation   0.1s
    ✅ badges               0.0s
    ✅ documentation        0.0s
