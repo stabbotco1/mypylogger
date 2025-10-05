@@ -1,0 +1,8 @@
+b218a1ad7536888c9e59851f93e22c42f62ee370	refs/heads/backup-full-history
+c2cbc113200472d561ae85efb27b05c8501fbcee	refs/heads/clean-history
+a6b37976c6941ed16a1ef6329ea912f2ad125c2f	refs/heads/feature/branch-protection-and-release-automation
+97e560771496ea384d45f44e6dfcc258625f658e	refs/heads/fix/pypi-deployment-automation
+c2cbc113200472d561ae85efb27b05c8501fbcee	refs/heads/main
+b218a1ad7536888c9e59851f93e22c42f62ee370	refs/heads/pre-release
+efc7270bffe7468bfe87b3d7861cf966a89d59ef	refs/heads/repo-cleanup-20251004
+efc7270bffe7468bfe87b3d7861cf966a89d59ef	refs/heads/repo-cleanup-final
