@@ -7,6 +7,32 @@ inclusion: always
 ## Purpose
 This document defines local development standards, real-time testing feedback, and developer productivity optimization patterns.
 
+## Project-Specific Context
+
+### mypylogger Project Details
+- **Project name**: `mypylogger`
+- **GitHub repository**: `https://github.com/stabbotco1/mypylogger`
+- **Local checkout**: `/Users/stephenabbot/projects/mypylogger`
+- **Environment**: Use local `venv` for Python version and dependency management
+- **Priority**: Deliver code concisely, in logical order, and incrementally
+
+### Code Integrity Requirements
+- **Always functional**: Code must run after every change
+- **No breaking changes**: Never submit code that breaks existing functionality
+- **Incremental progress**: Maintain functional, executable code at all stages
+- **Task ordering**: Generate tasks in correct order to avoid referencing unimplemented modules
+
+### Documentation Requirements
+- **Module dependencies**: Maintain Markdown file documenting module dependencies as a graph
+- **Root-level imports**: Document all root-level Python imports in project artifact (e.g., root `README.md`)
+- **Base dependencies only**: List only base-level dependencies, not inherited transitive imports
+
+### Discovery and Learning Integration
+- **Capture lessons**: During implementation, capture lessons learned in steering documents
+- **Update patterns**: Update workflow patterns when discovering better approaches
+- **Document deviations**: Document any deviations from original plan with rationale
+- **Build knowledge base**: Maintain both project-specific and reusable generic patterns for future Kiro projects
+
 ## Local Development Environment
 
 ### Required Tools

@@ -4,6 +4,22 @@
 
 This document defines the requirements for transforming the mypylogger project from a proof-of-concept into a production-ready, community-supported open-source library with comprehensive CI/CD, security, and quality assurance.
 
+## Meta-Notes: Retrofit Lessons Learned
+
+**Context**: This spec was created to retrofit production-readiness onto an existing working library, rather than building these capabilities from the start.
+
+**Key Retrofit Insights**:
+- **Steering Evolution**: The .kiro directory accumulated experimental specs (github-monitoring, quality-polish) that became obsolete as requirements clarified
+- **Documentation Consolidation**: Multiple steering files (additional-steering.txt) needed consolidation into structured .md files for better organization
+- **Spec Cleanup Necessity**: Retrofit projects generate more exploratory artifacts that require periodic cleanup to maintain clarity
+- **Learning Integration**: The kiro-learning-objectives.md document proved valuable for capturing meta-patterns that apply beyond this specific project
+
+**Future Retrofit Recommendations**:
+- Plan for periodic .kiro directory cleanup as part of project maturation
+- Consolidate experimental steering into formal documents early
+- Use FAQ documents to capture common questions that emerge during development
+- Maintain clear separation between core functionality specs and operational/infrastructure specs
+
 ## Requirements
 
 ### Requirement 1: Production-Ready Packaging and Distribution
