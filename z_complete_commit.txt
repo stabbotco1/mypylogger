@@ -1,0 +1,1 @@
+Command: git add . && git commit -m 'fix: automate PyPI deployment on tag creation and add environment activation'
