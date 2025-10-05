@@ -40,6 +40,8 @@ help:
 	@echo "  verify-badges            Verify README badge URLs and configuration"
 	@echo "  validate-badges-verbose  Run detailed badge validation with verbose output"
 	@echo "  test-badge-performance   Test badge loading performance and fallback behavior"
+	@echo "  badge-health-check       Run comprehensive badge health monitoring"
+	@echo "  badge-health-ci          Run badge health check for CI/CD integration"
 	@echo "  fix-formatting           Fix all code formatting issues automatically"
 	@echo ""
 	@echo "Pipeline Monitoring:"
@@ -243,6 +245,16 @@ validate-badges-verbose:
 	@echo "Running detailed badge validation..."
 	python scripts/validate_badges.py --verbose
 	@echo "Detailed badge validation complete!"
+
+badge-health-check:
+	@echo "Running badge health check..."
+	python scripts/badge_health_monitor.py --verbose
+	@echo "Badge health check complete!"
+
+badge-health-ci:
+	@echo "Running badge health check for CI/CD..."
+	python scripts/badge_health_monitor.py --format github-actions --fail-on-error
+	@echo "CI badge health check complete!"
 
 # Dependency management
 update-deps:
