@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine bump2version gitpython
+          pip install build twine tomli
 
       - name: Run test suite
         if: ${{ !inputs.skip_tests }}
@@ -50,8 +50,8 @@ jobs:
             VERSION="${{ inputs.version }}"
             echo "Using manual version: $VERSION"
           else
-            CURRENT=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)
-            IFS='.' read -r major minor patch <<< "$CURRENT"
+            CURRENT=$(python3 -c "import tomli; f=open('pyproject.toml','rb'); print(tomli.load(f)['project']['version'])")
+            IFS='.' read -r major minor patch <<< "${CURRENT%%[a-z]*}"
             VERSION="$major.$minor.$((patch + 1))"
             echo "Auto-calculated version: $VERSION (from $CURRENT)"
           fi
