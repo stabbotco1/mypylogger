@@ -109,3 +109,23 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa
+/gh-action-pypi-publish@release/v1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body: |
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          files: dist/*
+          draft: false
+          prerelease: false
+
+      - name: Verify PyPI publication
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Waiting 30s for PyPI to propagate..."
+          sleep 30
+          pip install --index-url https://pypi.org/simple/ --upgrade mypylogger==$VERSION
+          python -c "import mypylogger; assert mypylogger.__version__ == '$VERSION'"
