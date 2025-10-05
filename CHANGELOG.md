@@ -1,3 +1,9 @@
+## [0.1.1] - 2025-10-05
+
+- 99a4417 chore: trigger CI for release validation
+- 96b0557 fix: restore version string in pyproject.toml
+- 0299b08 fix: regenerate manual-release workflow with corrected version calculation
+
 ## [] - 2025-10-05
 
 - ee083ff docs: add initial CHANGELOG.md

@@ -45,7 +45,7 @@ from .core import SingletonLogger
 from .formatters import CustomJsonFormatter
 from .handlers import ImmediateFlushFileHandler, ParallelStdoutHandler
 
-__version__ = ""
+__version__ = "0.1.1"
 __author__ = "Stephen Abbot"
 
 
