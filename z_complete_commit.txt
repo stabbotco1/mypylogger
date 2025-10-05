@@ -1,1 +1,10 @@
 Command: git add . && git commit -m 'fix: automate PyPI deployment on tag creation and add environment activation'
+[fix/pypi-deployment-automation 1678a1b] fix: automate PyPI deployment on tag creation and add environment activation
+ 7 files changed, 104 insertions(+)
+ create mode 100755 .envrc
+ create mode 100644 .kiro/specs/pypi-deployment-fix/tasks.md
+ create mode 100644 z_commit_workflow_fix.txt
+ create mode 100644 z_complete_commit.txt
+ create mode 100644 z_create_feature_branch.txt
+ create mode 100644 z_final_status_check.txt
+ create mode 100644 z_reallow_direnv.txt
