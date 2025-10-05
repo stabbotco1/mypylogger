@@ -66,7 +66,7 @@ This guide provides step-by-step procedures for extending the badge system with 
 **Add Badge to Appropriate Tier:**
 ```markdown
 <!-- Tier X: Category Name -->
-[![New Badge](badge-url)](link-target)
+[![New Badge](https://img.shields.io/badge/placeholder-lightgrey)](link-target)
 ```
 
 **Tier Selection Guidelines:**
@@ -269,7 +269,7 @@ update-new-badge:
 
 3. **Add Badge to README**
    ```markdown
-   [![Performance Target OS](badge-url)](performance-link)
+   [![Performance Target OS](https://img.shields.io/badge/placeholder-lightgrey)](performance-link)
    ```
 
 4. **Update Documentation**

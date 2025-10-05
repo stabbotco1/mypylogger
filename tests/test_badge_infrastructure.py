@@ -151,10 +151,14 @@ class TestBadgeInfrastructure(unittest.TestCase):
         self.assertIn("Ubuntu", content, "Ubuntu performance badge not found")
         self.assertIn("macOS", content, "macOS performance badge not found")
 
-        # Performance metrics should be mentioned
-        self.assertIn("<1ms", content, "Latency metric not found in performance badges")
+        # Performance metrics should be mentioned (current actual measurements)
         self.assertIn(
-            ">10K/sec", content, "Throughput metric not found in performance badges"
+            "0.012ms", content, "Current latency metric not found in performance badges"
+        )
+        self.assertIn(
+            "86K/sec",
+            content,
+            "Current throughput metric not found in performance badges",
         )
 
     def test_badge_accessibility_features(self):

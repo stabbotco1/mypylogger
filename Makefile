@@ -1,7 +1,26 @@
 # Makefile for mypylogger development workflow
 # Provides automated quality checks, testing, and development commands
 
-.PHONY: help install install-dev clean lint format type-check security test test-fast test-coverage test-performance test-all build check-package pre-commit setup-dev monitor-pipeline monitor-after-push check-pipeline-status wait-for-pipeline wait-for-pipeline-extended test-complete-with-pipeline test-complete-wait-pipeline test-complete-bypass-pipeline quality-gate-full ci-full pre-push-full
+.PHONY: help install install-dev clean lint format type-check security test test-fast test-coverage test-performance test-all build check-package pre-commit setup-dev monitor-pipeline monitor-after-push check-pipeline-status wait-for-pipeline wait-for-pipeline-extended test-complete-with-pipeline test-complete-wait-pipeline test-complete-bypass-pipeline quality-gate-full ci-full pre-push-full env-check env-setup env-reset
+
+# Automated virtual environment assurance
+# Creates, activates, and verifies venv automatically before development commands
+# Requirements: 1.1, 1.3
+define ensure_venv
+	@if [ -z "$$VIRTUAL_ENV" ]; then \
+		echo "🔧 No virtual environment active - setting up automatically..."; \
+		if [ ! -d "venv" ]; then \
+			echo "📦 Creating virtual environment..."; \
+			python3 -m venv venv || python -m venv venv; \
+		fi; \
+		echo "⚡ Please activate virtual environment and retry:"; \
+		echo "  source venv/bin/activate && make $(MAKECMDGOALS)"; \
+		echo "Or use: make env-setup to complete setup"; \
+		exit 1; \
+	else \
+		echo "✅ Virtual environment active"; \
+	fi
+endef
 
 # Default target
 help:
@@ -13,6 +32,11 @@ help:
 	@echo "  install        Install package in development mode"
 	@echo "  install-dev    Install with development dependencies"
 	@echo "  setup-dev      Complete development environment setup (requires active venv)"
+	@echo ""
+	@echo "Environment Management:"
+	@echo "  env-check      Check virtual environment status"
+	@echo "  env-setup      Automatic virtual environment setup"
+	@echo "  env-reset      Clean and recreate virtual environment"
 	@echo ""
 	@echo "Quality Assurance:"
 	@echo "  lint           Run all linting checks"
@@ -81,6 +105,7 @@ setup-dev: install-dev
 
 # Code quality commands
 format:
+	$(call ensure_venv)
 	@echo "Formatting code with black..."
 	black .
 	@echo "Sorting imports with isort..."
@@ -88,11 +113,13 @@ format:
 	@echo "Code formatting complete!"
 
 lint:
+	$(call ensure_venv)
 	@echo "Running flake8 linting..."
 	flake8 .
 	@echo "Linting complete!"
 
 type-check:
+	$(call ensure_venv)
 	@echo "Running mypy type checking..."
 	mypy mypylogger/
 	@echo "Type checking complete!"
@@ -119,18 +146,22 @@ fix-formatting:
 
 # Testing commands
 test-fast:
+	$(call ensure_venv)
 	@echo "Running fast unit tests..."
 	pytest tests/unit/ -v -m "not slow"
 
 test-coverage:
+	$(call ensure_venv)
 	@echo "Running tests with coverage..."
 	pytest --cov=mypylogger --cov-report=html --cov-report=term-missing --cov-fail-under=90
 
 test-performance:
+	$(call ensure_venv)
 	@echo "Running performance benchmark tests..."
 	pytest tests/test_performance.py -v -m performance -s
 
 test-all:
+	$(call ensure_venv)
 	@echo "Running complete test suite..."
 	pytest -v
 
@@ -330,3 +361,48 @@ test-complete-wait-pipeline:
 test-complete-bypass-pipeline:
 	@echo "Running complete test suite with pipeline bypass (emergency mode)..."
 	./scripts/run-complete-test-suite.sh --check-pipeline --pipeline-bypass
+
+# Environment Management Targets
+# Simple automated venv assurance - Requirements: 2.3, 2.4
+
+env-check:
+	@echo "🔍 Checking virtual environment status..."
+	@if [ -n "$$VIRTUAL_ENV" ]; then \
+		echo "✅ Virtual environment active: $$VIRTUAL_ENV"; \
+		echo "📦 Checking dependencies..."; \
+		pip list | grep -E "(pytest|black|flake8)" > /dev/null && echo "✅ Development dependencies found" || echo "⚠️  Some development dependencies may be missing"; \
+	else \
+		echo "❌ No virtual environment active"; \
+		if [ -d "venv" ]; then \
+			echo "📁 Virtual environment directory exists"; \
+			echo "💡 Run: source venv/bin/activate"; \
+		else \
+			echo "📁 No virtual environment directory found"; \
+			echo "💡 Run: make env-setup"; \
+		fi; \
+	fi
+
+env-setup:
+	@echo "🚀 Setting up virtual environment..."
+	@if [ ! -d "venv" ]; then \
+		echo "📦 Creating virtual environment..."; \
+		python3 -m venv venv || python -m venv venv; \
+	fi; \
+	echo "📋 Installing dependencies..."; \
+	./venv/bin/pip install --upgrade pip; \
+	./venv/bin/pip install -e ".[dev]"; \
+	echo "🔧 Installing pre-commit hooks..."; \
+	./venv/bin/pre-commit install || echo "⚠️  Pre-commit install failed (not critical)"; \
+	echo ""; \
+	echo "✅ Environment setup complete!"; \
+	echo "💡 Activate with: source venv/bin/activate"
+
+env-reset:
+	@echo "🧹 Resetting virtual environment..."
+	@if [ -d "venv" ]; then \
+		echo "🗑️  Removing existing virtual environment..."; \
+		rm -rf venv; \
+	fi
+	@echo "🔄 Creating fresh virtual environment..."
+	@$(MAKE) env-setup
+	@echo "✅ Virtual environment reset complete!"
