@@ -173,3 +173,6 @@ logs/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Tee pattern output files (temporary command output)
+z_*

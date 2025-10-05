@@ -1,0 +1,14 @@
+[feature/branch-protection-and-release-automation e6e6d35] security: audit and fix file permissions following principle of least privilege
+ 13 files changed, 329 insertions(+), 4 deletions(-)
+ create mode 100644 PERMISSIONS.md
+ mode change 100755 => 100644 scripts/verify-badges.py
+ mode change 100755 => 100644 scripts/version_bump.py
+ create mode 100644 z_branch_cleanup.txt
+ create mode 100644 z_branch_list.txt
+ create mode 100644 z_executable_files.txt
+ create mode 100644 z_final_all_tests_complete.txt
+ create mode 100644 z_final_verification.txt
+ create mode 100644 z_fix_optional.txt
+ create mode 100644 z_permissions_fixed.txt
+ create mode 100644 z_push_feature.txt
+ create mode 100644 z_security_commit.txt

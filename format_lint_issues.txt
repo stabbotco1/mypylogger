@@ -1,6 +1,0 @@
-Checking specific formatting and linting issues
-=== Black formatting check ===
-
-=== Flake8 linting check ===
-./scripts/run_complete_test_suite.py:462:42: E713 test for membership should be 'not in'
-./scripts/run_complete_test_suite.py:486:46: E713 test for membership should be 'not in'

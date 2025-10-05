@@ -1,130 +1,0 @@
-Updating to new version for PyPI
-Building and uploading new version
-* Creating isolated environment: venv+pip...
-* Installing packages in isolated environment:
-  - setuptools>=78.1.1
-  - wheel
-* Getting build dependencies for sdist...
-running egg_info
-writing mypylogger.egg-info/PKG-INFO
-writing dependency_links to mypylogger.egg-info/dependency_links.txt
-writing requirements to mypylogger.egg-info/requires.txt
-writing top-level names to mypylogger.egg-info/top_level.txt
-reading manifest file 'mypylogger.egg-info/SOURCES.txt'
-adding license file 'LICENSE'
-writing manifest file 'mypylogger.egg-info/SOURCES.txt'
-* Building sdist...
-running sdist
-running egg_info
-writing mypylogger.egg-info/PKG-INFO
-writing dependency_links to mypylogger.egg-info/dependency_links.txt
-writing requirements to mypylogger.egg-info/requires.txt
-writing top-level names to mypylogger.egg-info/top_level.txt
-reading manifest file 'mypylogger.egg-info/SOURCES.txt'
-adding license file 'LICENSE'
-writing manifest file 'mypylogger.egg-info/SOURCES.txt'
-running check
-creating mypylogger-0.1.0a2
-creating mypylogger-0.1.0a2/mypylogger
-creating mypylogger-0.1.0a2/mypylogger.egg-info
-creating mypylogger-0.1.0a2/tests
-copying files to mypylogger-0.1.0a2...
-copying LICENSE -> mypylogger-0.1.0a2
-copying README.md -> mypylogger-0.1.0a2
-copying pyproject.toml -> mypylogger-0.1.0a2
-copying mypylogger/__init__.py -> mypylogger-0.1.0a2/mypylogger
-copying mypylogger/config.py -> mypylogger-0.1.0a2/mypylogger
-copying mypylogger/core.py -> mypylogger-0.1.0a2/mypylogger
-copying mypylogger/formatters.py -> mypylogger-0.1.0a2/mypylogger
-copying mypylogger/handlers.py -> mypylogger-0.1.0a2/mypylogger
-copying mypylogger.egg-info/PKG-INFO -> mypylogger-0.1.0a2/mypylogger.egg-info
-copying mypylogger.egg-info/SOURCES.txt -> mypylogger-0.1.0a2/mypylogger.egg-info
-copying mypylogger.egg-info/dependency_links.txt -> mypylogger-0.1.0a2/mypylogger.egg-info
-copying mypylogger.egg-info/requires.txt -> mypylogger-0.1.0a2/mypylogger.egg-info
-copying mypylogger.egg-info/top_level.txt -> mypylogger-0.1.0a2/mypylogger.egg-info
-copying tests/test_cache_manager.py -> mypylogger-0.1.0a2/tests
-copying tests/test_complete_workflows.py -> mypylogger-0.1.0a2/tests
-copying tests/test_coverage_improvements.py -> mypylogger-0.1.0a2/tests
-copying tests/test_documentation_validation.py -> mypylogger-0.1.0a2/tests
-copying tests/test_end_to_end_integration.py -> mypylogger-0.1.0a2/tests
-copying tests/test_file_handler_integration.py -> mypylogger-0.1.0a2/tests
-copying tests/test_github_status_reporter.py -> mypylogger-0.1.0a2/tests
-copying tests/test_integration_error_handling.py -> mypylogger-0.1.0a2/tests
-copying tests/test_intelligent_polling.py -> mypylogger-0.1.0a2/tests
-copying tests/test_json_schema_validation.py -> mypylogger-0.1.0a2/tests
-copying tests/test_main_api.py -> mypylogger-0.1.0a2/tests
-copying tests/test_make_integration.py -> mypylogger-0.1.0a2/tests
-copying tests/test_performance.py -> mypylogger-0.1.0a2/tests
-copying tests/test_performance_and_security_validation.py -> mypylogger-0.1.0a2/tests
-copying tests/test_test_suite_integration.py -> mypylogger-0.1.0a2/tests
-copying mypylogger.egg-info/SOURCES.txt -> mypylogger-0.1.0a2/mypylogger.egg-info
-Writing mypylogger-0.1.0a2/setup.cfg
-Creating tar archive
-removing 'mypylogger-0.1.0a2' (and everything under it)
-* Building wheel from sdist
-* Creating isolated environment: venv+pip...
-* Installing packages in isolated environment:
-  - setuptools>=78.1.1
-  - wheel
-* Getting build dependencies for wheel...
-running egg_info
-writing mypylogger.egg-info/PKG-INFO
-writing dependency_links to mypylogger.egg-info/dependency_links.txt
-writing requirements to mypylogger.egg-info/requires.txt
-writing top-level names to mypylogger.egg-info/top_level.txt
-reading manifest file 'mypylogger.egg-info/SOURCES.txt'
-adding license file 'LICENSE'
-writing manifest file 'mypylogger.egg-info/SOURCES.txt'
-* Building wheel...
-running bdist_wheel
-running build
-running build_py
-creating build/lib/mypylogger
-copying mypylogger/config.py -> build/lib/mypylogger
-copying mypylogger/formatters.py -> build/lib/mypylogger
-copying mypylogger/handlers.py -> build/lib/mypylogger
-copying mypylogger/__init__.py -> build/lib/mypylogger
-copying mypylogger/core.py -> build/lib/mypylogger
-running egg_info
-writing mypylogger.egg-info/PKG-INFO
-writing dependency_links to mypylogger.egg-info/dependency_links.txt
-writing requirements to mypylogger.egg-info/requires.txt
-writing top-level names to mypylogger.egg-info/top_level.txt
-reading manifest file 'mypylogger.egg-info/SOURCES.txt'
-adding license file 'LICENSE'
-writing manifest file 'mypylogger.egg-info/SOURCES.txt'
-installing to build/bdist.macosx-15.5-arm64/wheel
-running install
-running install_lib
-creating build/bdist.macosx-15.5-arm64/wheel
-creating build/bdist.macosx-15.5-arm64/wheel/mypylogger
-copying build/lib/mypylogger/config.py -> build/bdist.macosx-15.5-arm64/wheel/./mypylogger
-copying build/lib/mypylogger/formatters.py -> build/bdist.macosx-15.5-arm64/wheel/./mypylogger
-copying build/lib/mypylogger/handlers.py -> build/bdist.macosx-15.5-arm64/wheel/./mypylogger
-copying build/lib/mypylogger/__init__.py -> build/bdist.macosx-15.5-arm64/wheel/./mypylogger
-copying build/lib/mypylogger/core.py -> build/bdist.macosx-15.5-arm64/wheel/./mypylogger
-running install_egg_info
-Copying mypylogger.egg-info to build/bdist.macosx-15.5-arm64/wheel/./mypylogger-0.1.0a2-py3.11.egg-info
-running install_scripts
-creating build/bdist.macosx-15.5-arm64/wheel/mypylogger-0.1.0a2.dist-info/WHEEL
-creating '/Users/stephenabbot/projects/mypylogger/dist/.tmp-s8sjhxu6/mypylogger-0.1.0a2-py3-none-any.whl' and adding 'build/bdist.macosx-15.5-arm64/wheel' to it
-adding 'mypylogger/__init__.py'
-adding 'mypylogger/config.py'
-adding 'mypylogger/core.py'
-adding 'mypylogger/formatters.py'
-adding 'mypylogger/handlers.py'
-adding 'mypylogger-0.1.0a2.dist-info/licenses/LICENSE'
-adding 'mypylogger-0.1.0a2.dist-info/METADATA'
-adding 'mypylogger-0.1.0a2.dist-info/WHEEL'
-adding 'mypylogger-0.1.0a2.dist-info/top_level.txt'
-adding 'mypylogger-0.1.0a2.dist-info/RECORD'
-removing build/bdist.macosx-15.5-arm64/wheel
-Successfully built mypylogger-0.1.0a2.tar.gz and mypylogger-0.1.0a2-py3-none-any.whl
-Uploading distributions to https://upload.pypi.org/legacy/
-Uploading mypylogger-0.1.0a2-py3-none-any.whl
-[?25l[2K[35m  0%[0m [38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/33.5 kB[0m • [36m--:--[0m • [31m?[0m[2K[35m  0%[0m [38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/33.5 kB[0m • [36m--:--[0m • [31m?[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m33.5/33.5 kB[0m • [33m00:00[0m • [31m98.5 MB/s[0m
-[?25hUploading mypylogger-0.1.0a2.tar.gz
-[?25l[2K[35m  0%[0m [38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/80.5 kB[0m • [36m--:--[0m • [31m?[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m[2K[35m100%[0m [38;2;114;156;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m80.5/80.5 kB[0m • [33m00:00[0m • [31m87.1 MB/s[0m
-[?25h
-[32mView at:[0m
-https://pypi.org/project/mypylogger/0.1.0a2/

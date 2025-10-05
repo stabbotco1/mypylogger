@@ -1,2 +1,0 @@
-Verifying linting fixes
-Exit code: 0

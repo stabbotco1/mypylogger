@@ -1,2 +1,0 @@
-[pre-release aaa1d2e] Fix GitHub Actions: update CodeQL to v3, add permissions for Trivy, update cache actions to v4
- 2 files changed, 11 insertions(+), 7 deletions(-)
