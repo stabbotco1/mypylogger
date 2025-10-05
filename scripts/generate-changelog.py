@@ -6,8 +6,8 @@ Categorizes changes by type and filters noise.
 
 import subprocess
 import sys
-from datetime import date
 from collections import defaultdict
+from datetime import date
 
 
 def get_commits_since_last_tag():
