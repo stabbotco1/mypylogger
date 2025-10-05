@@ -85,7 +85,7 @@ class ParallelStdoutHandler(logging.StreamHandler):
 
 ```json
 {
-  "time": "2024-01-15T10:30:45.123Z",
+  "time": "2025-10-04T22:30:45.123Z",
   "levelname": "INFO",
   "message": "Application started",
   "filename": "main.py",

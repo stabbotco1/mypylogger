@@ -200,7 +200,7 @@ security:
     # Temporarily ignore specific CVEs with justification
     - id: 12345
       reason: "False positive - not applicable to our usage"
-      expires: "2024-12-31"
+      expires: "2026-12-31"
 ```
 
 ## Data Models
@@ -272,8 +272,8 @@ disallow_untyped_defs = true
 
 ## Current Status: ✅ CLEAN
 
-Last Updated: 2024-01-15
-Last Scan: 2024-01-15 10:30 UTC
+Last Updated: 2025-10-04
+Last Scan: 2025-10-04 22:27 UTC
 
 ## Vulnerability History
 
@@ -284,7 +284,7 @@ Last Scan: 2024-01-15 10:30 UTC
 - **Component**: python-json-logger < 2.0.5
 - **Description**: Potential log injection vulnerability
 - **Resolution**: Updated to python-json-logger 2.0.7
-- **Resolved Date**: 2024-01-10
+- **Resolved Date**: 2025-09-15
 - **Fix Version**: 0.1.2
 
 ## Scanning Tools

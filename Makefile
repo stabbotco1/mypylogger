@@ -39,6 +39,8 @@ help:
 	@echo "  docs-check               Check documentation completeness"
 	@echo "  verify-badges            Verify README badge URLs and configuration"
 	@echo "  validate-badges-verbose  Run detailed badge validation with verbose output"
+	@echo "  validate-docs-dates      Check for outdated dates in documentation"
+	@echo "  validate-docs-dates-verbose Show all dates including acceptable ones"
 	@echo "  test-badge-performance   Test badge loading performance and fallback behavior"
 	@echo "  badge-health-check       Run comprehensive badge health monitoring"
 	@echo "  badge-health-ci          Run badge health check for CI/CD integration"
@@ -234,6 +236,14 @@ docs-check:
 verify-badges:
 	@echo "Verifying README badges..."
 	python scripts/validate_badges.py
+
+validate-docs-dates:
+	@echo "Validating documentation dates..."
+	python scripts/validate_documentation_dates.py
+
+validate-docs-dates-verbose:
+	@echo "Validating documentation dates (verbose)..."
+	python scripts/validate_documentation_dates.py --verbose
 	@echo "Badge verification complete!"
 
 test-badge-performance:

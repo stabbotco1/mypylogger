@@ -1,0 +1,61 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [ main, pre-release ]
+  pull_request:
+    branches: [ main, pre-release ]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  validate-documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Validate documentation dates
+      run: |
+        echo "Checking for outdated dates in documentation..."
+        python scripts/validate_documentation_dates.py --fail-on-outdated
+
+    - name: Generate detailed report (on failure)
+      if: failure()
+      run: |
+        echo "Generating detailed date validation report..."
+        python scripts/validate_documentation_dates.py --verbose
+
+    - name: Check badge configuration
+      run: |
+        echo "Validating badge configuration..."
+        python scripts/validate_badges.py
+
+    - name: Verify documentation completeness
+      run: |
+        echo "Checking documentation completeness..."
+        # Check that key documentation files exist
+        test -f README.md
+        test -f SECURITY.md
+        test -f VULNERABILITIES.md
+        test -f CONTRIBUTING.md
+        test -f LICENSE
+
+        # Check that documentation is not empty
+        test -s README.md
+        test -s SECURITY.md
+        test -s VULNERABILITIES.md
+
+        echo "✅ All required documentation files present and non-empty"

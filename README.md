@@ -141,8 +141,8 @@ logger.error("Failed to connect to database")
 Log entries are written as JSON to `logs/{APP_NAME}_{YYYY_MM_DD}.log`:
 
 ```json
-{"time": "2024-01-15T10:30:45.123Z", "levelname": "INFO", "message": "Application started", "filename": "main.py", "lineno": "42", "funcName": "main"}
-{"time": "2024-01-15T10:30:45.456Z", "levelname": "ERROR", "message": "Failed to connect to database", "filename": "main.py", "lineno": "45", "funcName": "connect"}
+{"time": "2025-10-04T22:30:45.123Z", "levelname": "INFO", "message": "Application started", "filename": "main.py", "lineno": "42", "funcName": "main"}
+{"time": "2025-10-04T22:30:45.456Z", "levelname": "ERROR", "message": "Failed to connect to database", "filename": "main.py", "lineno": "45", "funcName": "connect"}
 ```
 
 ## Configuration
@@ -215,8 +215,8 @@ logs/{APP_NAME}_{YYYY_MM_DD}.log
 ```
 
 Examples:
-- `logs/my_app_2024_01_15.log`
-- `logs/production_service_2024_01_15.log`
+- `logs/my_app_2025_10_04.log`
+- `logs/production_service_2025_10_04.log`
 
 ## Development Features
 
@@ -291,7 +291,7 @@ Log entries follow this JSON schema:
 
 ```json
 {
-  "time": "2024-01-15T10:30:45.123Z",     // UTC timestamp with milliseconds
+  "time": "2025-10-04T22:30:45.123Z",     // UTC timestamp with milliseconds
   "levelname": "INFO",                     // Log level name
   "message": "Application started",        // Log message
   "filename": "main.py",                   // Source filename
