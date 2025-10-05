@@ -9,7 +9,7 @@
 <!-- Quality & Compatibility (Tier 2) -->
 [![PyPI Version](https://img.shields.io/pypi/v/mypylogger?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/mypylogger?logo=python&logoColor=white)](https://pypi.org/project/mypylogger/)
-[![Maintenance](https://img.shields.io/maintenance/yes/2024?logo=github)](https://github.com/stabbotco1/mypylogger/graphs/commit-activity)
+[![Last Commit](https://img.shields.io/github/last-commit/stabbotco1/mypylogger/main?logo=github)](https://github.com/stabbotco1/mypylogger/commits/main)
 
 <!-- Performance & Community (Tier 3) -->
 [![Performance Ubuntu](https://img.shields.io/badge/Ubuntu-<1ms,%20>10K/sec-green?logo=ubuntu)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
