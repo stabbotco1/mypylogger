@@ -1,3 +1,7 @@
+## [0.1.2] - 2025-10-05
+
+- 
+
 ## [0.1.1] - 2025-10-05
 
 - 99a4417 chore: trigger CI for release validation
