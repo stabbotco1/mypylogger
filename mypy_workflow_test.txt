@@ -1,9 +1,0 @@
-tests/test_complete_workflows.py:502: error: Incompatible types in assignment (expression has type "str", variable has type "int")  [assignment]
-tests/test_complete_workflows.py:503: error: Invalid index type "int" for "dict[str, int]"; expected type "str"  [index]
-tests/test_complete_workflows.py:503: error: No overload variant of "get" of "dict" matches argument types "int", "int"  [call-overload]
-tests/test_complete_workflows.py:503: note: Possible overload variants:
-tests/test_complete_workflows.py:503: note:     def get(self, str, None = ..., /) -> Optional[int]
-tests/test_complete_workflows.py:503: note:     def get(self, str, int, /) -> int
-tests/test_complete_workflows.py:503: note:     def [_T] get(self, str, _T, /) -> Union[int, _T]
-tests/test_complete_workflows.py:507: error: Incompatible types in assignment (expression has type "str", variable has type "int")  [assignment]
-Found 4 errors in 1 file (checked 1 source file)

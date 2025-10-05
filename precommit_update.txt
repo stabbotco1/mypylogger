@@ -1,7 +1,0 @@
-Updating pre-commit hooks to latest versions
-[https://github.com/psf/black] updating 23.12.1 -> 25.9.0
-[https://github.com/pycqa/isort] updating 5.13.2 -> 6.1.0
-[https://github.com/pycqa/flake8] updating 7.0.0 -> 7.3.0
-[https://github.com/pre-commit/mirrors-mypy] updating v1.8.0 -> v1.18.2
-[https://github.com/PyCQA/bandit] updating 1.7.6 -> 1.8.6
-[https://github.com/pre-commit/pre-commit-hooks] updating v4.5.0 -> v6.0.0

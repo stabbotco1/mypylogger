@@ -73,6 +73,7 @@ main:
   - Require up-to-date branches: true
   - Include administrators: true
   - Restrict pushes: true
+  - NO DIRECT COMMITS ALLOWED
 
 pre-release:
   - Require PR reviews: 1
@@ -80,6 +81,12 @@ pre-release:
   - Require up-to-date branches: true
   - Allow force pushes: false
 ```
+
+### CRITICAL RULE: Never Commit Directly to Main
+- **NEVER** commit directly to main branch
+- **ALWAYS** create feature branches for changes
+- **ALWAYS** use pull requests for main branch updates
+- Pre-commit hooks enforce this rule automatically
 
 ## Automated Quality Gates
 
@@ -89,6 +96,7 @@ pre-release:
 - **flake8**: Linting
 - **mypy**: Type checking
 - **pytest**: Fast unit tests
+- **Branch protection**: Prevents direct commits to main
 
 ### GitHub Actions Workflows
 

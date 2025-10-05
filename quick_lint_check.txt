@@ -1,2 +1,0 @@
-Quick verification of linting fixes
-Exit code: 0

@@ -1,6 +1,0 @@
-scripts/github_api_client.py:196: error: Statement is unreachable  [unreachable]
-scripts/github_api_client.py:203: error: Unused "type: ignore" comment  [unused-ignore]
-scripts/github_api_client.py:230: error: Unused "type: ignore" comment  [unused-ignore]
-scripts/github_api_client.py:238: error: Unused "type: ignore" comment  [unused-ignore]
-scripts/github_api_client.py:239: error: Statement is unreachable  [unreachable]
-Found 5 errors in 1 file (checked 1 source file)
