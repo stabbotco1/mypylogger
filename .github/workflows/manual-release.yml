@@ -61,9 +61,9 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
-          sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" src/mypylogger/__init__.py
+          sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" mypylogger/__init__.py
           grep "version = " pyproject.toml
-          grep "__version__ = " src/mypylogger/__init__.py
+          grep "__version__ = " mypylogger/__init__.py
 
       - name: Generate CHANGELOG entry
         run: |
@@ -89,7 +89,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml src/mypylogger/__init__.py CHANGELOG.md
+          git add pyproject.toml mypylogger/__init__.py CHANGELOG.md
           git commit -m "chore: bump version to $VERSION"
           git tag -a "v$VERSION" -m "Release v$VERSION"
 
