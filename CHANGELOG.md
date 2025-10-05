@@ -1,3 +1,14 @@
+## [0.1.3] - 2025-10-05
+
+- 2e3bd7c docs: add release automation tasks to infrastructure spec
+- 22cea42 fix comma
+- 912c3e8 chore: add tomli and packaging to dev dependencies for release scripts
+- efd54d6 style: fix import sorting in generate-changelog.py
+- ef852d8 style: format generate-changelog.py with black
+- f1d5e9c chore: remove automated release workflow (replaced by manual-release.yml)
+- 4e58b3a feat: add enhanced CHANGELOG generator with conventional commit parsing
+- 21163b3 feat: add pre-flight validation script for releases
+
 ## [0.1.2] - 2025-10-05
 
 - 
