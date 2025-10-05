@@ -4,11 +4,13 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/ci.yml?branch=main&label=build&logo=github)](https://github.com/stabbotco1/mypylogger/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-96.48%25-brightgreen?logo=codecov)](https://codecov.io/gh/stabbotco1/mypylogger)
 [![Security](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/security.yml?branch=main&label=security&logo=github)](https://github.com/stabbotco1/mypylogger/actions/workflows/security.yml)
+[![Dependencies](https://img.shields.io/badge/dependencies-secure-brightgreen?logo=dependabot)](https://github.com/stabbotco1/mypylogger/actions/workflows/security.yml)
 [![License](https://img.shields.io/github/license/stabbotco1/mypylogger?color=blue)](https://opensource.org/licenses/MIT)
 
 <!-- Quality & Compatibility (Tier 2) -->
 [![PyPI Version](https://img.shields.io/pypi/v/mypylogger?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/mypylogger?logo=python&logoColor=white)](https://pypi.org/project/mypylogger/)
+[![Documentation](https://img.shields.io/badge/docs-comprehensive-brightgreen?logo=readthedocs)](https://github.com/stabbotco1/mypylogger#documentation)
 [![Last Commit](https://img.shields.io/github/last-commit/stabbotco1/mypylogger/main?logo=github)](https://github.com/stabbotco1/mypylogger/commits/main)
 
 <!-- Performance & Community (Tier 3) -->
