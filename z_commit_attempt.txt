@@ -1,0 +1,23 @@
+black....................................................................Failed
+- hook id: black
+- files were modified by this hook
+
+reformatted scripts/validate_badges.py
+reformatted scripts/test_badge_performance.py
+
+All done! ✨ 🍰 ✨
+2 files reformatted, 1 file left unchanged.
+
+isort....................................................................Passed
+flake8...................................................................Passed
+mypy.....................................................................Passed
+bandit...................................................................Passed
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check for added large files..............................................Passed
+check for merge conflicts................................................Passed
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+debug statements (python)................................................Passed
+Fast Unit Tests..........................................................Passed

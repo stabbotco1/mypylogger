@@ -36,9 +36,11 @@ help:
 	@echo "  clean          Clean build artifacts and cache files"
 	@echo ""
 	@echo "Documentation and Verification:"
-	@echo "  docs-check     Check documentation completeness"
-	@echo "  verify-badges  Verify README badge URLs and configuration"
-	@echo "  fix-formatting Fix all code formatting issues automatically"
+	@echo "  docs-check               Check documentation completeness"
+	@echo "  verify-badges            Verify README badge URLs and configuration"
+	@echo "  validate-badges-verbose  Run detailed badge validation with verbose output"
+	@echo "  test-badge-performance   Test badge loading performance and fallback behavior"
+	@echo "  fix-formatting           Fix all code formatting issues automatically"
 	@echo ""
 	@echo "Pipeline Monitoring:"
 	@echo "  monitor-pipeline       Monitor current commit's pipeline status"
@@ -229,8 +231,18 @@ docs-check:
 # Badge verification
 verify-badges:
 	@echo "Verifying README badges..."
-	python scripts/verify-badges.py
+	python scripts/validate_badges.py
 	@echo "Badge verification complete!"
+
+test-badge-performance:
+	@echo "Testing badge loading performance..."
+	python scripts/test_badge_performance.py
+	@echo "Badge performance test complete!"
+
+validate-badges-verbose:
+	@echo "Running detailed badge validation..."
+	python scripts/validate_badges.py --verbose
+	@echo "Detailed badge validation complete!"
 
 # Dependency management
 update-deps:

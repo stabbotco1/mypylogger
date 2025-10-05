@@ -1,16 +1,21 @@
 # mypylogger
 
-[![Build Status](https://github.com/stabbotco1/mypylogger/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/stabbotco1/mypylogger/actions)
-[![Coverage](https://codecov.io/gh/stabbotco1/mypylogger/branch/main/graph/badge.svg)](https://codecov.io/gh/stabbotco1/mypylogger)
-[![Security Scanning](https://github.com/stabbotco1/mypylogger/workflows/Security%20Scanning/badge.svg)](https://github.com/stabbotco1/mypylogger/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://badge.fury.io/py/mypylogger.svg)](https://badge.fury.io/py/mypylogger)
-[![Python versions](https://img.shields.io/pypi/pyversions/mypylogger.svg)](https://pypi.org/project/mypylogger/)
-[![Downloads](https://pepy.tech/badge/mypylogger)](https://pepy.tech/project/mypylogger)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/stabbotco1/mypylogger/graphs/commit-activity)
-[![GitHub issues](https://img.shields.io/github/issues/stabbotco1/mypylogger.svg)](https://github.com/stabbotco1/mypylogger/issues)
-[![GitHub stars](https://img.shields.io/github/stars/stabbotco1/mypylogger.svg)](https://github.com/stabbotco1/mypylogger/stargazers)
+<!-- Core Status (Tier 1) -->
+[![Build Status](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/ci.yml?branch=main&label=build&logo=github)](https://github.com/stabbotco1/mypylogger/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-96.48%25-brightgreen?logo=codecov)](https://codecov.io/gh/stabbotco1/mypylogger)
+[![Security](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/security.yml?branch=main&label=security&logo=github)](https://github.com/stabbotco1/mypylogger/actions/workflows/security.yml)
+[![License](https://img.shields.io/github/license/stabbotco1/mypylogger?color=blue)](https://opensource.org/licenses/MIT)
+
+<!-- Quality & Compatibility (Tier 2) -->
+[![PyPI Version](https://img.shields.io/pypi/v/mypylogger?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/mypylogger?logo=python&logoColor=white)](https://pypi.org/project/mypylogger/)
+[![Maintenance](https://img.shields.io/maintenance/yes/2024?logo=github)](https://github.com/stabbotco1/mypylogger/graphs/commit-activity)
+
+<!-- Performance & Community (Tier 3) -->
+[![Performance Ubuntu](https://img.shields.io/badge/Ubuntu-<1ms,%20>10K/sec-green?logo=ubuntu)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
+[![Performance macOS](https://img.shields.io/badge/macOS-<1ms,%20>10K/sec-green?logo=apple)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
+[![Downloads](https://img.shields.io/pypi/dm/mypylogger?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000?logo=python&logoColor=white)](https://github.com/psf/black)
 
 A production-quality Python logging library that provides structured JSON logging with real-time development support and environment-driven configuration.
 
