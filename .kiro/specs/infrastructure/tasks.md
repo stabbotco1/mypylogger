@@ -106,6 +106,25 @@ This implementation plan transforms mypylogger from proof-of-concept to producti
   - Set up automated publishing workflow for future releases
   - _Requirements: 1.1, 1.2, 1.3, 1.5, 5.3_
 
+  - [x] 12a. Pre-flight Validation Script
+    - Created scripts/pre-release-check.sh with comprehensive validation
+    - Validates version format (PEP 440), clean working tree, required files
+    - Auto-detects package directory structure
+    - Added tomli and packaging to dev dependencies
+  - [x] 12b. Enhanced CHANGELOG Generator
+    - Created scripts/generate-changelog.py with conventional commit parsing
+    - Categorizes commits by type (feat/fix/docs/chore/etc)
+    - Filters noise commits (version bumps, merges)
+    - Generates markdown with commit links
+  - [x] 12c. Manual PyPI Release Workflow
+    - Created .github/workflows/manual-release.yml
+    - Supports auto-increment patch or manual version override
+    - Integrates pre-flight checks and CHANGELOG generation
+    - Uses OIDC trusted publishing (no credentials needed)
+    - Creates GitHub Release with artifacts
+  - [x] 12d. Removed Noisy Automated Release Workflow
+    - Deleted .github/workflows/release.yml (replaced by manual-release.yml)
+
 - [ ] 13. Security and Compliance Validation
   - Run comprehensive security scan suite
   - Validate vulnerability tracking and reporting process
