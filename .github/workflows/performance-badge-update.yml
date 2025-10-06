@@ -27,6 +27,7 @@ jobs:
     name: Performance Test & Badge Update
     runs-on: ${{ matrix.os }}
     strategy:
+      max-parallel: 1
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.11"]

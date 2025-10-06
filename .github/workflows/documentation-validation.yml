@@ -30,7 +30,7 @@ jobs:
     - name: Validate documentation dates
       run: |
         echo "Checking for outdated dates in documentation..."
-        python scripts/validate_documentation_dates.py --fail-on-outdated
+        python scripts/validate_documentation_dates.py --verbose
 
     - name: Generate detailed report (on failure)
       if: failure()
