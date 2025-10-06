@@ -152,7 +152,7 @@ jobs:
           PERF_TEXT="${LATENCY}ms,%20${THROUGHPUT}K/sec"
 
           # Update README.md
-          sed -i "s|macOS-[^-]*ms,%20[^-]*K/sec|macOS-${PERF_TEXT}|g" README.md
+          sed -i '' "s|macOS-[^-]*ms,%20[^-]*K/sec|macOS-${PERF_TEXT}|g" README.md
 
           echo "Updated macOS performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
 
