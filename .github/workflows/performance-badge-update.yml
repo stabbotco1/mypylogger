@@ -127,7 +127,7 @@ jobs:
           fi
 
       - name: Update performance badge (Ubuntu)
-        if: matrix.os == 'ubuntu-latest' && (github.event_name == 'schedule' || github.event.inputs.update_badges == 'true')
+        if: matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request'
         run: |
           # Update Ubuntu performance badge in README
           LATENCY=${{ steps.perf-test.outputs.latency }}
@@ -142,7 +142,7 @@ jobs:
           echo "Updated Ubuntu performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
 
       - name: Update performance badge (macOS)
-        if: matrix.os == 'macos-latest' && (github.event_name == 'schedule' || github.event.inputs.update_badges == 'true')
+        if: matrix.os == 'macos-latest' && github.event_name != 'pull_request'
         run: |
           # Update macOS performance badge in README
           LATENCY=${{ steps.perf-test.outputs.latency }}
@@ -157,7 +157,7 @@ jobs:
           echo "Updated macOS performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
 
       - name: Commit badge updates
-        if: (matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest') && (github.event_name == 'schedule' || github.event.inputs.update_badges == 'true')
+        if: (matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest') && github.event_name != 'pull_request'
         run: |
           # Configure git
           git config --local user.email "action@github.com"
@@ -232,69 +232,14 @@ jobs:
               labels: ['performance-regression', 'automated']
             });
 
-            const existingIssue = issues.data.find(issue =>
-              issue.title.includes('Performance Regression') &&
-              issue.title.includes('${{ matrix.os }}')
-            );
-
-            if (!existingIssue) {
+            // Create new issue if none exists
+            if (issues.data.length === 0) {
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: title,
                 body: body,
-                labels: ['performance-regression', 'automated', 'bug', 'high-priority']
+                labels: ['performance-regression', 'automated', 'needs-investigation']
               });
             }
 
-  performance-summary:
-    name: Performance Summary
-    runs-on: ubuntu-latest
-    needs: performance-test-and-badge-update
-    if: always()
-
-    steps:
-      - name: Download all performance results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: performance-results-*
-          merge-multiple: true
-
-      - name: Generate performance summary
-        run: |
-          echo "# Performance Benchmark Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Platform | Latency (ms) | Throughput (logs/sec) | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|--------------|----------------------|--------|" >> $GITHUB_STEP_SUMMARY
-
-          for file in performance-results-*.json; do
-            if [ -f "$file" ]; then
-              OS=$(echo "$file" | sed 's/performance-results-\(.*\)\.json/\1/')
-              LATENCY=$(python3 -c "
-              import json
-              with open('$file') as f:
-                  data = json.load(f)
-              print(f\"{data['latency']['average_ms']:.3f}\")
-              ")
-              THROUGHPUT=$(python3 -c "
-              import json
-              with open('$file') as f:
-                  data = json.load(f)
-              print(f\"{data['throughput']['logs_per_second']:.0f}\")
-              ")
-
-              # Determine status
-              STATUS="✅ Good"
-              if (( $(echo "$LATENCY > 0.1" | bc -l) )); then
-                STATUS="⚠️ Slow"
-              fi
-              if (( $(echo "$THROUGHPUT < 10000" | bc -l) )); then
-                STATUS="⚠️ Low"
-              fi
-
-              echo "| $OS | $LATENCY | $THROUGHPUT | $STATUS |" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Benchmark Date**: $(date -u)" >> $GITHUB_STEP_SUMMARY
