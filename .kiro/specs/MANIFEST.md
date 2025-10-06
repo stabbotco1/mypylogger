@@ -1,83 +1,80 @@
-# Kiro Specs Manifest
+# Kiro Project Manifest
 
-## Purpose
-This manifest defines the execution order and dependencies between specification documents for the mypylogger project.
+**Last Updated**: 2024-10-06  
+**Authority**: This file defines project structure and phase status
 
-## Active Specifications
+## Project Status
 
-### Core Library (Phase 1 - Completed)
-Foundation library functionality built in ~6 hours with clean TDD approach.
+**Current Phase**: Infrastructure (Phase 2)  
+**Progress**: 50% complete (8 of 16 tasks done)  
+**Active Spec Directory**: `.kiro/specs/infrastructure/`  
+**Active Tasks**: `.kiro/CURRENT_TASKS.md`
 
-**Execution Order:**
-1. `core/requirements.md` - Library functionality requirements (EARS format)
-2. `core/design.md` - Architecture and implementation design
-3. `core/standards.md` - Product standards (JSON format, naming conventions, behavior)
-4. `core/tasks.md` - Implementation task breakdown
+## Phase History
 
-**Status:** ✅ Complete
-**Dependencies:** None - this is the foundation
+### Phase 1: Core Library ✅ COMPLETE
+- **Duration**: ~6 hours
+- **Completion**: 2024-10-01
+- **Spec Location**: `.kiro/specs/core/`
+- **Deliverables**: Functional logging library with 96%+ test coverage
 
-### Infrastructure (Phase 2 - In Progress)
-Production-readiness features retrofitted over ~14 hours.
+### Phase 2: Infrastructure 🔄 IN PROGRESS  
+- **Started**: 2024-10-02
+- **Expected Duration**: ~14 hours total (~7 hours remaining)
+- **Spec Location**: `.kiro/specs/infrastructure/`
+- **Deliverables**: CI/CD, PyPI deployment, badges, security scanning
+- **Status**: 8 of 16 tasks complete
 
-**Execution Order:**
-1. `infrastructure/requirements.md` - CI/CD, security, packaging requirements
-2. `infrastructure/design.md` - Pipeline architecture and deployment strategy
-3. `infrastructure/tasks.md` - Infrastructure implementation tasks
+### Phase 3: Template Extraction ⏸️ PLANNED
+- **Purpose**: Extract reusable template for OIDC library project
+- **Blocked By**: Complete Phase 2 first
+- **Spec Location**: TBD
 
-**Status:** 🔄 In Progress (Tasks 1-8 complete, 9-16 remaining)
-**Dependencies:** Requires core library completion
+## Specification Directory Structure
+.kiro/specs/
+├── MANIFEST.md (this file)
+├── core/                      # Phase 1 - COMPLETE
+│   ├── requirements.md
+│   ├── design.md
+│   └── standards.md
+├── infrastructure/            # Phase 2 - ACTIVE
+│   ├── requirements.md
+│   ├── design.md
+│   └── (no tasks.md - see CURRENT_TASKS.md)
+├── badge-enhancement/         # Sub-project - DEFERRED
+├── environment-setup/         # Sub-project - DEFERRED
+└── pypi-deployment-fix/       # OBSOLETE (completed in Phase 2)
+## Navigation Guide
 
-## Specification Dependencies
+**Starting a new session?**
+1. Read `.kiro/PROJECT_STATE.md` for current status
+2. Check `.kiro/CURRENT_TASKS.md` for active work
+3. Review this MANIFEST for phase context
+4. See `.kiro/steering/kiro-quick-start.md` for workflow
 
-```
-core/requirements.md (no dependencies)
-    ↓
-core/design.md (depends on: core/requirements.md)
-    ↓
-core/standards.md (depends on: core/design.md)
-    ↓
-core/tasks.md (depends on: core/design.md, core/standards.md)
-    ↓
-    [CORE COMPLETE]
-    ↓
-infrastructure/requirements.md (depends on: core completion)
-    ↓
-infrastructure/design.md (depends on: infrastructure/requirements.md)
-    ↓
-infrastructure/tasks.md (depends on: infrastructure/design.md)
-```
+**Need detailed standards?**
+- Python/Git/CI standards: `.kiro/steering/project-standards.md`
+- Kiro workflow details: `.kiro/steering/kiro-reference.md`
+- Language-specific: `.kiro/steering/language/python-standards.md`
 
-## Task Execution Rules
+## Execution Order
 
-1. **Sequential Execution**: Complete core specs before infrastructure specs
-2. **Single Source of Truth**: Task checkboxes exist ONLY in tasks.md files
-3. **Verification Required**: Run `make test-complete-fast` after each task
-4. **No Parallel Work**: Complete one spec layer before moving to next
+Within each phase, follow this pattern:
+1. Review `requirements.md` - Understand WHAT to build
+2. Review `design.md` - Understand HOW to build it  
+3. Check `CURRENT_TASKS.md` - Know WHERE you are
+4. Execute tasks in order
+5. Update `CURRENT_TASKS.md` as you complete work
 
-## Meta-Notes on Spec Organization
+## Important Notes
 
-This two-phase separation emerged from retrospective analysis:
-- **Core library** was built cleanly using spec-first TDD
-- **Infrastructure** was retrofitted, causing significant churn
-- **Future projects** should plan both phases from Day 1
-- This separation prevents scope creep from masquerading as "maturity"
+- **Single source of truth for tasks**: `.kiro/CURRENT_TASKS.md`
+- **Historical context**: `.kiro/archive/`
+- **Spec directories are read-only during execution** - they define the plan, tasks track progress
 
-## Related Documentation
+## Critical Lessons Learned
 
-**Steering Documents** (process guidance):
-- `.kiro/steering/01-kiro-workflow.md` - Spec-driven development workflow
-- `.kiro/steering/02-git-workflow.md` - Version control standards
-- `.kiro/steering/03-development.md` - Local development practices
-- `.kiro/steering/04-ci-cd.md` - CI/CD pipeline standards
-- `.kiro/steering/05-governance.md` - Quality and compliance standards
-- `.kiro/steering/06-task-verification.md` - Task completion verification
-- `.kiro/steering/07-learning.md` - Meta-learning and knowledge extraction
-
-**Language-Specific Standards**:
-- `.kiro/steering/language/python-standards.md` - Python development conventions
-
----
-
-Last Updated: [Date of refactoring]
-Status: Active development on infrastructure phase
+1. **Separate core from infrastructure** - Don't retrofit quality gates
+2. **Infrastructure takes 2-3x longer** than core functionality
+3. **Badge systems are complex** - Budget accordingly
+4. **Template extraction requires clean separation** - Keep concerns distinct
