@@ -110,6 +110,9 @@ jobs:
             - Latency: ${{ steps.perf-test.outputs.latency }}ms
             - Throughput: ${{ steps.perf-test.outputs.throughput }}K/sec"
             
+            # Pull latest changes before pushing
+            git pull --rebase origin main
+            
             git push
             
             echo "✅ Performance badge updated and committed"
