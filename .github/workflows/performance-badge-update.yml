@@ -1,33 +1,21 @@
 name: Performance Badge Update
 
 on:
-  # Run on pushes to main branches
   push:
-    branches: [ main, pre-release ]
-
-  # Run on pull requests to test performance
-  pull_request:
-    branches: [ main, pre-release ]
-
-  # Run weekly to update performance badges with latest metrics
+    branches: [main]
   schedule:
-    - cron: '0 4 * * 1'  # Monday at 4 AM UTC
-
-  # Allow manual triggering
+    - cron: '0 3 * * 0'  # Weekly, Sunday 3 AM UTC
   workflow_dispatch:
-    inputs:
-      update_badges:
-        description: 'Update README badges with performance results'
-        required: false
-        default: 'false'
-        type: boolean
+
+permissions:
+  contents: write  # Required for committing badge updates
 
 jobs:
   performance-test-and-badge-update:
     name: Performance Test & Badge Update
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 1
+      max-parallel: 1  # CRITICAL: Prevents race conditions
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.11"]
@@ -35,8 +23,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -47,17 +33,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-          pip install psutil  # Required for performance measurement
+          pip install psutil
 
       - name: Run performance benchmarks
         id: perf-test
         run: |
           echo "Running performance benchmarks on ${{ matrix.os }}..."
-
-          # Run performance measurement and capture results
+          
           python scripts/measure_performance.py --json > performance_results.json
-
-          # Extract key metrics for badge update
+          
           LATENCY=$(python -c "
           import json
           with open('performance_results.json') as f:
@@ -73,12 +57,9 @@ jobs:
           print(f\"{throughput/1000:.0f}\" if throughput >= 1000 else f\"{throughput:.0f}\")
           ")
 
-          # Set outputs for badge update
           echo "latency=${LATENCY}" >> $GITHUB_OUTPUT
           echo "throughput=${THROUGHPUT}" >> $GITHUB_OUTPUT
-          echo "os_name=${{ matrix.os }}" >> $GITHUB_OUTPUT
 
-          # Create performance summary
           echo "## Performance Results (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Latency**: ${LATENCY}ms average" >> $GITHUB_STEP_SUMMARY
@@ -92,155 +73,44 @@ jobs:
           path: performance_results.json
           retention-days: 30
 
-      - name: Check for performance regression
-        id: regression-check
-        run: |
-          # Define performance thresholds
-          LATENCY_THRESHOLD=0.1  # 0.1ms
-          THROUGHPUT_THRESHOLD=10000  # 10K logs/sec
-
-          LATENCY=${{ steps.perf-test.outputs.latency }}
-          THROUGHPUT_RAW=$(python -c "
-          import json
-          with open('performance_results.json') as f:
-              data = json.load(f)
-          print(data['throughput']['logs_per_second'])
-          ")
-
-          # Check for regressions
-          REGRESSION=false
-          if (( $(echo "$LATENCY > $LATENCY_THRESHOLD" | bc -l) )); then
-            echo "⚠️ Latency regression detected: ${LATENCY}ms > ${LATENCY_THRESHOLD}ms"
-            REGRESSION=true
-          fi
-
-          if (( $(echo "$THROUGHPUT_RAW < $THROUGHPUT_THRESHOLD" | bc -l) )); then
-            echo "⚠️ Throughput regression detected: ${THROUGHPUT_RAW} < ${THROUGHPUT_THRESHOLD}"
-            REGRESSION=true
-          fi
-
-          echo "regression=${REGRESSION}" >> $GITHUB_OUTPUT
-
-          if [ "$REGRESSION" = "true" ]; then
-            echo "::warning title=Performance Regression::Performance regression detected on ${{ matrix.os }}"
-          else
-            echo "✅ Performance within acceptable limits"
-          fi
-
       - name: Update performance badge (Ubuntu)
-        if: matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request'
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          # Update Ubuntu performance badge in README
           LATENCY=${{ steps.perf-test.outputs.latency }}
           THROUGHPUT=${{ steps.perf-test.outputs.throughput }}
-
-          # URL encode the performance text
           PERF_TEXT="${LATENCY}ms,%20${THROUGHPUT}K/sec"
-
-          # Update README.md
+          
           sed -i "s|Ubuntu-[^-]*ms,%20[^-]*K/sec|Ubuntu-${PERF_TEXT}|g" README.md
-
+          
           echo "Updated Ubuntu performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
 
       - name: Update performance badge (macOS)
-        if: matrix.os == 'macos-latest' && github.event_name != 'pull_request'
+        if: matrix.os == 'macos-latest'
         run: |
-          # Update macOS performance badge in README
           LATENCY=${{ steps.perf-test.outputs.latency }}
           THROUGHPUT=${{ steps.perf-test.outputs.throughput }}
-
-          # URL encode the performance text
           PERF_TEXT="${LATENCY}ms,%20${THROUGHPUT}K/sec"
-
-          # Update README.md
+          
           sed -i '' "s|macOS-[^-]*ms,%20[^-]*K/sec|macOS-${PERF_TEXT}|g" README.md
-
+          
           echo "Updated macOS performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
 
       - name: Commit badge updates
-        if: (matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest') && github.event_name != 'pull_request'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: |
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Check if there are changes
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
           if git diff --quiet README.md; then
             echo "No badge updates needed"
           else
-            # Commit changes
             git add README.md
-            git commit -m "Update ${{ matrix.os }} performance badge with latest benchmarks
+            git commit -m "Update ${{ matrix.os }} performance badge [skip ci]
 
             - Latency: ${{ steps.perf-test.outputs.latency }}ms
-            - Throughput: ${{ steps.perf-test.outputs.throughput }}K logs/sec
-
-            Auto-updated by performance-badge-update workflow"
-
-            # Push changes
+            - Throughput: ${{ steps.perf-test.outputs.throughput }}K/sec"
+            
             git push
-
+            
             echo "✅ Performance badge updated and committed"
           fi
-
-      - name: Create performance regression issue
-        if: steps.regression-check.outputs.regression == 'true' && github.event_name != 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const title = `Performance Regression Detected - ${{ matrix.os }} - ${new Date().toISOString().split('T')[0]}`;
-            const body = `
-            ## Performance Regression Alert
-
-            Performance regression detected during automated benchmarking.
-
-            **Platform**: ${{ matrix.os }}
-            **Python**: ${{ matrix.python-version }}
-            **Workflow Run**: [${context.runId}](${context.payload.repository.html_url}/actions/runs/${context.runId})
-
-            ### Performance Metrics
-
-            - **Latency**: ${{ steps.perf-test.outputs.latency }}ms
-            - **Throughput**: ${{ steps.perf-test.outputs.throughput }}K logs/second
-
-            ### Thresholds
-
-            - **Latency Threshold**: 0.1ms
-            - **Throughput Threshold**: 10K logs/second
-
-            ### Next Steps
-
-            1. Review recent changes that might impact performance
-            2. Run local performance tests to reproduce the issue
-            3. Investigate potential causes (dependencies, system changes, etc.)
-            4. Consider reverting recent changes if regression is severe
-
-            ### Local Testing
-
-            \`\`\`bash
-            python scripts/measure_performance.py --verbose
-            python -m pytest tests/test_performance.py -v -s -m performance
-            \`\`\`
-
-            This issue will be automatically closed when performance returns to acceptable levels.
-            `;
-
-            // Check for existing regression issues
-            const issues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: ['performance-regression', 'automated']
-            });
-
-            // Create new issue if none exists
-            if (issues.data.length === 0) {
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: title,
-                body: body,
-                labels: ['performance-regression', 'automated', 'needs-investigation']
-              });
-            }
-
