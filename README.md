@@ -562,3 +562,4 @@ All performance claims can be independently verified:
 
 *README last updated: 2025-10-12 | Documentation maintained with automated quality checks*
 
+
