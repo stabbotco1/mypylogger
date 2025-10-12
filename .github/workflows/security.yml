@@ -177,3 +177,74 @@ jobs:
               repo: context.repo.repo,
               body: summary
             });
+
+  update-codeql-readme:
+    name: Update CodeQL Status in README
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      security-events: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch CodeQL alerts
+        id: codeql-alerts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const alerts = await github.rest.codeScanning.listAlertsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            let high = 0, warning = 0, note = 0;
+            
+            for (const alert of alerts.data) {
+              if (alert.rule.security_severity_level === 'high' || alert.rule.severity === 'error') {
+                high++;
+              } else if (alert.rule.security_severity_level === 'medium' || alert.rule.severity === 'warning') {
+                warning++;
+              } else {
+                note++;
+              }
+            }
+            
+            core.setOutput('high_count', high);
+            core.setOutput('warning_count', warning);
+            core.setOutput('note_count', note);
+            core.setOutput('total_count', alerts.data.length);
+
+      - name: Update README with CodeQL counts
+        run: |
+          # Get current date
+          CURRENT_DATE=$(date -u '+%Y-%m-%d')
+          
+          # Update date placeholder
+          sed -i "s/CODEQL_UPDATE_DATE_PLACEHOLDER/${CURRENT_DATE}/g" README.md
+          
+          # Update severity counts using context-anchored patterns
+          sed -i '/| \*\*High\*\* |/s/| [0-9]* | Test files/| ${{ steps.codeql-alerts.outputs.high_count }} | Test files/' README.md
+          sed -i '/| \*\*Warning\*\* |/s/| [0-9]* | Example code/| ${{ steps.codeql-alerts.outputs.warning_count }} | Example code/' README.md
+          sed -i '/| \*\*Note\*\* |/s/| [0-9]* | Scripts/| ${{ steps.codeql-alerts.outputs.note_count }} | Scripts/' README.md
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code README.md || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git commit -m "Update CodeQL status in README [skip ci]"
+          git push
