@@ -1,3 +1,7 @@
+## [0.1.5] - 2025-10-12
+
+- a59befa Update performance badges [skip ci]
+
 ## [0.1.3] - 2025-10-05
 
 - 2e3bd7c docs: add release automation tasks to infrastructure spec
