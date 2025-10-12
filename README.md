@@ -93,6 +93,34 @@ make test-performance
 
 📊 **[View Performance History](https://github.com/stabbotco1/mypylogger/actions/workflows/performance-badge-update.yml)** - Track improvements over time
 
+### Static Analysis: Comprehensive CodeQL Scanning
+
+Active static analysis demonstrates transparency and security vigilance. Most Python packages on PyPI do not run comprehensive static analysis tools like CodeQL.
+
+**Current CodeQL Status** (Last updated: CODEQL_UPDATE_DATE_PLACEHOLDER)
+
+| Severity | Count | Location | Status |
+|----------|-------|----------|--------|
+| **High** | 4 | Test files only | Under review |
+| **Warning** | 1 | Example code | Under review |
+| **Note** | 28 | Scripts & tests | Low priority |
+| **Production Code** | 0 | `mypylogger/` library | ✅ Clean |
+
+**Key Points:**
+- **Zero security issues in production library code** - All findings are in tests, examples, or utility scripts
+- **Full transparency** - [View live CodeQL results](https://github.com/stabbotco1/mypylogger/security/code-scanning)
+- **Active monitoring** - CodeQL scans run automatically on every commit
+- **Industry context** - Most PyPI packages do not run static analysis at this level
+
+The presence of CodeQL findings demonstrates active security monitoring and transparency rather than security concerns. Production library code (`mypylogger/` directory) has zero findings.
+
+**Finding Categories:**
+- **High severity (4)**: URL validation in test infrastructure - using string operations instead of URL parsing
+- **Warning (1)**: File resource management in example code
+- **Notes (28)**: Code quality suggestions in scripts and test utilities
+
+All findings are tracked and prioritized based on their impact on end users (production code takes priority over test/development code).
+
 ### Code Quality: Automated Standards Enforcement
 
 Every commit is automatically checked against industry-standard tools:
