@@ -12,7 +12,7 @@
 [![Documentation](https://img.shields.io/badge/docs-comprehensive-brightgreen?logo=readthedocs)](https://github.com/stabbotco1/mypylogger#documentation)
 
 <!-- Performance & Community (Tier 3) -->
-[![Performance Ubuntu](https://img.shields.io/badge/Ubuntu-0.035ms,%2031K/sec-brightgreen?logo=ubuntu)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
+[![Performance Ubuntu](https://img.shields.io/badge/Ubuntu-0.035ms,%2030K/sec-brightgreen?logo=ubuntu)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
 [![Performance macOS](https://img.shields.io/badge/macOS-0.017ms,%2039K/sec-brightgreen?logo=apple)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
 [![Downloads](https://img.shields.io/pypi/dm/mypylogger?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000?logo=python&logoColor=white)](https://github.com/psf/black)
