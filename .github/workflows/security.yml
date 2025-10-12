@@ -247,4 +247,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add README.md
           git commit -m "Update CodeQL status in README [skip ci]"
+          git pull --rebase origin main
           git push
