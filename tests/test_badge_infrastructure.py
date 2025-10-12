@@ -13,6 +13,7 @@ import os
 import re
 import unittest
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 class TestBadgeInfrastructure(unittest.TestCase):
@@ -323,16 +324,28 @@ class TestBadgeInfrastructure(unittest.TestCase):
         matches = re.findall(badge_pattern, content)
 
         for alt_text, badge_url, link_url in matches:
-            # All badge URLs should use HTTPS
-            self.assertTrue(
-                badge_url.startswith("https://"),
+            # All badge URLs should use HTTPS with proper domain validation
+            parsed_badge = urlparse(badge_url)
+            self.assertEqual(
+                parsed_badge.scheme,
+                "https",
                 f"Badge URL not using HTTPS: {badge_url}",
             )
-
-            # Link URLs should also use HTTPS
             self.assertTrue(
-                link_url.startswith("https://"),
+                parsed_badge.netloc,
+                f"Badge URL must have valid domain: {badge_url}",
+            )
+
+            # Link URLs should also use HTTPS with proper domain validation
+            parsed_link = urlparse(link_url)
+            self.assertEqual(
+                parsed_link.scheme,
+                "https",
                 f"Badge link URL not using HTTPS: {link_url}",
+            )
+            self.assertTrue(
+                parsed_link.netloc,
+                f"Badge link URL must have valid domain: {link_url}",
             )
 
             # Shields.io badges should have proper format
