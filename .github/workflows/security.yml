@@ -43,8 +43,8 @@ jobs:
 
       - name: Run Safety dependency scan
         run: |
-          safety check --json --output reports/security/safety-report.json
-          safety check --output reports/security/safety-report.txt
+          safety check --output json > reports/security/safety-report.json
+          safety check --output text > reports/security/safety-report.txt
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
