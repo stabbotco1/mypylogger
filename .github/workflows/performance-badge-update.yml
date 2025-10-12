@@ -11,11 +11,10 @@ permissions:
   contents: write  # Required for committing badge updates
 
 jobs:
-  performance-test-and-badge-update:
-    name: Performance Test & Badge Update
+  performance-test:
+    name: Performance Test - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 1  # CRITICAL: Prevents race conditions
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.11"]
@@ -66,37 +65,78 @@ jobs:
           echo "- **Throughput**: ${THROUGHPUT}K logs/second" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+      - name: Save performance metrics
+        run: |
+          # Create a simple text file with the metrics for the aggregation job
+          echo "os=${{ matrix.os }}" > perf_metrics_${{ matrix.os }}.txt
+          echo "latency=${{ steps.perf-test.outputs.latency }}" >> perf_metrics_${{ matrix.os }}.txt
+          echo "throughput=${{ steps.perf-test.outputs.throughput }}" >> perf_metrics_${{ matrix.os }}.txt
+
       - name: Upload performance results
         uses: actions/upload-artifact@v4
         with:
           name: performance-results-${{ matrix.os }}
-          path: performance_results.json
+          path: |
+            performance_results.json
+            perf_metrics_${{ matrix.os }}.txt
           retention-days: 30
 
-      - name: Update performance badge (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          LATENCY=${{ steps.perf-test.outputs.latency }}
-          THROUGHPUT=${{ steps.perf-test.outputs.throughput }}
-          PERF_TEXT="${LATENCY}ms,%20${THROUGHPUT}K/sec"
-          
-          sed -i "s|Ubuntu-[^-]*ms,%20[^-]*K/sec|Ubuntu-${PERF_TEXT}|g" README.md
-          
-          echo "Updated Ubuntu performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
+  update-badges:
+    name: Update All Performance Badges
+    needs: performance-test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper git operations
 
-      - name: Update performance badge (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          LATENCY=${{ steps.perf-test.outputs.latency }}
-          THROUGHPUT=${{ steps.perf-test.outputs.throughput }}
-          PERF_TEXT="${LATENCY}ms,%20${THROUGHPUT}K/sec"
-          
-          sed -i '' "s|macOS-[^-]*ms,%20[^-]*K/sec|macOS-${PERF_TEXT}|g" README.md
-          
-          echo "Updated macOS performance badge: ${LATENCY}ms, ${THROUGHPUT}K/sec"
+      - name: Download Ubuntu performance results
+        uses: actions/download-artifact@v4
+        with:
+          name: performance-results-ubuntu-latest
+          path: ./results/ubuntu
 
-      - name: Commit badge updates
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+      - name: Download macOS performance results
+        uses: actions/download-artifact@v4
+        with:
+          name: performance-results-macos-latest
+          path: ./results/macos
+
+      - name: Extract performance metrics
+        id: metrics
+        run: |
+          # Extract Ubuntu metrics
+          UBUNTU_LATENCY=$(grep "latency=" ./results/ubuntu/perf_metrics_ubuntu-latest.txt | cut -d'=' -f2)
+          UBUNTU_THROUGHPUT=$(grep "throughput=" ./results/ubuntu/perf_metrics_ubuntu-latest.txt | cut -d'=' -f2)
+          
+          # Extract macOS metrics
+          MACOS_LATENCY=$(grep "latency=" ./results/macos/perf_metrics_macos-latest.txt | cut -d'=' -f2)
+          MACOS_THROUGHPUT=$(grep "throughput=" ./results/macos/perf_metrics_macos-latest.txt | cut -d'=' -f2)
+          
+          echo "ubuntu_latency=${UBUNTU_LATENCY}" >> $GITHUB_OUTPUT
+          echo "ubuntu_throughput=${UBUNTU_THROUGHPUT}" >> $GITHUB_OUTPUT
+          echo "macos_latency=${MACOS_LATENCY}" >> $GITHUB_OUTPUT
+          echo "macos_throughput=${MACOS_THROUGHPUT}" >> $GITHUB_OUTPUT
+          
+          echo "📊 Extracted Metrics:"
+          echo "  Ubuntu: ${UBUNTU_LATENCY}ms, ${UBUNTU_THROUGHPUT}K/sec"
+          echo "  macOS: ${MACOS_LATENCY}ms, ${MACOS_THROUGHPUT}K/sec"
+
+      - name: Update all performance badges
+        run: |
+          # Update Ubuntu badge
+          UBUNTU_PERF_TEXT="${{ steps.metrics.outputs.ubuntu_latency }}ms,%20${{ steps.metrics.outputs.ubuntu_throughput }}K/sec"
+          sed -i "s|Ubuntu-[^-]*ms,%20[^-]*K/sec|Ubuntu-${UBUNTU_PERF_TEXT}|g" README.md
+          
+          # Update macOS badge
+          MACOS_PERF_TEXT="${{ steps.metrics.outputs.macos_latency }}ms,%20${{ steps.metrics.outputs.macos_throughput }}K/sec"
+          sed -i "s|macOS-[^-]*ms,%20[^-]*K/sec|macOS-${MACOS_PERF_TEXT}|g" README.md
+          
+          echo "✅ Updated both Ubuntu and macOS performance badges"
+
+      - name: Commit and push badge updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -105,15 +145,31 @@ jobs:
             echo "No badge updates needed"
           else
             git add README.md
-            git commit -m "Update ${{ matrix.os }} performance badge [skip ci]
+            git commit -m "Update performance badges [skip ci]
 
-            - Latency: ${{ steps.perf-test.outputs.latency }}ms
-            - Throughput: ${{ steps.perf-test.outputs.throughput }}K/sec"
+            Ubuntu Performance:
+            - Latency: ${{ steps.metrics.outputs.ubuntu_latency }}ms
+            - Throughput: ${{ steps.metrics.outputs.ubuntu_throughput }}K/sec
             
-            # Pull latest changes before pushing
-            git pull --rebase origin main
+            macOS Performance:
+            - Latency: ${{ steps.metrics.outputs.macos_latency }}ms
+            - Throughput: ${{ steps.metrics.outputs.macos_throughput }}K/sec"
             
             git push
             
-            echo "✅ Performance badge updated and committed"
+            echo "✅ Performance badges updated and committed"
           fi
+
+      - name: Create summary
+        run: |
+          echo "## 🎯 Performance Badge Update Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Ubuntu Performance" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latency**: ${{ steps.metrics.outputs.ubuntu_latency }}ms" >> $GITHUB_STEP_SUMMARY
+          echo "- **Throughput**: ${{ steps.metrics.outputs.ubuntu_throughput }}K logs/second" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### macOS Performance" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latency**: ${{ steps.metrics.outputs.macos_latency }}ms" >> $GITHUB_STEP_SUMMARY
+          echo "- **Throughput**: ${{ steps.metrics.outputs.macos_throughput }}K logs/second" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All badges updated in single commit - no race conditions!" >> $GITHUB_STEP_SUMMARY
