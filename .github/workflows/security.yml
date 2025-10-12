@@ -40,7 +40,6 @@ jobs:
         run: |
           bandit -r mypylogger/ -f json -o reports/security/bandit-report.json
           bandit -r mypylogger/ -f txt -o reports/security/bandit-report.txt
-        continue-on-error: true
 
       - name: Run Safety dependency scan
         run: |
