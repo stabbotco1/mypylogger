@@ -524,7 +524,12 @@ class TestDocumentationLinks(unittest.TestCase):
 
                 for link_text, link_url in links:
                     # Test internal links (relative paths)
-                    if not link_url.startswith(("http://", "https://", "#")):
+                    # Use URL parsing to properly identify external links
+                    parsed_link = urlparse(link_url)
+                    is_external = parsed_link.scheme in ("http", "https")
+                    is_anchor = link_url.startswith("#")
+
+                    if not is_external and not is_anchor:
                         with self.subTest(internal_link=link_url):
                             # Resolve relative path
                             if link_url.startswith("../"):
