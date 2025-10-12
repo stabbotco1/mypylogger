@@ -1,2 +1,0 @@
-Command: git add -A
-Command: git commit -m 'Clean up temporary files'

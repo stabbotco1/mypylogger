@@ -1,7 +1,0 @@
-Command: git merge origin/pre-release --no-commit --no-ff
-Auto-merging .gitignore
-CONFLICT (content): Merge conflict in .gitignore
-Auto-merging README.md
-CONFLICT (rename/delete): final_verification_clean.txt renamed to z_final_all_tests_complete.txt in HEAD, but deleted in origin/pre-release.
-CONFLICT (modify/delete): z_final_all_tests_complete.txt deleted in origin/pre-release and modified in HEAD.  Version HEAD of z_final_all_tests_complete.txt left in tree.
-Automatic merge failed; fix conflicts and then commit the result.
