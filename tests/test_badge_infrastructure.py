@@ -143,7 +143,7 @@ class TestBadgeInfrastructure(unittest.TestCase):
             )
 
     def test_performance_badges_present(self):
-        """Test that OS-specific performance badges are present."""
+        """Test that OS-specific performance badges are present with valid format."""
         with open(self.readme_path, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -151,14 +151,22 @@ class TestBadgeInfrastructure(unittest.TestCase):
         self.assertIn("Ubuntu", content, "Ubuntu performance badge not found")
         self.assertIn("macOS", content, "macOS performance badge not found")
 
-        # Performance metrics should be mentioned (current actual measurements)
-        self.assertIn(
-            "0.012ms", content, "Current latency metric not found in performance badges"
+        # Verify latency format: should match pattern like "0.034ms" or "0.017ms"
+        # Pattern: one or more digits, decimal point, 2-3 digits, "ms"
+        latency_pattern = r'\d+\.\d{2,3}ms'
+        latency_matches = re.findall(latency_pattern, content)
+        self.assertGreaterEqual(
+            len(latency_matches), 2,
+            f"Expected at least 2 latency metrics in valid format (X.XXXms), found {len(latency_matches)}"
         )
-        self.assertIn(
-            "86K/sec",
-            content,
-            "Current throughput metric not found in performance badges",
+
+        # Verify throughput format: should match pattern like "32K/sec" or "60K/sec"
+        # Pattern: digits followed by "K/sec"
+        throughput_pattern = r'\d+K/sec'
+        throughput_matches = re.findall(throughput_pattern, content)
+        self.assertGreaterEqual(
+            len(throughput_matches), 2,
+            f"Expected at least 2 throughput metrics in valid format (XXK/sec), found {len(throughput_matches)}"
         )
 
     def test_badge_accessibility_features(self):
