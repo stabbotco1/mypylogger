@@ -153,20 +153,22 @@ class TestBadgeInfrastructure(unittest.TestCase):
 
         # Verify latency format: should match pattern like "0.034ms" or "0.017ms"
         # Pattern: one or more digits, decimal point, 2-3 digits, "ms"
-        latency_pattern = r'\d+\.\d{2,3}ms'
+        latency_pattern = r"\d+\.\d{2,3}ms"
         latency_matches = re.findall(latency_pattern, content)
         self.assertGreaterEqual(
-            len(latency_matches), 2,
-            f"Expected at least 2 latency metrics in valid format (X.XXXms), found {len(latency_matches)}"
+            len(latency_matches),
+            2,
+            f"Expected at least 2 latency metrics in valid format (X.XXXms), found {len(latency_matches)}",
         )
 
         # Verify throughput format: should match pattern like "32K/sec" or "60K/sec"
         # Pattern: digits followed by "K/sec"
-        throughput_pattern = r'\d+K/sec'
+        throughput_pattern = r"\d+K/sec"
         throughput_matches = re.findall(throughput_pattern, content)
         self.assertGreaterEqual(
-            len(throughput_matches), 2,
-            f"Expected at least 2 throughput metrics in valid format (XXK/sec), found {len(throughput_matches)}"
+            len(throughput_matches),
+            2,
+            f"Expected at least 2 throughput metrics in valid format (XXK/sec), found {len(throughput_matches)}",
         )
 
     def test_badge_accessibility_features(self):
