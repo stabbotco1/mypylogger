@@ -97,7 +97,7 @@ make test-performance
 
 Active static analysis demonstrates transparency and security vigilance. Most Python packages on PyPI do not run comprehensive static analysis tools like CodeQL.
 
-**Current CodeQL Status** (Last updated: CODEQL_UPDATE_DATE_PLACEHOLDER)
+**Current CodeQL Status** (Last updated: 2025-10-12)
 
 | Severity | Count | Location | Status |
 |----------|-------|----------|--------|
