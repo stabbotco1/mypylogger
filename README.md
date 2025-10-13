@@ -13,7 +13,7 @@
 
 <!-- Performance & Community (Tier 3) -->
 [![Performance Ubuntu](https://img.shields.io/badge/Ubuntu-0.035ms,%2031K/sec-brightgreen?logo=ubuntu)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
-[![Performance macOS](https://img.shields.io/badge/macOS-0.019ms,%2061K/sec-brightgreen?logo=apple)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
+[![Performance macOS](https://img.shields.io/badge/macOS-0.045ms,%2040K/sec-brightgreen?logo=apple)](https://github.com/stabbotco1/mypylogger#performance-benchmarks)
 [![Downloads](https://img.shields.io/pypi/dm/mypylogger?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000?logo=python&logoColor=white)](https://github.com/psf/black)
 
