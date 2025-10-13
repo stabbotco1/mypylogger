@@ -101,7 +101,7 @@ Active static analysis demonstrates transparency and security vigilance. Most Py
 
 | Severity | Count | Location | Status |
 |----------|-------|----------|--------|
-| **High** | 2 | Test files only | Under review |
+| **High** | 3 | Test files only | Under review |
 | **Warning** | 0 | Example code | Under review |
 | **Note** | 28 | Scripts & tests | Low priority |
 | **Production Code** | 0 | `mypylogger/` library | ✅ Clean |
