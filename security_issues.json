@@ -1,0 +1,30 @@
+{"file":"scripts/validate_documentation_dates.py","line":179,"message":"'except' clause does nothing but pass and there is no explanatory comment.","number":33,"rule_id":"py/empty-except","severity":null}
+{"file":"scripts/validate_badges.py","line":28,"message":"Print statement may execute during import.","number":32,"rule_id":"py/print-during-import","severity":null}
+{"file":"scripts/measure_performance.py","line":193,"message":"Variable os_name is not used.","number":31,"rule_id":"py/unused-local-variable","severity":null}
+{"file":"tests/test_badge_infrastructure.py","line":352,"message":"The string img.shields.io may be at an arbitrary position in the sanitized URL.","number":30,"rule_id":"py/incomplete-url-substring-sanitization","severity":null}
+{"file":"tests/test_badge_infrastructure.py","line":77,"message":"The string img.shields.io may be at an arbitrary position in the sanitized URL.","number":29,"rule_id":"py/incomplete-url-substring-sanitization","severity":null}
+{"file":"examples/development_mode.py","line":92,"message":"File is opened but is not closed.","number":28,"rule_id":"py/file-not-closed","severity":null}
+{"file":"tests/test_integration_error_handling.py","line":168,"message":"'except' clause does nothing but pass and there is no explanatory comment.","number":27,"rule_id":"py/empty-except","severity":null}
+{"file":"tests/test_complete_workflows.py","line":607,"message":"'except' clause does nothing but pass and there is no explanatory comment.","number":26,"rule_id":"py/empty-except","severity":null}
+{"file":"tests/test_complete_workflows.py","line":629,"message":"This import of module json is redundant, as it was previously imported on line 8.","number":25,"rule_id":"py/repeated-import","severity":null}
+{"file":"tests/test_complete_workflows.py","line":425,"message":"This import of module json is redundant, as it was previously imported on line 8.","number":24,"rule_id":"py/repeated-import","severity":null}
+{"file":"scripts/github_status_reporter.py","line":28,"message":"Import of module github_monitor_config begins an import cycle.","number":23,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_status_reporter.py","line":21,"message":"Import of module github_monitor_config begins an import cycle.","number":22,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":593,"message":"Import of module github_monitor_config begins an import cycle.","number":21,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":127,"message":"Import of module github_status_reporter begins an import cycle.","number":20,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":92,"message":"Import of module github_api_client begins an import cycle.","number":19,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":39,"message":"Import of module github_monitor_config begins an import cycle.","number":18,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_monitor_exceptions.py","line":38,"message":"Import of module github_help_system begins an import cycle.","number":17,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":29,"message":"Import of module github_monitor_exceptions begins an import cycle.","number":16,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":23,"message":"Import of module github_monitor_config begins an import cycle.","number":15,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_pipeline_monitor.py","line":18,"message":"Import of module github_status_reporter begins an import cycle.","number":14,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_monitor_config.py","line":471,"message":"Import of module github_help_system begins an import cycle.","number":13,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_monitor_config.py","line":443,"message":"Import of module github_help_system begins an import cycle.","number":12,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_help_system.py","line":560,"message":"Import of module github_pipeline_monitor begins an import cycle.","number":11,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_help_system.py","line":31,"message":"Import of module github_monitor_exceptions begins an import cycle.","number":10,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_help_system.py","line":30,"message":"Import of module github_monitor_config begins an import cycle.","number":9,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_help_system.py","line":19,"message":"Import of module github_monitor_exceptions begins an import cycle.","number":8,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_help_system.py","line":18,"message":"Import of module github_monitor_config begins an import cycle.","number":7,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_api_client.py","line":19,"message":"Import of module github_monitor_exceptions begins an import cycle.","number":6,"rule_id":"py/cyclic-import","severity":null}
+{"file":"scripts/github_api_client.py","line":18,"message":"Import of module github_monitor_config begins an import cycle.","number":5,"rule_id":"py/cyclic-import","severity":null}
+{"file":"tests/test_main_api.py","line":7,"message":"Module 'mypylogger' is imported with both 'import' and 'import from'.","number":4,"rule_id":"py/import-and-import-from","severity":null}
