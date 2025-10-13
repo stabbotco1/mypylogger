@@ -74,7 +74,8 @@ class TestBadgeInfrastructure(unittest.TestCase):
 
         shields_io_badges = 0
         for alt_text, badge_url, link_url in matches:
-            if "img.shields.io" in badge_url:
+            parsed_badge = urlparse(badge_url)
+            if parsed_badge.netloc == "img.shields.io":
                 shields_io_badges += 1
 
         # All badges should use Shields.io
@@ -349,7 +350,8 @@ class TestBadgeInfrastructure(unittest.TestCase):
             )
 
             # Shields.io badges should have proper format
-            if "img.shields.io" in badge_url:
+            parsed_shields = urlparse(badge_url)
+            if parsed_shields.netloc == "img.shields.io":
                 # Should contain repository reference for GitHub-based badges
                 # (excluding maintenance and static badges)
                 if (

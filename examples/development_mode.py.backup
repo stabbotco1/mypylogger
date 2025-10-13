@@ -89,8 +89,7 @@ def main() -> None:
     print(f"\nDevelopment logs saved to: {log_file_path.absolute()}")
 
     if log_file_path.exists():
-        with open(log_file_path, "r") as f:
-            print(f"Log entries: {len(f.readlines())}")
+        print(f"Log entries: {len(open(log_file_path).readlines())}")
         print("\nTail of log file (last 3 lines):")
         with open(log_file_path, "r") as f:
             lines = f.readlines()

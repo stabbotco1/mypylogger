@@ -642,10 +642,11 @@ class TestDocumentationLinks(unittest.TestCase):
                         )
 
                         # Test specific known URLs
-                        if "github.com" in url:
-                            self.assertIn(
-                                "github.com",
+                        # Already using parsed.netloc, so check properly
+                        if parsed.netloc and "github.com" in parsed.netloc:
+                            self.assertEqual(
                                 parsed.netloc,
+                                "github.com",
                                 f"GitHub URL should be properly formatted: {url}",
                             )
 

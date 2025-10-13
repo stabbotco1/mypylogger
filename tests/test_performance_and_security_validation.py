@@ -421,6 +421,7 @@ class TestSecurityRequirements(unittest.TestCase):
 
                     # Should use HTTPS for GitHub API
                     if "api.github.com" in script_content:
+                        # Note: This checks string content, not URL validation
                         self.assertIn(
                             "https://api.github.com",
                             script_content,
