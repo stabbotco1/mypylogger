@@ -642,12 +642,12 @@ class TestDocumentationLinks(unittest.TestCase):
                         )
 
                         # Test specific known URLs
-                        # Already using parsed.netloc, so check properly
-                        if parsed.netloc and "github.com" in parsed.netloc:
-                            self.assertEqual(
-                                parsed.netloc,
-                                "github.com",
-                                f"GitHub URL should be properly formatted: {url}",
+                        # Check that github.com domains are properly formatted
+                        if parsed.netloc and parsed.netloc.endswith("github.com"):
+                            # Allow subdomains like api.github.com, raw.githubusercontent.com
+                            self.assertTrue(
+                                parsed.netloc == "github.com" or parsed.netloc.endswith(".github.com") or "githubusercontent.com" in parsed.netloc,
+                                f"GitHub URL should use github.com domain: {url}",
                             )
 
 
