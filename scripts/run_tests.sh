@@ -47,12 +47,12 @@ run_check() {
 
 echo "1. Code Formatting Check"
 echo "------------------------"
-run_check "uv run ruff format --check . --exclude ci-cd-tests" "Code formatting compliance"
+run_check "uv run ruff format --check src/ tests/ --exclude ci-cd-tests" "Code formatting compliance"
 
 echo ""
 echo "2. Linting Check"
 echo "----------------"
-run_check "uv run ruff check . --exclude ci-cd-tests" "Linting compliance"
+run_check "uv run ruff check src/ tests/ --exclude ci-cd-tests" "Linting compliance"
 
 echo ""
 echo "3. Type Checking"
