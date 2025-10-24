@@ -36,7 +36,11 @@ from .status import (
     get_status_cache,
     validate_badge_status,
 )
-from .updater import atomic_write_readme, update_readme_with_badges, update_readme_with_badges_ci_only
+from .updater import (
+    atomic_write_readme,
+    update_readme_with_badges,
+    update_readme_with_badges_ci_only,
+)
 
 # Configure logging for badge system
 logger = logging.getLogger(__name__)

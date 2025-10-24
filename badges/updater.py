@@ -7,11 +7,11 @@ exclusively in CI/CD environments, with git commit functionality.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
 
 
 def find_badge_section(content: str) -> tuple[int, int]:
@@ -175,13 +175,13 @@ def update_readme_with_badges(badges: list[str]) -> bool:
 
 def is_ci_environment() -> bool:
     """Check if we're running in a CI/CD environment.
-    
+
     Returns:
         True if running in CI, False otherwise.
     """
     ci_indicators = [
         "CI",
-        "CONTINUOUS_INTEGRATION", 
+        "CONTINUOUS_INTEGRATION",
         "GITHUB_ACTIONS",
         "GITLAB_CI",
         "JENKINS_URL",
@@ -189,13 +189,13 @@ def is_ci_environment() -> bool:
         "CIRCLECI",
         "BUILDKITE",
     ]
-    
+
     return any(os.getenv(indicator) for indicator in ci_indicators)
 
 
 def setup_git_config() -> bool:
     """Configure git for CI commits.
-    
+
     Returns:
         True if git config was set up successfully, False otherwise.
     """
@@ -221,7 +221,7 @@ def setup_git_config() -> bool:
 
 def commit_badge_updates() -> bool:
     """Commit updated README back to main branch with [skip ci] message.
-    
+
     Returns:
         True if commit was successful, False otherwise.
     """
@@ -232,12 +232,12 @@ def commit_badge_updates() -> bool:
             check=False,
             capture_output=True,
         )
-        
+
         if result.returncode == 0:
             # No changes to commit
             print("No badge changes to commit", file=sys.stderr)
             return True
-            
+
         # Stage README.md changes
         subprocess.run(
             ["git", "add", "README.md"],
@@ -245,7 +245,7 @@ def commit_badge_updates() -> bool:
             capture_output=True,
             text=True,
         )
-        
+
         # Commit with [skip ci] to prevent infinite loops
         subprocess.run(
             ["git", "commit", "-m", "docs: update badges [skip ci]"],
@@ -253,7 +253,7 @@ def commit_badge_updates() -> bool:
             capture_output=True,
             text=True,
         )
-        
+
         # Push changes
         subprocess.run(
             ["git", "push", "origin", "main"],
@@ -261,10 +261,10 @@ def commit_badge_updates() -> bool:
             capture_output=True,
             text=True,
         )
-        
+
         print("Successfully committed and pushed badge updates", file=sys.stderr)
         return True
-        
+
     except subprocess.CalledProcessError as e:
         print(f"Failed to commit badge updates: {e}", file=sys.stderr)
         return False
@@ -272,10 +272,10 @@ def commit_badge_updates() -> bool:
 
 def update_readme_with_badges_ci_only(badges: list[str]) -> bool:
     """Update README.md with badges (CI environment only).
-    
+
     Args:
         badges: List of badge markdown strings to insert.
-        
+
     Returns:
         True if update was successful, False otherwise.
     """
@@ -283,14 +283,14 @@ def update_readme_with_badges_ci_only(badges: list[str]) -> bool:
     if not is_ci_environment():
         print("Badge updates are only allowed in CI/CD environments", file=sys.stderr)
         return False
-        
+
     # Set up git configuration
     if not setup_git_config():
         return False
-        
+
     # Update README with badges
     if not update_readme_with_badges(badges):
         return False
-        
+
     # Commit and push changes
     return commit_badge_updates()

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import os
-import urllib.parse
 from unittest.mock import Mock, patch
+import urllib.parse
 
 from badges.generator import (
     generate_code_style_badge,
@@ -722,7 +722,7 @@ class TestAPIFailureScenarios:
             "Scanning": "yellow",
             "Unknown": "lightgrey",
         }
-        
+
         test_cases = [
             (True, "success", "Verified"),
             (False, "success", "Issues Found"),
@@ -864,7 +864,7 @@ class TestAPIFailureScenarios:
             "Unknown": "lightgrey",
         }
 
-        for status in status_color_map:
+        for status, expected_color in status_color_map.items():
             mock_status.return_value = {
                 "status": status,
                 "local_passed": status == "Verified",
@@ -875,7 +875,6 @@ class TestAPIFailureScenarios:
             url = generate_comprehensive_security_badge()
 
             # Badge shows the actual status and color
-            expected_color = status_color_map[status]
             assert expected_color in url
             encoded_status = urllib.parse.quote(status.lower())
             assert encoded_status in url

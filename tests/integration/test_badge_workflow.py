@@ -243,8 +243,8 @@ Install the package.
             readme_path = tmp_path / "README.md"
             readme_path.write_text("# Test Project\n\nContent here.")
 
-            # Test complete workflow
-            update_project_badges(detect_status=False)
+            # Test complete workflow with local updates allowed for testing
+            update_project_badges(detect_status=False, ci_only=False)
 
             # Verify atomic_write_readme was called
             assert mock_write.called
