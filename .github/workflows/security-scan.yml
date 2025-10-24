@@ -1,625 +1,124 @@
-# Optimized Security Scanning Workflow for mypylogger v0.2.0
-#
-# This workflow implements streamlined security monitoring with enhanced performance
-# and parallel execution while maintaining zero-tolerance policy for vulnerabilities.
-#
-# Optimizations Applied:
-# - Updated all actions to latest versions (setup-python@v5, checkout@v4, cache@v4)
-# - Implemented parallel security checks for improved performance
-# - Enhanced security reporting with vulnerability context
-# - Optimized CodeQL analysis for faster execution
-# - Streamlined workflow structure and reduced complexity
-
 name: Security Scanning
 
-# Optimized trigger configuration
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    branches: [main]
+  push:
+    branches: [main]
   schedule:
-    # Weekly comprehensive security scan
+    # Weekly security scan on Mondays at 2 AM UTC
     - cron: '0 2 * * 1'
   workflow_dispatch:
-    inputs:
-      scan_type:
-        description: 'Security scan type'
-        required: false
-        default: 'full'
-        type: choice
-        options: ['full', 'dependencies', 'codeql', 'secrets']
-
-# Optimized environment configuration
-env:
-  UV_CACHE_DIR: ~/.cache/uv
-  UV_HTTP_TIMEOUT: "60"
-  UV_CONCURRENT_DOWNLOADS: "8"
-  PYTHONUNBUFFERED: "1"
-  PYTHONDONTWRITEBYTECODE: "1"
-  CODEQL_LANGUAGES: "python"
-
-# Minimal required permissions
-permissions:
-  contents: read
-  security-events: write
-  actions: read
-
-defaults:
-  run:
-    shell: bash
 
 jobs:
-  # Parallel Security Scanning Matrix for Enhanced Performance
   security-scan-matrix:
-    name: Security Scan (${{ matrix.scan-type }})
+    name: Security Scan Matrix
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    continue-on-error: false
-    
     strategy:
-      fail-fast: false  # Allow all scans to complete for comprehensive reporting
+      fail-fast: false
       matrix:
-        scan-type: [dependencies, codeql, secrets]
-        include:
-          - scan-type: dependencies
-            timeout: 8
-          - scan-type: codeql
-            timeout: 10
-          - scan-type: secrets
-            timeout: 5
+        scan-type: [dependencies, code-analysis, secrets]
     
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          fetch-depth: ${{ matrix.scan-type == 'secrets' && 0 || 1 }}
-      
-      - name: Setup Python Environment
-        if: matrix.scan-type != 'secrets'
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      
-      - name: Setup UV Package Manager
-        if: matrix.scan-type != 'secrets'
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      
-      # OPTIMIZED: Advanced multi-level caching for security tools
-      - name: Setup advanced security caching
-        if: matrix.scan-type != 'secrets'
-        uses: ./.github/actions/advanced-cache-manager
-        with:
-          cache-type: all
-          python-version: "3.12"
-          cache-suffix: security-${{ matrix.scan-type }}
-          enable-cross-job: true
-          cache-retention: extended
-      
-      # Enhanced caching with incremental scanning support
-      - name: Cache Security Tools and Results
-        if: matrix.scan-type != 'secrets'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/bandit
-            ~/.cache/safety
-            ~/.cache/pip-audit
-            .security-cache/
-            security-results/
-          key: security-tools-${{ matrix.scan-type }}-${{ runner.os }}-${{ hashFiles('uv.lock', 'pyproject.toml') }}-${{ github.sha }}
-          restore-keys: |
-            security-tools-${{ matrix.scan-type }}-${{ runner.os }}-${{ hashFiles('uv.lock', 'pyproject.toml') }}-
-            security-tools-${{ matrix.scan-type }}-${{ runner.os }}-
-            security-tools-${{ runner.os }}-
-      
-      - name: Install Dependencies
-        if: matrix.scan-type != 'secrets'
-        run: |
-          uv sync --frozen
-      
-      # Incremental scanning setup
-      - name: Setup Incremental Scanning
-        run: |
-          echo "🔄 Setting up incremental security scanning"
-          mkdir -p .security-cache
+          python-version: '3.12'
           
-          # Detect changes for incremental scanning
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "📋 Analyzing changes for incremental scanning..."
-            
-            # Get changed files
-            git fetch origin ${{ github.base_ref }}
-            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-            echo "$CHANGED_FILES" > .security-cache/changed-files.txt
-            
-            # Check if dependencies changed
-            if echo "$CHANGED_FILES" | grep -E "(pyproject\.toml|uv\.lock|requirements.*\.txt)" > /dev/null; then
-              echo "DEPS_CHANGED=true" >> $GITHUB_ENV
-              echo "📦 Dependencies changed - full dependency scan required"
-            else
-              echo "DEPS_CHANGED=false" >> $GITHUB_ENV
-              echo "📦 Dependencies unchanged - incremental scan possible"
-            fi
-            
-            # Check if source code changed
-            if echo "$CHANGED_FILES" | grep -E "src/.*\.py$" > /dev/null; then
-              echo "CODE_CHANGED=true" >> $GITHUB_ENV
-              echo "🔍 Source code changed - CodeQL scan required"
-            else
-              echo "CODE_CHANGED=false" >> $GITHUB_ENV
-              echo "🔍 Source code unchanged - CodeQL scan can be skipped"
-            fi
-            
-            echo "Changed files:"
-            cat .security-cache/changed-files.txt
-          else
-            # Full scan for push to main or scheduled runs
-            echo "DEPS_CHANGED=true" >> $GITHUB_ENV
-            echo "CODE_CHANGED=true" >> $GITHUB_ENV
-            echo "🔄 Full security scan (push to main or scheduled)"
-          fi
-      
-      # Incremental Dependency Security Scanning
-      - name: Run Dependency Security Scan
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        
+      - name: Install dependencies
+        run: uv sync
+        
+      - name: Run dependency security scan (pip-audit)
         if: matrix.scan-type == 'dependencies'
         run: |
-          echo "🔒 Incremental Dependency Security Audit"
-          echo "========================================"
+          uv add --dev pip-audit
+          uv run pip-audit --format=json --output=pip-audit-results.json
           
-          mkdir -p security-results
-          
-          # Check if incremental scanning is possible
-          if [ "$DEPS_CHANGED" = "false" ] && [ -f ".security-cache/last-deps-scan.json" ]; then
-            echo "📋 Dependencies unchanged - using cached results"
-            echo "Last scan: $(cat .security-cache/last-deps-scan-time.txt 2>/dev/null || echo 'Unknown')"
-            
-            # Copy cached results
-            cp .security-cache/last-deps-scan.json security-results/audit.json
-            cp .security-cache/last-dependency-tree.txt security-results/dependency-tree.txt 2>/dev/null || true
-            
-            echo "✅ Using cached dependency scan results (40% faster)"
-          else
-            echo "📦 Dependencies changed or no cache - running full scan"
-            
-            # Generate dependency tree
-            uv tree --frozen > security-results/dependency-tree.txt
-            
-            # Install and run pip-audit with smart caching
-            uv run pip install pip-audit
-            
-            # Run audit with caching
-            if ! uv run pip-audit --format=json --output=security-results/audit.json --progress-spinner=off --ignore-vuln=GHSA-4xh5-x5gv-qwph --cache-dir ~/.cache/pip-audit; then
-              echo "❌ VULNERABILITIES DETECTED"
-              echo "Scan Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-              
-              # Enhanced vulnerability reporting with context
-              VULN_COUNT=$(jq length security-results/audit.json 2>/dev/null || echo "unknown")
-              CRITICAL_COUNT=$(jq '[.[] | select(.vulnerability.severity == "CRITICAL")] | length' security-results/audit.json 2>/dev/null || echo "0")
-              HIGH_COUNT=$(jq '[.[] | select(.vulnerability.severity == "HIGH")] | length' security-results/audit.json 2>/dev/null || echo "0")
-              
-              echo "📊 Vulnerability Summary:"
-              echo "- Total: $VULN_COUNT"
-              echo "- Critical: $CRITICAL_COUNT" 
-              echo "- High: $HIGH_COUNT"
-              
-              # Detailed vulnerability context with remediation guidance
-              echo ""
-              echo "🔍 Vulnerability Details:"
-              jq -r '.[] | "Package: \(.package) | CVE: \(.vulnerability.id) | Severity: \(.vulnerability.severity) | Fix: \(.vulnerability.fix_versions // "No fix available")"' security-results/audit.json 2>/dev/null || echo "Details unavailable"
-              
-              echo ""
-              echo "🛠️ Smart Resolution Steps:"
-              echo "1. Update vulnerable packages: uv add 'package>=secure_version'"
-              echo "2. Regenerate lock file: uv lock"
-              echo "3. Verify fixes: uv run pip-audit"
-              echo "4. Integration with dependency management:"
-              echo "   - Check for breaking changes in updates"
-              echo "   - Run tests after updates: ./scripts/run_tests.sh"
-              
-              exit 1
-            fi
-            
-            # Cache successful scan results
-            cp security-results/audit.json .security-cache/last-deps-scan.json
-            cp security-results/dependency-tree.txt .security-cache/last-dependency-tree.txt
-            date -u '+%Y-%m-%d %H:%M:%S UTC' > .security-cache/last-deps-scan-time.txt
-            
-            echo "✅ No vulnerabilities found - results cached for future incremental scans"
-          fi
-      
-      # Optimized CodeQL Security Analysis with Incremental Scanning
-      - name: Initialize CodeQL
-        if: matrix.scan-type == 'codeql' && env.CODE_CHANGED == 'true'
-        uses: github/codeql-action/init@v3
-        with:
-          languages: python
-          config: |
-            name: "Optimized CodeQL Configuration"
-            paths:
-              - src/**
-            paths-ignore:
-              - "**/.cache/**"
-              - "**/__pycache__/**"
-              - "**/.*cache/**"
-              - "tests/**"
-              - "scripts/**"
-            queries:
-              - uses: security-and-quality
-            # Optimized for faster execution
-            build-mode: none
-      
-      - name: Perform Optimized CodeQL Analysis
-        if: matrix.scan-type == 'codeql' && env.CODE_CHANGED == 'true'
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:python"
-          upload: true
-          # Optimize analysis for faster execution
-          threads: 0  # Use all available cores
-      
-      - name: Skip CodeQL Analysis (No Code Changes)
-        if: matrix.scan-type == 'codeql' && env.CODE_CHANGED == 'false'
+      - name: Run code security analysis (bandit)
+        if: matrix.scan-type == 'code-analysis'
         run: |
-          echo "⏭️ CodeQL Analysis Skipped"
-          echo "========================="
-          echo "Reason: No source code changes detected"
-          echo "Last analysis: Available in GitHub Security tab"
-          echo "Performance improvement: ~60% faster execution"
-          echo ""
-          echo "✅ Using previous CodeQL results (incremental scanning)"
-      
-      # Incremental Secret Scanning with Smart Caching
-      - name: Run Incremental Secret Scanning
+          uv add --dev bandit
+          uv run bandit -r src/ -f json -o bandit-results.json
+          
+      - name: Run secret detection (trufflehog)
         if: matrix.scan-type == 'secrets'
         run: |
-          echo "🔍 Incremental Secret Scanning"
-          echo "=============================="
+          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --json > trufflehog-results.json
           
-          # Install TruffleHog with caching
-          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
-          
-          mkdir -p .security-cache
-          
-          # Incremental secret scanning based on changed files
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ -f ".security-cache/changed-files.txt" ]; then
-            echo "📋 Scanning only changed files for secrets (incremental mode)"
-            
-            # Scan only changed files for better performance
-            CHANGED_FILES=$(cat .security-cache/changed-files.txt)
-            if [ -n "$CHANGED_FILES" ]; then
-              echo "Files to scan:"
-              echo "$CHANGED_FILES"
-              
-              # Create temporary directory with only changed files
-              mkdir -p /tmp/changed-files
-              while IFS= read -r file; do
-                if [ -f "$file" ]; then
-                  mkdir -p "/tmp/changed-files/$(dirname "$file")"
-                  cp "$file" "/tmp/changed-files/$file"
-                fi
-              done <<< "$CHANGED_FILES"
-              
-              # Scan only changed files
-              if ! trufflehog filesystem /tmp/changed-files --json --no-update > secret-results.json; then
-                echo "❌ SECRETS DETECTED IN CHANGED FILES"
-                
-                SECRET_COUNT=$(jq length secret-results.json 2>/dev/null || echo "unknown")
-                echo "🚨 Found $SECRET_COUNT potential secrets in changed files"
-                
-                echo ""
-                echo "🔍 Secret Details:"
-                jq -r '.[] | "File: \(.SourceMetadata.Data.Filesystem.file) | Type: \(.DetectorName)"' secret-results.json 2>/dev/null || cat secret-results.json
-                
-                echo ""
-                echo "🛠️ Immediate Actions Required:"
-                echo "1. Remove secrets from changed files"
-                echo "2. Rotate exposed credentials immediately"
-                echo "3. Use environment variables or GitHub Secrets"
-                echo "4. Add secret patterns to .gitignore"
-                
-                exit 1
-              fi
-              
-              echo "✅ No secrets detected in changed files (40% faster incremental scan)"
-            else
-              echo "📋 No files changed - skipping secret scan"
-            fi
-          else
-            echo "🔍 Full repository secret scan"
-            
-            # Full scan for push to main or scheduled runs
-            if ! trufflehog git file://. --json --no-update > secret-results.json; then
-              echo "❌ SECRETS DETECTED"
-              
-              SECRET_COUNT=$(jq length secret-results.json 2>/dev/null || echo "unknown")
-              echo "🚨 Found $SECRET_COUNT potential secrets"
-              
-              echo ""
-              echo "🔍 Secret Details:"
-              jq -r '.[] | "File: \(.SourceMetadata.Data.Git.file) | Type: \(.DetectorName) | Line: \(.SourceMetadata.Data.Git.line)"' secret-results.json 2>/dev/null || cat secret-results.json
-              
-              echo ""
-              echo "🛠️ Immediate Actions Required:"
-              echo "1. Remove secrets from repository"
-              echo "2. Rotate exposed credentials"
-              echo "3. Use environment variables"
-              echo "4. Add to .gitignore"
-              
-              exit 1
-            fi
-            
-            echo "✅ No secrets detected in full repository scan"
-          fi
-          
-          # Enhanced secret file pattern detection
-          echo ""
-          echo "🔍 Checking for potential secret file patterns..."
-          SECRET_FILES=$(find . -type f \( -name "*.pem" -o -name "*.key" -o -name ".env*" -o -name "*.p12" -o -name "*.pfx" \) -not -path "./.git/*" -not -path "./.security-cache/*" || true)
-          if [ -n "$SECRET_FILES" ]; then
-            echo "⚠️ Potential secret files found:"
-            echo "$SECRET_FILES"
-            echo ""
-            echo "Please verify these files don't contain sensitive data"
-          else
-            echo "✅ No potential secret files detected"
-          fi
-      
-      # Performance monitoring and optimization tracking
-      - name: Track Security Scan Performance
-        if: always()
-        run: |
-          echo "📊 Security Scan Performance Metrics"
-          echo "===================================="
-          
-          END_TIME=$(date +%s)
-          START_TIME=${{ github.event.head_commit.timestamp && 'date -d "${{ github.event.head_commit.timestamp }}" +%s' || 'date +%s' }}
-          DURATION=$((END_TIME - START_TIME))
-          
-          echo "Scan Type: ${{ matrix.scan-type }}"
-          echo "Duration: ${DURATION}s"
-          echo "Incremental Mode: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}"
-          
-          # Track performance improvements
-          mkdir -p .security-cache
-          cat > .security-cache/performance-${{ matrix.scan-type }}.json << EOF
-          {
-            "scan_type": "${{ matrix.scan-type }}",
-            "duration_seconds": $DURATION,
-            "incremental_mode": ${{ github.event_name == 'pull_request' && 'true' || 'false' }},
-            "timestamp": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')",
-            "commit_sha": "${{ github.sha }}",
-            "deps_changed": "${DEPS_CHANGED:-unknown}",
-            "code_changed": "${CODE_CHANGED:-unknown}"
-          }
-          EOF
-          
-          # Calculate performance improvement
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            if [ "${{ matrix.scan-type }}" = "dependencies" ] && [ "$DEPS_CHANGED" = "false" ]; then
-              echo "🚀 Performance: ~40% faster (incremental dependency scanning)"
-            elif [ "${{ matrix.scan-type }}" = "codeql" ] && [ "$CODE_CHANGED" = "false" ]; then
-              echo "🚀 Performance: ~60% faster (skipped CodeQL analysis)"
-            elif [ "${{ matrix.scan-type }}" = "secrets" ]; then
-              echo "🚀 Performance: ~40% faster (incremental secret scanning)"
-            fi
-          fi
-      
-      # Upload scan results and performance data
-      - name: Upload Security Results
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v3
         with:
-          name: security-results-${{ matrix.scan-type }}
-          path: |
-            security-results/
-            secret-results.json
-            .security-cache/performance-${{ matrix.scan-type }}.json
-          retention-days: 30
+          name: security-scan-results-${{ matrix.scan-type }}
+          path: "*-results.json"
 
-  # Security Configuration Validation
   security-config-validation:
-    name: Security Configuration
+    name: Security Configuration Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Validate Security Configuration
+        
+      - name: Validate security configuration
         run: |
-          echo "🔧 Security Configuration Validation"
-          echo "==================================="
-          
-          # Check for security policy files
-          MISSING_FILES=""
-          
-          if [ ! -f ".github/SECURITY.md" ]; then
-            MISSING_FILES="$MISSING_FILES .github/SECURITY.md"
+          if [ ! -f ".github/SECURITY_CONFIG.yml" ]; then
+            echo "ERROR: Security configuration file missing"
+            exit 1
           fi
           
-          if [ ! -f ".github/dependabot.yml" ]; then
-            MISSING_FILES="$MISSING_FILES .github/dependabot.yml"
-          fi
-          
-          if [ -n "$MISSING_FILES" ]; then
-            echo "⚠️ Missing security files:$MISSING_FILES"
-            echo "Creating basic security configuration..."
-            
-            # Create basic SECURITY.md if missing
-            if [ ! -f ".github/SECURITY.md" ]; then
-              mkdir -p .github
-              cat > .github/SECURITY.md << 'EOF'
-# Security Policy
+      - name: Run security check script
+        run: |
+          chmod +x scripts/security_check.sh
+          ./scripts/security_check.sh
 
-## Reporting Security Vulnerabilities
-
-Please report security vulnerabilities by creating a GitHub issue or contacting the maintainers.
-
-## Security Scanning
-
-This project uses automated security scanning including:
-- Dependency vulnerability scanning
-- Static code analysis with CodeQL
-- Secret detection
-- Zero-tolerance policy for security issues
-EOF
-            fi
-            
-            # Create basic dependabot.yml if missing
-            if [ ! -f ".github/dependabot.yml" ]; then
-              cat > .github/dependabot.yml << 'EOF'
-version: 2
-updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-EOF
-            fi
-          fi
-          
-          echo "✅ Security configuration validated"
-
-  # Streamlined Security Summary with Enhanced Reporting
   security-summary:
     name: Security Summary
     runs-on: ubuntu-latest
     needs: [security-scan-matrix, security-config-validation]
     if: always()
-    timeout-minutes: 5
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Generate Enhanced Security Report
+      - name: Download all security scan results
+        uses: actions/download-artifact@v3
+        
+      - name: Generate security summary
         run: |
-          echo "🛡️ Enhanced Security Scanning Report"
-          echo "===================================="
-          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Scan Mode: ${{ github.event_name == 'pull_request' && 'Incremental' || 'Full' }}"
-          echo ""
+          echo "# Security Scan Summary" > security-summary.md
+          echo "## Zero-Tolerance Policy Status" >> security-summary.md
           
-          # Get matrix job results
-          MATRIX_RESULT="${{ needs.security-scan-matrix.result }}"
-          CONFIG_RESULT="${{ needs.security-config-validation.result }}"
-          
-          echo "🔍 Security Scan Results:"
-          echo "- Security Matrix Scans: $MATRIX_RESULT"
-          echo "- Configuration Validation: $CONFIG_RESULT"
-          echo ""
-          
-          # Performance improvements summary
-          echo "⚡ Performance Optimizations Applied:"
-          echo "===================================="
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "✅ Incremental scanning enabled"
-            echo "✅ Smart caching for dependencies"
-            echo "✅ Conditional CodeQL analysis"
-            echo "✅ Changed-files-only secret scanning"
-            echo "✅ Enhanced dependency management integration"
-            echo ""
-            echo "📊 Expected Performance Improvements:"
-            echo "- Dependency scanning: Up to 40% faster"
-            echo "- CodeQL analysis: Up to 60% faster (when skipped)"
-            echo "- Secret scanning: Up to 40% faster"
-            echo "- Overall workflow: 30-50% faster execution"
-          else
-            echo "✅ Full comprehensive security scanning"
-            echo "✅ Complete vulnerability coverage"
-            echo "✅ Enhanced caching for future runs"
-          fi
-          echo ""
-      
-      - name: Security Policy Enforcement
-        run: |
-          echo "🚨 Zero-Tolerance Security Policy"
-          echo "================================="
-          
-          # Check matrix job results
-          MATRIX_RESULT="${{ needs.security-scan-matrix.result }}"
-          CONFIG_RESULT="${{ needs.security-config-validation.result }}"
-          
-          if [[ "$MATRIX_RESULT" != "success" || "$CONFIG_RESULT" != "success" ]]; then
-            echo "❌ SECURITY VIOLATIONS DETECTED"
-            echo ""
-            echo "Failed Scans:"
-            [[ "$MATRIX_RESULT" != "success" ]] && echo "- Security Matrix: $MATRIX_RESULT"
-            [[ "$CONFIG_RESULT" != "success" ]] && echo "- Configuration: $CONFIG_RESULT"
-            echo ""
-            echo "🔧 Resolution Steps:"
-            echo "1. Review security scan outputs above"
-            echo "2. Fix identified vulnerabilities"
-            echo "3. Update dependencies: uv lock --upgrade"
-            echo "4. Remove any secrets from repository"
-            echo "5. Re-run workflow to verify fixes"
-            echo ""
-            echo "⚠️ Pull request merging BLOCKED until all issues resolved"
+          # Check if any scans failed
+          if [ "${{ needs.security-scan-matrix.result }}" != "success" ] || [ "${{ needs.security-config-validation.result }}" != "success" ]; then
+            echo "❌ SECURITY SCAN FAILED - Zero-tolerance policy violated" >> security-summary.md
             exit 1
           else
-            echo "✅ ALL SECURITY SCANS PASSED"
-            echo ""
-            echo "🛡️ Security Status:"
-            echo "- Dependency vulnerabilities: None found"
-            echo "- Code security issues: None found"
-            echo "- Secrets exposure: None detected"
-            echo "- Configuration: Valid"
-            echo ""
-            echo "🚀 Repository is secure for integration"
-          fi
-      
-      - name: Generate Security Badge
-        if: always()
-        run: |
-          mkdir -p badge-data
-          
-          # Determine security status
-          MATRIX_RESULT="${{ needs.security-scan-matrix.result }}"
-          CONFIG_RESULT="${{ needs.security-config-validation.result }}"
-          
-          if [[ "$MATRIX_RESULT" == "success" && "$CONFIG_RESULT" == "success" ]]; then
-            STATUS="secure"
-            COLOR="brightgreen"
-          else
-            STATUS="vulnerable"
-            COLOR="red"
+            echo "✅ All security scans passed - Zero-tolerance policy satisfied" >> security-summary.md
           fi
           
-          # Generate badge data
-          cat > badge-data/security-badge.json << EOF
-          {
-            "schemaVersion": 1,
-            "label": "security",
-            "message": "$STATUS",
-            "color": "$COLOR"
-          }
-          EOF
-          
-          cat > badge-data/security-summary.json << EOF
-          {
-            "overall_status": "$STATUS",
-            "matrix_result": "$MATRIX_RESULT",
-            "config_result": "$CONFIG_RESULT",
-            "last_updated": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')",
-            "commit_sha": "${{ github.sha }}"
-          }
-          EOF
-          
-          echo "✅ Security badge generated: $STATUS"
-      
-      - name: Upload Security Badge Data
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload security summary
+        uses: actions/upload-artifact@v3
         with:
-          name: security-badge-data
-          path: badge-data/
-          retention-days: 90
+          name: security-summary
+          path: security-summary.md
+
+  zero-tolerance:
+    name: Zero-Tolerance Policy Enforcement
+    runs-on: ubuntu-latest
+    needs: [security-scan-matrix, security-config-validation]
+    if: always()
+    
+    steps:
+      - name: Enforce zero-tolerance policy
+        run: |
+          if [ "${{ needs.security-scan-matrix.result }}" != "success" ] || [ "${{ needs.security-config-validation.result }}" != "success" ]; then
+            echo "❌ ZERO-TOLERANCE POLICY VIOLATION"
+            echo "All security scans must pass. No exceptions."
+            echo "Please fix all security issues before proceeding."
+            exit 1
+          fi
+          echo "✅ Zero-tolerance policy satisfied"
