@@ -65,7 +65,12 @@ echo "-------------------------------"
 run_check "uv run --active pytest --cov=mypylogger --cov-fail-under=95 --cov-report=term-missing" "Test execution and coverage (95% minimum)"
 
 echo ""
-echo "5. Import Verification"
+echo "5. Security Scanning"
+echo "--------------------"
+run_check "uv run --active python -c 'from badges.security import security_checks_passed; exit(0 if security_checks_passed() else 1)'" "Security scanning (bandit, safety, semgrep, codeql simulation)"
+
+echo ""
+echo "6. Import Verification"
 echo "----------------------"
 run_check "uv run --active python -c 'import mypylogger; print(f\"mypylogger v{mypylogger.get_version()} imported successfully\")'" "Package import verification"
 
@@ -79,6 +84,7 @@ if [ "$OVERALL_SUCCESS" = true ]; then
     echo -e "${GREEN}✓ Linting: no issues${NC}"
     echo -e "${GREEN}✓ Type checking: passed${NC}"
     echo -e "${GREEN}✓ Tests: all passing with 95%+ coverage${NC}"
+    echo -e "${GREEN}✓ Security: all scans passed${NC}"
     echo -e "${GREEN}✓ Package: imports successfully${NC}"
     echo ""
     echo -e "${GREEN}🚀 Ready for task completion!${NC}"
@@ -92,5 +98,6 @@ else
     echo -e "${YELLOW}  - Run 'uv run ruff check --fix .' to auto-fix linting issues${NC}"
     echo -e "${YELLOW}  - Add type hints for mypy compliance${NC}"
     echo -e "${YELLOW}  - Add tests to reach 95% coverage${NC}"
+    echo -e "${YELLOW}  - Review security scan results and fix issues${NC}"
     exit 1
 fi

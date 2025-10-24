@@ -5,9 +5,10 @@ This script runs comprehensive checks to ensure the package is ready
 for release, including tests, validation, and documentation checks.
 """
 
+from __future__ import annotations
+
 import subprocess
 import sys
-from typing import List
 
 
 class ReleasePreparation:
@@ -15,10 +16,10 @@ class ReleasePreparation:
 
     def __init__(self) -> None:
         """Initialize release preparation."""
-        self.errors: List[str] = []
-        self.warnings: List[str] = []
+        self.errors: list[str] = []
+        self.warnings: list[str] = []
 
-    def run_command(self, cmd: List[str], description: str) -> bool:
+    def run_command(self, cmd: list[str], description: str) -> bool:
         """Run a command and report results.
 
         Args:
@@ -31,7 +32,7 @@ class ReleasePreparation:
         print(f"Running {description}...", end=" ")
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             print("✓ PASS")
             return True
         except subprocess.CalledProcessError as e:

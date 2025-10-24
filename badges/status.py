@@ -7,15 +7,11 @@ API calls within a single run.
 
 from __future__ import annotations
 
-import json
 import logging
+from pathlib import Path
 import subprocess
 import time
-from pathlib import Path
 from typing import Any
-
-from .config import get_badge_config
-
 
 logger = logging.getLogger(__name__)
 
@@ -101,18 +97,19 @@ def detect_quality_gate_status() -> dict[str, Any]:
 
     try:
         logger.info("Detecting quality gate status by running tests")
-        
+
         # Check if run_tests.sh script exists
         test_script = Path("scripts/run_tests.sh")
         if test_script.exists():
             # Run the master test script
             result = subprocess.run(
                 ["bash", str(test_script)],
+                check=False,
                 capture_output=True,
                 text=True,
-                timeout=300  # 5 minute timeout
+                timeout=300,  # 5 minute timeout
             )
-            
+
             if result.returncode == 0:
                 status = {"status": "passing", "message": "All tests pass"}
             else:
@@ -121,20 +118,21 @@ def detect_quality_gate_status() -> dict[str, Any]:
             # Fallback to pytest if no master script
             result = subprocess.run(
                 ["uv", "run", "pytest", "--tb=short"],
+                check=False,
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
             )
-            
+
             if result.returncode == 0:
                 status = {"status": "passing", "message": "All tests pass"}
             else:
                 status = {"status": "failing", "message": "Tests failed"}
-        
+
         cache.set("quality_gate", status)
         logger.info(f"Quality gate status: {status['status']}")
         return status
-        
+
     except subprocess.TimeoutExpired:
         status = {"status": "unknown", "message": "Test timeout"}
         cache.set("quality_gate", status)
@@ -143,7 +141,139 @@ def detect_quality_gate_status() -> dict[str, Any]:
     except Exception as e:
         status = {"status": "unknown", "message": f"Detection failed: {e}"}
         cache.set("quality_gate", status)
-        logger.error(f"Failed to detect quality gate status: {e}")
+        logger.exception(f"Failed to detect quality gate status: {e}")
+        return status
+
+
+def get_quality_gate_status() -> dict[str, Any]:
+    """Get overall quality gate status by aggregating all quality checks.
+
+    Returns:
+        Dictionary containing quality gate status information.
+    """
+    try:
+        logger.info("Determining quality gate status from all quality checks")
+
+        # Get all individual check statuses
+        cache = get_status_cache()
+
+        # Check individual quality components
+        code_style_status = cache.get("code_style") or {"status": "unknown"}
+        type_check_status = cache.get("type_check") or {"status": "unknown"}
+        security_status = cache.get("comprehensive_security") or {"status": "unknown"}
+
+        # If we don't have cached results, run quick checks
+        if not cache.get("code_style"):
+            code_style_status = detect_code_style_status()
+        if not cache.get("type_check"):
+            type_check_status = detect_type_check_status()
+        if not cache.get("comprehensive_security"):
+            security_status = detect_comprehensive_security_status()
+
+        # Determine overall status
+        all_statuses = [
+            code_style_status["status"],
+            type_check_status["status"],
+            security_status["status"],
+        ]
+
+        # Quality gate passes only if ALL checks pass
+        if all(status == "passing" for status in all_statuses):
+            overall_status = "passing"
+            message = "All quality checks passing"
+        elif any(status == "failing" for status in all_statuses):
+            overall_status = "failing"
+            failing_checks = [
+                name
+                for name, status in [
+                    ("code_style", code_style_status["status"]),
+                    ("type_check", type_check_status["status"]),
+                    ("security", security_status["status"]),
+                ]
+                if status == "failing"
+            ]
+            message = f"Quality checks failing: {', '.join(failing_checks)}"
+        elif any(status == "pending" for status in all_statuses):
+            overall_status = "pending"
+            message = "Some quality checks pending"
+        else:
+            overall_status = "unknown"
+            message = "Quality check status unknown"
+
+        status = {
+            "status": overall_status,
+            "message": message,
+            "components": {
+                "code_style": code_style_status["status"],
+                "type_check": type_check_status["status"],
+                "security": security_status["status"],
+            },
+        }
+
+        logger.info(f"Quality gate status: {overall_status} - {message}")
+        return status
+
+    except Exception as e:
+        logger.exception(f"Failed to determine quality gate status: {e}")
+        return {
+            "status": "unknown",
+            "message": f"Quality gate status determination failed: {e}",
+            "components": {},
+        }
+
+
+def detect_comprehensive_security_status() -> dict[str, Any]:
+    """Detect comprehensive security badge status combining local and GitHub CodeQL results.
+
+    Returns:
+        Dictionary containing comprehensive security status information.
+
+    Raises:
+        BadgeStatusError: If status detection fails.
+    """
+    cache = get_status_cache()
+    cached = cache.get("comprehensive_security")
+    if cached:
+        logger.debug("Using cached comprehensive security status")
+        return cached
+
+    try:
+        logger.info("Detecting comprehensive security status (local + GitHub CodeQL)")
+
+        # Import security functions
+        from badges.security import get_comprehensive_security_status
+
+        # Get comprehensive security status (includes local scans + GitHub CodeQL)
+        security_result = get_comprehensive_security_status()
+
+        # Convert to badge status format
+        status_map = {
+            "Verified": "passing",
+            "Issues Found": "failing",
+            "Scanning": "pending",
+            "Unknown": "unknown",
+        }
+
+        badge_status = status_map.get(security_result["status"], "unknown")
+
+        status = {
+            "status": badge_status,
+            "message": f"Security: {security_result['status']}",
+            "local_results": security_result.get("local_results", {}),
+            "codeql_status": security_result.get("codeql_status", "unknown"),
+            "link_url": security_result.get("link_url", ""),
+        }
+
+        cache.set("comprehensive_security", status)
+        logger.info(
+            f"Comprehensive security status: {status['status']} ({security_result['status']})"
+        )
+        return status
+
+    except Exception as e:
+        status = {"status": "unknown", "message": f"Detection failed: {e}"}
+        cache.set("comprehensive_security", status)
+        logger.exception(f"Failed to detect comprehensive security status: {e}")
         return status
 
 
@@ -164,7 +294,7 @@ def detect_security_scan_status() -> dict[str, Any]:
 
     try:
         logger.info("Detecting security scan status by running security checks")
-        
+
         # Import security functions
         from .security import (
             run_bandit_scan,
@@ -172,61 +302,61 @@ def detect_security_scan_status() -> dict[str, Any]:
             run_semgrep_analysis,
             simulate_codeql_checks,
         )
-        
+
         # Run all security checks
         security_results = []
-        
+
         try:
             bandit_result = run_bandit_scan()
             security_results.append(("bandit", bandit_result))
         except Exception as e:
             logger.warning(f"Bandit scan failed: {e}")
             security_results.append(("bandit", False))
-        
+
         try:
             safety_result = run_safety_check()
             security_results.append(("safety", safety_result))
         except Exception as e:
             logger.warning(f"Safety check failed: {e}")
             security_results.append(("safety", False))
-        
+
         try:
             semgrep_result = run_semgrep_analysis()
             security_results.append(("semgrep", semgrep_result))
         except Exception as e:
             logger.warning(f"Semgrep analysis failed: {e}")
             security_results.append(("semgrep", False))
-        
+
         try:
             codeql_result = simulate_codeql_checks()
             security_results.append(("codeql", codeql_result))
         except Exception as e:
             logger.warning(f"CodeQL simulation failed: {e}")
             security_results.append(("codeql", False))
-        
+
         # Determine overall status
         all_passed = all(result for _, result in security_results)
         any_failed = any(not result for _, result in security_results)
-        
+
         if all_passed:
             status = {"status": "passing", "message": "All security checks pass"}
         elif any_failed:
             failed_checks = [name for name, result in security_results if not result]
             status = {
                 "status": "failing",
-                "message": f"Security checks failed: {', '.join(failed_checks)}"
+                "message": f"Security checks failed: {', '.join(failed_checks)}",
             }
         else:
             status = {"status": "unknown", "message": "No security checks completed"}
-        
+
         cache.set("security_scan", status)
         logger.info(f"Security scan status: {status['status']}")
         return status
-        
+
     except Exception as e:
         status = {"status": "unknown", "message": f"Detection failed: {e}"}
         cache.set("security_scan", status)
-        logger.error(f"Failed to detect security scan status: {e}")
+        logger.exception(f"Failed to detect security scan status: {e}")
         return status
 
 
@@ -244,32 +374,34 @@ def detect_code_style_status() -> dict[str, Any]:
 
     try:
         logger.info("Detecting code style status by running Ruff")
-        
+
         # Run Ruff format check
         format_result = subprocess.run(
             ["uv", "run", "ruff", "format", "--check", "."],
+            check=False,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
-        
+
         # Run Ruff linting check
         lint_result = subprocess.run(
             ["uv", "run", "ruff", "check", "."],
+            check=False,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
-        
+
         if format_result.returncode == 0 and lint_result.returncode == 0:
             status = {"status": "passing", "message": "Code style compliant"}
         else:
             status = {"status": "failing", "message": "Code style issues found"}
-        
+
         cache.set("code_style", status)
         logger.info(f"Code style status: {status['status']}")
         return status
-        
+
     except subprocess.TimeoutExpired:
         status = {"status": "unknown", "message": "Ruff check timeout"}
         cache.set("code_style", status)
@@ -278,7 +410,7 @@ def detect_code_style_status() -> dict[str, Any]:
     except Exception as e:
         status = {"status": "unknown", "message": f"Detection failed: {e}"}
         cache.set("code_style", status)
-        logger.error(f"Failed to detect code style status: {e}")
+        logger.exception(f"Failed to detect code style status: {e}")
         return status
 
 
@@ -296,24 +428,25 @@ def detect_type_check_status() -> dict[str, Any]:
 
     try:
         logger.info("Detecting type check status by running mypy")
-        
+
         # Run mypy type checking
         result = subprocess.run(
             ["uv", "run", "mypy", "src/", "badges/"],
+            check=False,
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
         )
-        
+
         if result.returncode == 0:
             status = {"status": "passing", "message": "Type checking passed"}
         else:
             status = {"status": "failing", "message": "Type checking failed"}
-        
+
         cache.set("type_check", status)
         logger.info(f"Type check status: {status['status']}")
         return status
-        
+
     except subprocess.TimeoutExpired:
         status = {"status": "unknown", "message": "mypy timeout"}
         cache.set("type_check", status)
@@ -322,7 +455,7 @@ def detect_type_check_status() -> dict[str, Any]:
     except Exception as e:
         status = {"status": "unknown", "message": f"Detection failed: {e}"}
         cache.set("type_check", status)
-        logger.error(f"Failed to detect type check status: {e}")
+        logger.exception(f"Failed to detect type check status: {e}")
         return status
 
 
@@ -340,18 +473,18 @@ def detect_pypi_status() -> dict[str, Any]:
 
     try:
         logger.info("Detecting PyPI status")
-        
+
         # For now, assume development status since package may not be published yet
         status = {"status": "development", "message": "Package in development"}
-        
+
         cache.set("pypi_status", status)
         logger.info(f"PyPI status: {status['status']}")
         return status
-        
+
     except Exception as e:
         status = {"status": "unknown", "message": f"Detection failed: {e}"}
         cache.set("pypi_status", status)
-        logger.error(f"Failed to detect PyPI status: {e}")
+        logger.exception(f"Failed to detect PyPI status: {e}")
         return status
 
 
@@ -368,32 +501,34 @@ def validate_badge_status(badge_name: str, status: dict[str, Any]) -> bool:
     try:
         # Check required keys
         if not isinstance(status, dict):
-            logger.error(f"Invalid status for {badge_name}: not a dictionary")
+            logger.error("Invalid status for %s: not a dictionary", badge_name)
             return False
-        
+
         if "status" not in status:
             logger.error(f"Invalid status for {badge_name}: missing 'status' key")
             return False
-        
+
         if "message" not in status:
             logger.error(f"Invalid status for {badge_name}: missing 'message' key")
             return False
-        
+
         # Check status values
         valid_statuses = {"passing", "failing", "unknown", "development"}
         if status["status"] not in valid_statuses:
-            logger.error(f"Invalid status for {badge_name}: invalid status value '{status['status']}'")
+            logger.error(
+                f"Invalid status for {badge_name}: invalid status value '{status['status']}'"
+            )
             return False
-        
+
         # Check message is string
         if not isinstance(status["message"], str):
             logger.error(f"Invalid status for {badge_name}: message must be string")
             return False
-        
+
         return True
-        
+
     except Exception as e:
-        logger.error(f"Failed to validate status for {badge_name}: {e}")
+        logger.exception(f"Failed to validate status for {badge_name}: {e}")
         return False
 
 
@@ -404,48 +539,51 @@ def get_all_badge_statuses() -> dict[str, dict[str, Any]]:
         Dictionary mapping badge names to their status dictionaries.
     """
     logger.info("Getting status for all badges")
-    
+
     statuses = {}
-    
-    # Quality gate status
+
+    # Quality gate status (aggregated from all quality checks)
     try:
-        statuses["quality_gate"] = detect_quality_gate_status()
+        statuses["quality_gate"] = get_quality_gate_status()
     except Exception as e:
-        logger.error(f"Failed to get quality gate status: {e}")
+        logger.exception(f"Failed to get quality gate status: {e}")
         statuses["quality_gate"] = {"status": "unknown", "message": "Status detection failed"}
-    
-    # Security scan status
+
+    # Comprehensive security status (all security tests combined)
     try:
-        statuses["security_scan"] = detect_security_scan_status()
+        statuses["comprehensive_security"] = detect_comprehensive_security_status()
     except Exception as e:
-        logger.error(f"Failed to get security scan status: {e}")
-        statuses["security_scan"] = {"status": "unknown", "message": "Status detection failed"}
-    
+        logger.exception(f"Failed to get comprehensive security status: {e}")
+        statuses["comprehensive_security"] = {
+            "status": "unknown",
+            "message": "Status detection failed",
+        }
+
     # Code style status
     try:
         statuses["code_style"] = detect_code_style_status()
     except Exception as e:
-        logger.error(f"Failed to get code style status: {e}")
+        logger.exception(f"Failed to get code style status: {e}")
         statuses["code_style"] = {"status": "unknown", "message": "Status detection failed"}
-    
+
     # Type check status
     try:
         statuses["type_check"] = detect_type_check_status()
     except Exception as e:
-        logger.error(f"Failed to get type check status: {e}")
+        logger.exception(f"Failed to get type check status: {e}")
         statuses["type_check"] = {"status": "unknown", "message": "Status detection failed"}
-    
+
     # PyPI status
     try:
         statuses["pypi_status"] = detect_pypi_status()
     except Exception as e:
-        logger.error(f"Failed to get PyPI status: {e}")
+        logger.exception(f"Failed to get PyPI status: {e}")
         statuses["pypi_status"] = {"status": "unknown", "message": "Status detection failed"}
-    
+
     # Static badges always pass
     statuses["python_versions"] = {"status": "passing", "message": "Static badge"}
     statuses["downloads"] = {"status": "development", "message": "Development status"}
     statuses["license"] = {"status": "passing", "message": "MIT license"}
-    
+
     logger.info(f"Retrieved status for {len(statuses)} badges")
     return statuses

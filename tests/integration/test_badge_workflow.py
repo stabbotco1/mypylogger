@@ -189,8 +189,8 @@ Install the package.
             assert len(badges) == 8
 
             # Verify URLs contain custom values
-            quality_badge = next(b for b in badges if b.name == "quality_gate")
-            assert "testuser/testproject" in quality_badge.url
+            license_badge = next(b for b in badges if b.name == "license")
+            assert "testuser/testproject" in license_badge.url
 
             pypi_badge = next(b for b in badges if b.name == "pypi_version")
             assert "testpackage" in pypi_badge.url
@@ -267,7 +267,7 @@ Install the package.
 
         expected_badge_names = {
             "quality_gate",
-            "security_scan",
+            "security",
             "code_style",
             "type_check",
             "python_versions",

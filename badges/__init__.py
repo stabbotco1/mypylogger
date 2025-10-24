@@ -14,13 +14,14 @@ from typing import Any
 from .config import BADGE_CONFIG, Badge, BadgeConfig, BadgeSection, get_badge_config
 from .generator import (
     generate_code_style_badge,
+    generate_comprehensive_security_badge,
     generate_downloads_badge,
     generate_license_badge,
     generate_pypi_version_badge,
     generate_python_versions_badge,
     generate_quality_gate_badge,
-    generate_security_scan_badge,
     generate_type_check_badge,
+    get_comprehensive_security_badge_link,
 )
 from .security import (
     run_bandit_scan,
@@ -36,7 +37,6 @@ from .status import (
     validate_badge_status,
 )
 from .updater import atomic_write_readme, update_readme_with_badges
-
 
 # Configure logging for badge system
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def generate_all_badges(detect_status: bool = True) -> list[Badge]:
     """
     try:
         logger.info("Generating all project badges")
-        
+
         # Get badge statuses if requested
         statuses = {}
         if detect_status:
@@ -70,127 +70,145 @@ def generate_all_badges(detect_status: bool = True) -> list[Badge]:
             except Exception as e:
                 logger.warning(f"Failed to detect badge statuses: {e}")
                 statuses = {}
-        
+
         badges = []
-        
+
         # Quality Gate badge
         try:
             quality_url = generate_quality_gate_badge()
             status_info = statuses.get("quality_gate", {"status": "unknown"})
-            badges.append(Badge(
-                name="quality_gate",
-                url=quality_url,
-                alt_text="Quality Gate",
-                link_url=quality_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="quality_gate",
+                    url=quality_url,
+                    alt_text="Quality Gate",
+                    link_url=quality_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate quality gate badge: {e}")
-        
-        # Security Scan badge
+
+        # Security badge (comprehensive - all security tests combined)
         try:
-            security_url = generate_security_scan_badge()
-            status_info = statuses.get("security_scan", {"status": "unknown"})
-            badges.append(Badge(
-                name="security_scan",
-                url=security_url,
-                alt_text="Security Scan",
-                link_url=security_url,
-                status=status_info["status"]
-            ))
+            security_url = generate_comprehensive_security_badge()
+            security_link = get_comprehensive_security_badge_link()
+            status_info = statuses.get("comprehensive_security", {"status": "unknown"})
+            badges.append(
+                Badge(
+                    name="security",
+                    url=security_url,
+                    alt_text="Security",
+                    link_url=security_link,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
-            logger.warning(f"Failed to generate security scan badge: {e}")
-        
+            logger.warning(f"Failed to generate security badge: {e}")
+
         # Code Style badge
         try:
             style_url = generate_code_style_badge()
             status_info = statuses.get("code_style", {"status": "passing"})
-            badges.append(Badge(
-                name="code_style",
-                url=style_url,
-                alt_text="Code Style: Ruff",
-                link_url=style_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="code_style",
+                    url=style_url,
+                    alt_text="Code Style: Ruff",
+                    link_url=style_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate code style badge: {e}")
-        
+
         # Type Checking badge
         try:
             type_url = generate_type_check_badge()
             status_info = statuses.get("type_check", {"status": "passing"})
-            badges.append(Badge(
-                name="type_check",
-                url=type_url,
-                alt_text="Type Checked: mypy",
-                link_url=type_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="type_check",
+                    url=type_url,
+                    alt_text="Type Checked: mypy",
+                    link_url=type_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate type check badge: {e}")
-        
+
         # Python Versions badge
         try:
             python_url = generate_python_versions_badge()
             status_info = statuses.get("python_versions", {"status": "passing"})
-            badges.append(Badge(
-                name="python_versions",
-                url=python_url,
-                alt_text="Python Versions",
-                link_url=python_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="python_versions",
+                    url=python_url,
+                    alt_text="Python Versions",
+                    link_url=python_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate Python versions badge: {e}")
-        
+
         # PyPI Version badge
         try:
             pypi_url = generate_pypi_version_badge()
             status_info = statuses.get("pypi_status", {"status": "development"})
-            badges.append(Badge(
-                name="pypi_version",
-                url=pypi_url,
-                alt_text="PyPI Version",
-                link_url=pypi_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="pypi_version",
+                    url=pypi_url,
+                    alt_text="PyPI Version",
+                    link_url=pypi_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate PyPI version badge: {e}")
-        
+
         # Downloads badge
         try:
             downloads_url = generate_downloads_badge()
             status_info = statuses.get("downloads", {"status": "development"})
-            badges.append(Badge(
-                name="downloads",
-                url=downloads_url,
-                alt_text="Downloads: Development",
-                link_url=downloads_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="downloads",
+                    url=downloads_url,
+                    alt_text="Downloads: Development",
+                    link_url=downloads_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate downloads badge: {e}")
-        
+
         # License badge
         try:
             license_url = generate_license_badge()
             status_info = statuses.get("license", {"status": "passing"})
-            badges.append(Badge(
-                name="license",
-                url=license_url,
-                alt_text="License: MIT",
-                link_url=license_url,
-                status=status_info["status"]
-            ))
+            badges.append(
+                Badge(
+                    name="license",
+                    url=license_url,
+                    alt_text="License: MIT",
+                    link_url=license_url,
+                    status=status_info["status"],
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to generate license badge: {e}")
-        
+
         logger.info(f"Generated {len(badges)} badges successfully")
         return badges
-        
+
     except Exception as e:
-        logger.error(f"Failed to generate badges: {e}")
-        raise BadgeSystemError(f"Badge generation failed: {e}") from e
+        logger.exception(f"Failed to generate badges: {e}")
+        msg = f"Badge generation failed: {e}"
+        raise BadgeSystemError(msg) from e
 
 
 def create_badge_section(badges: list[Badge]) -> BadgeSection:
@@ -207,15 +225,11 @@ def create_badge_section(badges: list[Badge]) -> BadgeSection:
     """
     try:
         logger.info("Creating badge section markdown")
-        
+
         if not badges:
             logger.warning("No badges provided for section creation")
-            return BadgeSection(
-                title="Project Badges",
-                badges=[],
-                markdown=""
-            )
-        
+            return BadgeSection(title="Project Badges", badges=[], markdown="")
+
         # Generate markdown for each badge
         badge_markdown_lines = []
         for badge in badges:
@@ -224,22 +238,19 @@ def create_badge_section(badges: list[Badge]) -> BadgeSection:
             else:
                 markdown = f"![{badge.alt_text}]({badge.url})"
             badge_markdown_lines.append(markdown)
-        
+
         # Combine all badges into single line with spaces
         combined_markdown = " ".join(badge_markdown_lines)
-        
-        section = BadgeSection(
-            title="Project Badges",
-            badges=badges,
-            markdown=combined_markdown
-        )
-        
+
+        section = BadgeSection(title="Project Badges", badges=badges, markdown=combined_markdown)
+
         logger.info(f"Created badge section with {len(badges)} badges")
         return section
-        
+
     except Exception as e:
-        logger.error(f"Failed to create badge section: {e}")
-        raise BadgeSystemError(f"Badge section creation failed: {e}") from e
+        logger.exception(f"Failed to create badge section: {e}")
+        msg = f"Badge section creation failed: {e}"
+        raise BadgeSystemError(msg) from e
 
 
 def update_project_badges(detect_status: bool = True) -> bool:
@@ -256,37 +267,38 @@ def update_project_badges(detect_status: bool = True) -> bool:
     """
     try:
         logger.info("Starting badge update workflow")
-        
+
         # Clear cache if we're detecting status
         if detect_status:
             cache = get_status_cache()
             if cache.is_expired():
                 cache.clear()
                 logger.info("Cleared expired badge status cache")
-        
+
         # Generate all badges with status detection
         badges = generate_all_badges(detect_status=detect_status)
-        
+
         if not badges:
             logger.warning("No badges generated, skipping README update")
             return False
-        
+
         # Create badge section
         badge_section = create_badge_section(badges)
-        
+
         # Update README with badges
         success = update_readme_with_badges([badge_section.markdown])
-        
+
         if success:
             logger.info("Badge update workflow completed successfully")
         else:
             logger.error("Failed to update README with badges")
-        
+
         return success
-        
+
     except Exception as e:
-        logger.error(f"Badge update workflow failed: {e}")
-        raise BadgeSystemError(f"Badge update workflow failed: {e}") from e
+        logger.exception(f"Badge update workflow failed: {e}")
+        msg = f"Badge update workflow failed: {e}"
+        raise BadgeSystemError(msg) from e
 
 
 def main() -> int:
@@ -296,49 +308,41 @@ def main() -> int:
         Exit code: 0 for success, 1 for failure.
     """
     parser = argparse.ArgumentParser(
-        description="Update project badges in README.md",
-        prog="python -m badges"
+        description="Update project badges in README.md", prog="python -m badges"
     )
-    
+
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose logging output"
+        "--verbose", "-v", action="store_true", help="Enable verbose logging output"
     )
-    
+
     parser.add_argument(
-        "--dry-run", "-n",
-        action="store_true",
-        help="Generate badges but don't update README"
+        "--dry-run", "-n", action="store_true", help="Generate badges but don't update README"
     )
-    
+
     parser.add_argument(
-        "--config-check",
-        action="store_true",
-        help="Check badge configuration and exit"
+        "--config-check", action="store_true", help="Check badge configuration and exit"
     )
-    
+
     parser.add_argument(
         "--no-status-detection",
         action="store_true",
-        help="Skip badge status detection and use defaults"
+        help="Skip badge status detection and use defaults",
     )
-    
+
     parser.add_argument(
         "--ci-mode",
         action="store_true",
-        help="CI/CD mode: never fail pipeline, always return exit code 0"
+        help="CI/CD mode: never fail pipeline, always return exit code 0",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Configure logging
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
-    
+
     try:
         # Configuration check mode
         if args.config_check:
@@ -346,7 +350,7 @@ def main() -> int:
             config = get_badge_config()
             logger.info(f"Configuration valid: {config}")
             return 0
-        
+
         # Dry run mode
         if args.dry_run:
             logger.info("Running in dry-run mode")
@@ -355,11 +359,11 @@ def main() -> int:
             badge_section = create_badge_section(badges)
             logger.info(f"Generated badge section: {badge_section.markdown}")
             return 0
-        
+
         # Normal badge update
         detect_status = not args.no_status_detection
         success = update_project_badges(detect_status=detect_status)
-        
+
         if args.ci_mode:
             # In CI mode, always return 0 to not fail pipelines
             if success:
@@ -367,17 +371,16 @@ def main() -> int:
             else:
                 logger.warning("Badge update failed in CI mode, but continuing pipeline")
             return 0
-        else:
-            return 0 if success else 1
-        
+        return 0 if success else 1
+
     except BadgeSystemError as e:
-        logger.error(f"Badge system error: {e}")
+        logger.exception(f"Badge system error: {e}")
         if args.ci_mode:
             logger.info("Continuing CI/CD pipeline despite badge system error")
             return 0
         return 1
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.exception(f"Unexpected error: {e}")
         if args.ci_mode:
             logger.info("Continuing CI/CD pipeline despite unexpected error")
             return 0

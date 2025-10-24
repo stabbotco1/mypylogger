@@ -15,7 +15,6 @@ class BadgeConfigurationError(Exception):
     """Raised when badge configuration is invalid."""
 
 
-
 @dataclass
 class Badge:
     """Represents a single project badge."""
@@ -125,13 +124,10 @@ BADGE_CONFIG: dict[str, Any] = {
     "pypi_package": "mypylogger",
     "shields_base_url": "https://img.shields.io",
     "badge_templates": {
-        # GitHub Actions workflow status badges
-        "quality_gate": (
-            "github/actions/workflow/status/{repo}/quality-gate.yml?branch=main&style=flat"
-        ),
-        "security_scan": (
-            "github/actions/workflow/status/{repo}/security-scan.yml?branch=main&style=flat"
-        ),
+        # Overall quality gate badge (aggregates all quality checks)
+        "quality_gate": "badge/quality%20gate-{status}-{color}?style=flat",
+        # Comprehensive security badge (all security tests combined)
+        "comprehensive_security": "badge/security-{status}-{color}?style=flat",
         # Static code quality badges
         "code_style": "badge/code%20style-ruff-000000?style=flat",
         "type_checked": "badge/type%20checked-mypy-blue?style=flat",
@@ -143,5 +139,9 @@ BADGE_CONFIG: dict[str, Any] = {
         "downloads": "badge/downloads-development-yellow?style=flat",
         # License badge
         "license": "github/license/{repo}?style=flat",
+    },
+    "security_badge_links": {
+        "codeql_results": "https://github.com/{repo}/security/code-scanning",
+        "security_tab": "https://github.com/{repo}/security",
     },
 }

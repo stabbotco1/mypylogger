@@ -11,6 +11,9 @@ Implement a fast and lean badge system for mypylogger v0.2.0 that displays profe
 - **Badges_Directory**: The ./badges directory containing all badge-specific implementation code
 - **Atomic_Write**: File update mechanism using temporary files and rename operations to prevent corruption
 - **Security_Checks**: Local execution of bandit, safety, semgrep, and CodeQL-equivalent scanning
+- **Comprehensive_Security_Badge**: A unified security badge that combines local security scanning with GitHub CodeQL results
+- **GitHub_CodeQL_Integration**: Integration with GitHub's CodeQL security scanning workflow and results
+- **Security_Badge_Link**: Clickable link from security badge to detailed GitHub CodeQL scan results
 - **PyPI_Compatibility**: Ensuring badges work correctly after package publication to PyPI
 - **Race_Condition_Prevention**: Retry mechanism with 5-second waits up to 10 attempts for file contention
 - **README_File**: The main project documentation file where badges will be inserted
@@ -21,12 +24,12 @@ Implement a fast and lean badge system for mypylogger v0.2.0 that displays profe
 
 ### Requirement 1
 
-**User Story:** As a developer, I want to see the exact badges shown in the project specification, so that I can quickly assess project status and compatibility.
+**User Story:** As a developer, I want to see a clean set of badges that provide comprehensive project status, so that I can quickly assess project quality and compatibility.
 
 #### Acceptance Criteria
 
-1. THE Badge_System SHALL implement quality-gate.yml status badge using GitHub Actions workflow status
-2. THE Badge_System SHALL implement security-scan.yml status badge using GitHub Actions workflow status  
+1. THE Badge_System SHALL implement a single quality gate badge that requires all quality checks to pass (linting, style, type checking, security)
+2. THE Badge_System SHALL implement a single comprehensive security badge that includes all security-related tests (local scans: bandit, safety, semgrep, and GitHub CodeQL scanning)
 3. THE Badge_System SHALL implement code style badge showing "ruff" formatting compliance
 4. THE Badge_System SHALL implement type checking badge showing "mypy" validation status
 5. THE Badge_System SHALL implement Python version compatibility badge showing "3.8 | 3.9 | 3.10 | 3.11 | 3.12"
@@ -81,6 +84,7 @@ Implement a fast and lean badge system for mypylogger v0.2.0 that displays profe
 3. THE Badge_System SHALL run safety dependency scanner locally  
 4. THE Badge_System SHALL run semgrep security analysis locally
 5. THE Badge_System SHALL simulate CodeQL analysis locally where possible
+6. THE Badge_System SHALL integrate local security scan results with GitHub CodeQL results for Comprehensive_Security_Badge status
 
 ### Requirement 6
 
@@ -119,6 +123,20 @@ Implement a fast and lean badge system for mypylogger v0.2.0 that displays profe
 5. THE Badge_System SHALL work correctly with automated testing and deployment workflows
 
 ### Requirement 9
+
+**User Story:** As a security-conscious developer, I want a single comprehensive security badge that shows all security-related test results, so that I can assess the complete security posture of the project at a glance.
+
+#### Acceptance Criteria
+
+1. THE Badge_System SHALL implement a single comprehensive security badge that combines all security scanning results (local and GitHub CodeQL)
+2. THE Badge_System SHALL integrate local security scans (bandit, safety, semgrep) with GitHub CodeQL scanning results
+3. THE Badge_System SHALL provide a clickable security badge that links to the latest GitHub CodeQL scan results
+4. THE Badge_System SHALL display "Security: Verified" when all local scans and GitHub CodeQL scans pass
+5. THE Badge_System SHALL display "Security: Issues Found" when any security scan detects problems
+6. THE Badge_System SHALL display "Security: Scanning" when scans are in progress
+7. THE Badge_System SHALL provide direct access to detailed security scan results through the badge link
+
+### Requirement 10
 
 **User Story:** As a developer visiting the project repository, I want to see professional badges displayed in the README, so that I can quickly assess project quality and status.
 

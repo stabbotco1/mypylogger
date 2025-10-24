@@ -38,10 +38,10 @@ mypylogger/
 **Key Functions**:
 ```python
 def generate_quality_gate_badge() -> str:
-    """Generate GitHub Actions workflow status badge URL."""
+    """Generate overall quality gate badge that requires all quality checks to pass."""
     
-def generate_security_scan_badge() -> str:
-    """Generate security scan workflow status badge URL."""
+def generate_comprehensive_security_badge() -> str:
+    """Generate comprehensive security badge combining all security tests (local + GitHub CodeQL)."""
     
 def generate_code_style_badge() -> str:
     """Generate Ruff code style compliance badge URL."""
@@ -63,7 +63,8 @@ def generate_license_badge() -> str:
 ```
 
 **Badge Status Detection**:
-- **GitHub Actions badges**: Use GitHub API to check workflow status
+- **Quality Gate badge**: Aggregate status from all quality checks (linting, style, type checking, security)
+- **Comprehensive security badge**: Combine all security scans (local: bandit, safety, semgrep + GitHub CodeQL results)
 - **Code quality badges**: Run local checks (ruff, mypy) to determine status
 - **Static badges**: Use project configuration (pyproject.toml, LICENSE)
 - **PyPI badges**: Use PyPI API for version and download information
@@ -107,6 +108,12 @@ def run_semgrep_analysis() -> bool:
     
 def simulate_codeql_checks() -> bool:
     """Run CodeQL-equivalent checks locally where possible."""
+    
+def get_github_codeql_status() -> str:
+    """Get GitHub CodeQL scan status from GitHub API."""
+    
+def get_comprehensive_security_status() -> Dict[str, Any]:
+    """Combine local security scans with GitHub CodeQL results."""
 ```
 
 ### Configuration (`badges/config.py`)
@@ -119,15 +126,20 @@ BADGE_CONFIG = {
     'github_repo': 'username/mypylogger',
     'pypi_package': 'mypylogger',
     'shields_base_url': 'https://img.shields.io',
+    'github_api_base': 'https://api.github.com',
     'badge_templates': {
-        'quality_gate': 'github/actions/workflow/status/{repo}/quality-gate.yml',
-        'security_scan': 'github/actions/workflow/status/{repo}/security-scan.yml',
+        'quality_gate': 'badge/quality%20gate-{status}-{color}',
+        'comprehensive_security': 'badge/security-{status}-{color}',
         'code_style': 'badge/code%20style-ruff-000000',
         'type_checked': 'badge/type%20checked-mypy-blue',
         'python_versions': 'pypi/pyversions/{package}',
         'pypi_version': 'pypi/v/{package}',
         'downloads': 'badge/downloads-development-yellow',
         'license': 'github/license/{repo}'
+    },
+    'security_badge_links': {
+        'codeql_results': 'https://github.com/{repo}/security/code-scanning',
+        'security_tab': 'https://github.com/{repo}/security'
     }
 }
 ```
@@ -258,9 +270,10 @@ def test_security_integration_workflow():
 ## Implementation Phases
 
 ### Phase 1: Core Badge Generation
-1. Implement badge URL generation for all 8 badge types
+1. Implement badge URL generation for all 9 badge types (including comprehensive security)
 2. Create shields.io integration with status detection
 3. Implement basic configuration management
+4. Add GitHub API integration for CodeQL status retrieval
 
 ### Phase 2: README Integration
 1. Implement atomic README update mechanism
@@ -271,6 +284,8 @@ def test_security_integration_workflow():
 1. Integrate security scanning tools (bandit, safety, semgrep)
 2. Enhance run_tests.sh with security checks
 3. Implement CodeQL simulation where possible
+4. Add GitHub CodeQL API integration for comprehensive security badge
+5. Implement security status combination logic (local + GitHub)
 
 ### Phase 4: Testing and Validation
 1. Comprehensive unit and integration testing
@@ -330,5 +345,24 @@ def test_security_integration_workflow():
 - Secure execution of security scanners
 - Proper handling of scan results
 - No exposure of sensitive scan data
+
+### Comprehensive Security Badge Integration
+
+**GitHub CodeQL Integration**:
+- Query GitHub API for CodeQL scan results
+- Parse CodeQL alerts and status from security API endpoints
+- Handle authentication for private repositories (optional)
+- Combine CodeQL results with local security scan results
+
+**Security Status Determination**:
+- **"Verified"**: All local scans pass AND no open CodeQL alerts
+- **"Issues Found"**: Any local scan fails OR open CodeQL alerts exist
+- **"Scanning"**: CodeQL scans in progress or local scans running
+- **"Unknown"**: Unable to determine status due to API failures
+
+**Badge Link Strategy**:
+- Primary link: GitHub CodeQL results page (`/security/code-scanning`)
+- Fallback link: General security tab (`/security`)
+- Include repository context in all security links
 
 This design provides a robust, minimal implementation that meets all requirements while maintaining simplicity and reliability for the MVP badge system.

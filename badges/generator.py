@@ -7,7 +7,10 @@ and package information.
 
 from __future__ import annotations
 
+import os
+
 from badges.config import BADGE_CONFIG, get_badge_config
+from badges.security import get_comprehensive_security_status
 
 
 def generate_code_style_badge() -> str:
@@ -91,47 +94,37 @@ def generate_license_badge() -> str:
 
 
 def generate_quality_gate_badge() -> str:
-    """Generate GitHub Actions workflow status badge URL.
+    """Generate overall quality gate badge that aggregates all quality checks.
 
     Returns:
-        Shields.io URL for quality-gate.yml workflow status badge.
+        Shields.io URL for quality gate badge with appropriate status and color.
     """
     try:
         config = get_badge_config()
-        template = BADGE_CONFIG["badge_templates"]["quality_gate"]
 
-        # Replace repo placeholder with actual repository
-        formatted_template = template.format(repo=config.github_repo)
-        return f"{config.shields_base_url}/{formatted_template}"
+        # Get quality gate status (aggregated from all quality checks)
+        from badges.status import get_quality_gate_status
+
+        quality_status = get_quality_gate_status()
+        status = quality_status["status"]
+
+        # Determine badge color based on status
+        color_map = {
+            "passing": "brightgreen",
+            "failing": "red",
+            "pending": "yellow",
+            "unknown": "lightgrey",
+        }
+        color = color_map.get(status, "lightgrey")
+
+        # Create custom badge URL
+        badge_text = f"quality%20gate-{status}-{color}"
+        return f"{config.shields_base_url}/badge/{badge_text}?style=flat"
+
     except Exception:
-        # Fallback to default configuration on error
+        # Fallback to unknown status on error
         base_url = BADGE_CONFIG["shields_base_url"]
-        template = BADGE_CONFIG["badge_templates"]["quality_gate"]
-        repo = BADGE_CONFIG["github_repo"]
-        formatted_template = template.format(repo=repo)
-        return f"{base_url}/{formatted_template}"
-
-
-def generate_security_scan_badge() -> str:
-    """Generate security scan workflow status badge URL.
-
-    Returns:
-        Shields.io URL for security-scan.yml workflow status badge.
-    """
-    try:
-        config = get_badge_config()
-        template = BADGE_CONFIG["badge_templates"]["security_scan"]
-
-        # Replace repo placeholder with actual repository
-        formatted_template = template.format(repo=config.github_repo)
-        return f"{config.shields_base_url}/{formatted_template}"
-    except Exception:
-        # Fallback to default configuration on error
-        base_url = BADGE_CONFIG["shields_base_url"]
-        template = BADGE_CONFIG["badge_templates"]["security_scan"]
-        repo = BADGE_CONFIG["github_repo"]
-        formatted_template = template.format(repo=repo)
-        return f"{base_url}/{formatted_template}"
+        return f"{base_url}/badge/quality%20gate-unknown-lightgrey?style=flat"
 
 
 def generate_pypi_version_badge() -> str:
@@ -172,3 +165,50 @@ def generate_downloads_badge() -> str:
         base_url = BADGE_CONFIG["shields_base_url"]
         template = BADGE_CONFIG["badge_templates"]["downloads"]
         return f"{base_url}/{template}"
+
+
+def generate_comprehensive_security_badge() -> str:
+    """Generate comprehensive security badge combining local and GitHub CodeQL results.
+
+    Returns:
+        Shields.io URL for comprehensive security badge with appropriate status and color.
+    """
+    try:
+        config = get_badge_config()
+
+        # Get comprehensive security status
+        security_status = get_comprehensive_security_status()
+        status = security_status["status"]
+
+        # Determine badge color based on status
+        color_map = {
+            "Verified": "brightgreen",
+            "Issues Found": "red",
+            "Scanning": "yellow",
+            "Unknown": "lightgrey",
+        }
+        color = color_map.get(status, "lightgrey")
+
+        # Create custom badge URL
+        badge_text = f"security-{status.replace(' ', '%20')}-{color}"
+        return f"{config.shields_base_url}/badge/{badge_text}?style=flat"
+
+    except Exception:
+        # Fallback to unknown status on error
+        base_url = BADGE_CONFIG["shields_base_url"]
+        return f"{base_url}/badge/security-Unknown-lightgrey?style=flat"
+
+
+def get_comprehensive_security_badge_link() -> str:
+    """Get the link URL for the comprehensive security badge.
+
+    Returns:
+        URL linking to GitHub CodeQL results or security tab.
+    """
+    try:
+        security_status = get_comprehensive_security_status()
+        return str(security_status["link_url"])
+    except Exception:
+        # Fallback to default repository security tab
+        github_repo = os.getenv("GITHUB_REPOSITORY", "username/mypylogger")
+        return f"https://github.com/{github_repo}/security"

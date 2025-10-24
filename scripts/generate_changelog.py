@@ -5,12 +5,13 @@ This script generates changelog entries from Git commit messages following
 conventional commit format and updates the CHANGELOG.md file.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from pathlib import Path
 import re
 import subprocess
 import sys
-from typing import Dict, List, Optional, Tuple
 
 
 class ChangelogGenerator:
@@ -41,7 +42,7 @@ class ChangelogGenerator:
             "removed": "Removed",
         }
 
-    def get_commits_since_tag(self, tag: Optional[str] = None) -> List[str]:
+    def get_commits_since_tag(self, tag: str | None = None) -> list[str]:
         """Get commit messages since the specified tag.
 
         Args:
@@ -65,7 +66,7 @@ class ChangelogGenerator:
             print(f"Error getting commits: {e}", file=sys.stderr)
             return []
 
-    def parse_commit_message(self, commit_line: str) -> Optional[Tuple[str, str, str]]:
+    def parse_commit_message(self, commit_line: str) -> tuple[str, str, str] | None:
         """Parse a commit message line into type, scope, and description.
 
         Args:
@@ -93,7 +94,7 @@ class ChangelogGenerator:
 
         return None
 
-    def categorize_changes(self, commits: List[str]) -> Dict[str, List[str]]:
+    def categorize_changes(self, commits: list[str]) -> dict[str, list[str]]:
         """Categorize commits by changelog section.
 
         Args:
@@ -102,7 +103,7 @@ class ChangelogGenerator:
         Returns:
             Dictionary mapping changelog sections to lists of changes
         """
-        categories: Dict[str, List[str]] = {}
+        categories: dict[str, list[str]] = {}
 
         for commit in commits:
             parsed = self.parse_commit_message(commit)
@@ -115,10 +116,7 @@ class ChangelogGenerator:
             category = self.commit_types.get(commit_type, "Changed")
 
             # Format the change entry
-            if scope:
-                change_entry = f"**{scope}**: {description}"
-            else:
-                change_entry = description
+            change_entry = f"**{scope}**: {description}" if scope else description
 
             if category not in categories:
                 categories[category] = []
@@ -126,7 +124,7 @@ class ChangelogGenerator:
 
         return categories
 
-    def get_latest_version(self) -> Optional[str]:
+    def get_latest_version(self) -> str | None:
         """Get the latest version tag from Git.
 
         Returns:
@@ -143,7 +141,7 @@ class ChangelogGenerator:
         except subprocess.CalledProcessError:
             return None
 
-    def get_new_version(self) -> Optional[str]:
+    def get_new_version(self) -> str | None:
         """Get the new version from environment or pyproject.toml.
 
         Returns:
@@ -176,7 +174,7 @@ class ChangelogGenerator:
         except (FileNotFoundError, KeyError):
             return None
 
-    def format_changelog_entry(self, version: str, categories: Dict[str, List[str]]) -> str:
+    def format_changelog_entry(self, version: str, categories: dict[str, list[str]]) -> str:
         """Format a changelog entry for the given version and changes.
 
         Args:
@@ -271,7 +269,7 @@ class ChangelogGenerator:
 
         return "\n".join(lines)
 
-    def generate_changelog_for_version(self, version: Optional[str] = None) -> None:
+    def generate_changelog_for_version(self, version: str | None = None) -> None:
         """Generate changelog entry for a version.
 
         Args:

@@ -252,7 +252,7 @@ class TestBadgeConfigConstants:
 
         expected_badges = [
             "quality_gate",
-            "security_scan",
+            "comprehensive_security",
             "code_style",
             "type_checked",
             "python_versions",
@@ -268,9 +268,9 @@ class TestBadgeConfigConstants:
         """Test badge template URLs have correct format."""
         templates = BADGE_CONFIG["badge_templates"]
 
-        # GitHub Actions badges should have workflow status format
-        assert "github/actions/workflow/status/{repo}" in templates["quality_gate"]
-        assert "github/actions/workflow/status/{repo}" in templates["security_scan"]
+        # Dynamic badges should have badge format with status and color placeholders
+        assert "badge/quality%20gate-{status}-{color}" in templates["quality_gate"]
+        assert "badge/security-{status}-{color}" in templates["comprehensive_security"]
 
         # Static badges should have badge format
         assert "badge/code%20style-ruff" in templates["code_style"]

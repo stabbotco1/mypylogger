@@ -5,14 +5,15 @@ This script updates the placeholder URLs in pyproject.toml with the actual
 GitHub repository information detected from the Git remote.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 import re
 import subprocess
 import sys
-from typing import Optional
 
 
-def get_git_remote_url() -> Optional[str]:
+def get_git_remote_url() -> str | None:
     """Get the Git remote URL for origin.
 
     Returns:
@@ -27,7 +28,7 @@ def get_git_remote_url() -> Optional[str]:
         return None
 
 
-def parse_github_url(git_url: str) -> Optional[tuple[str, str]]:
+def parse_github_url(git_url: str) -> tuple[str, str] | None:
     """Parse GitHub username and repository from Git URL.
 
     Args:
@@ -75,7 +76,9 @@ def update_pyproject_urls(username: str, repository: str) -> bool:
             'Documentation = "https://username.github.io/mypylogger"': f'Documentation = "https://{username}.github.io/{repository}"',
             'Repository = "https://github.com/username/mypylogger"': f'Repository = "https://github.com/{username}/{repository}"',
             '"Bug Tracker" = "https://github.com/username/mypylogger/issues"': f'"Bug Tracker" = "https://github.com/{username}/{repository}/issues"',
-            'Changelog = "https://github.com/username/mypylogger/blob/main/CHANGELOG.md"': f'Changelog = "https://github.com/{username}/{repository}/blob/main/CHANGELOG.md"',
+            'Changelog = "https://github.com/username/mypylogger/blob/main/CHANGELOG.md"': (
+                f'Changelog = "https://github.com/{username}/{repository}/blob/main/CHANGELOG.md"'
+            ),
             '"Source Code" = "https://github.com/username/mypylogger"': f'"Source Code" = "https://github.com/{username}/{repository}"',
             '"Download" = "https://pypi.org/project/mypylogger/"': f'"Download" = "https://pypi.org/project/{repository}/"',
         }

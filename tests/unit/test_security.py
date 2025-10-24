@@ -1,9 +1,13 @@
 """Unit tests for security scanning integration."""
 
+import os
 import subprocess
 from unittest.mock import Mock, patch
+import urllib.error
 
 from badges.security import (
+    get_comprehensive_security_status,
+    get_github_codeql_status,
     run_all_security_checks,
     run_bandit_scan,
     run_safety_check,
@@ -504,3 +508,317 @@ os.system('rm -rf /')  # This should be detected
 
         result = run_safety_check()
         assert result is True  # Should pass for transitive vulnerabilities
+
+
+class TestGitHubCodeQLIntegration:
+    """Test GitHub CodeQL API integration functionality."""
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_success_no_alerts(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with no open alerts."""
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.read.return_value = b"[]"
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "success"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_success_with_low_severity(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with only low severity alerts."""
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.read.return_value = b'[{"state": "open", "rule": {"severity": "note"}}]'
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "success"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_failure_with_high_severity(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with high severity alerts."""
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.read.return_value = b'[{"state": "open", "rule": {"severity": "error"}}]'
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "failure"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_404_not_found(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status when repository not found."""
+        mock_response = Mock()
+        mock_response.status = 404
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "unknown"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_http_error_404(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with HTTP 404 error."""
+        mock_urlopen.side_effect = urllib.error.HTTPError(
+            url="", code=404, msg="Not Found", hdrs=None, fp=None
+        )
+
+        result = get_github_codeql_status()
+        assert result == "unknown"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_http_error_403(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with HTTP 403 error (rate limited)."""
+        mock_urlopen.side_effect = urllib.error.HTTPError(
+            url="", code=403, msg="Forbidden", hdrs=None, fp=None
+        )
+
+        result = get_github_codeql_status()
+        assert result == "unknown"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_http_error_other(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with other HTTP error."""
+        mock_urlopen.side_effect = urllib.error.HTTPError(
+            url="", code=500, msg="Internal Server Error", hdrs=None, fp=None
+        )
+
+        result = get_github_codeql_status()
+        assert result == "unknown"
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_timeout(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with timeout."""
+        mock_urlopen.side_effect = Exception("Timeout")
+
+        result = get_github_codeql_status()
+        assert result == "unknown"
+
+    @patch("urllib.request.urlopen")
+    @patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"})
+    def test_get_github_codeql_status_with_auth_token(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with authentication token."""
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.read.return_value = b"[]"
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "success"
+
+        # Verify that authorization header was added
+        call_args = mock_urlopen.call_args[0][0]
+        assert "Authorization" in call_args.headers
+        assert call_args.headers["Authorization"] == "token test_token"
+
+    @patch("urllib.request.urlopen")
+    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "testuser/testrepo"})
+    def test_get_github_codeql_status_custom_repo(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with custom repository."""
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.read.return_value = b"[]"
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "success"
+
+        # Verify correct API URL was called
+        call_args = mock_urlopen.call_args[0][0]
+        assert "testuser/testrepo" in call_args.full_url
+
+    @patch("urllib.request.urlopen")
+    def test_get_github_codeql_status_invalid_json(self, mock_urlopen: Mock) -> None:
+        """Test GitHub CodeQL status with invalid JSON response."""
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.read.return_value = b"invalid json"
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        result = get_github_codeql_status()
+        assert result == "unknown"
+
+
+class TestComprehensiveSecurityStatus:
+    """Test comprehensive security status functionality."""
+
+    @patch("badges.status.get_status_cache")
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    def test_get_comprehensive_security_status_verified(
+        self, mock_codeql: Mock, mock_local: Mock, mock_cache: Mock
+    ) -> None:
+        """Test comprehensive security status when all checks pass."""
+        # Mock cache to return None (no cached results)
+        mock_cache_instance = Mock()
+        mock_cache_instance.get.return_value = None
+        mock_cache_instance.is_expired.return_value = True
+        mock_cache.return_value = mock_cache_instance
+
+        mock_local.return_value = {
+            "bandit": True,
+            "safety": True,
+            "semgrep": True,
+            "codeql_simulation": True,
+        }
+        mock_codeql.return_value = "success"
+
+        result = get_comprehensive_security_status()
+
+        assert result["status"] == "Verified"
+        assert result["local_passed"] is True
+        assert result["codeql_passed"] is True
+        assert "code-scanning" in result["link_url"]
+
+    @patch("badges.status.get_status_cache")
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    def test_get_comprehensive_security_status_issues_found_local(
+        self, mock_codeql: Mock, mock_local: Mock, mock_cache: Mock
+    ) -> None:
+        """Test comprehensive security status when local checks fail."""
+        # Mock cache to return None (no cached results)
+        mock_cache_instance = Mock()
+        mock_cache_instance.get.return_value = None
+        mock_cache_instance.is_expired.return_value = True
+        mock_cache.return_value = mock_cache_instance
+
+        mock_local.return_value = {
+            "bandit": False,
+            "safety": True,
+            "semgrep": True,
+            "codeql_simulation": True,
+        }
+        mock_codeql.return_value = "success"
+
+        result = get_comprehensive_security_status()
+
+        assert result["status"] == "Issues Found"
+        assert result["local_passed"] is False
+        assert result["codeql_passed"] is True
+
+    @patch("badges.status.get_status_cache")
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    def test_get_comprehensive_security_status_issues_found_codeql(
+        self, mock_codeql: Mock, mock_local: Mock, mock_cache: Mock
+    ) -> None:
+        """Test comprehensive security status when CodeQL fails."""
+        # Mock cache to return None (no cached results)
+        mock_cache_instance = Mock()
+        mock_cache_instance.get.return_value = None
+        mock_cache_instance.is_expired.return_value = True
+        mock_cache.return_value = mock_cache_instance
+
+        mock_local.return_value = {
+            "bandit": True,
+            "safety": True,
+            "semgrep": True,
+            "codeql_simulation": True,
+        }
+        mock_codeql.return_value = "failure"
+
+        result = get_comprehensive_security_status()
+
+        assert result["status"] == "Issues Found"
+        assert result["local_passed"] is True
+        assert result["codeql_passed"] is False
+        assert "code-scanning" in result["link_url"]
+
+    @patch("badges.status.get_status_cache")
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    def test_get_comprehensive_security_status_scanning(
+        self, mock_codeql: Mock, mock_local: Mock, mock_cache: Mock
+    ) -> None:
+        """Test comprehensive security status when CodeQL is pending."""
+        # Mock cache to return None (no cached results)
+        mock_cache_instance = Mock()
+        mock_cache_instance.get.return_value = None
+        mock_cache_instance.is_expired.return_value = True
+        mock_cache.return_value = mock_cache_instance
+
+        mock_local.return_value = {
+            "bandit": True,
+            "safety": True,
+            "semgrep": True,
+            "codeql_simulation": True,
+        }
+        mock_codeql.return_value = "pending"
+
+        result = get_comprehensive_security_status()
+
+        assert result["status"] == "Scanning"
+        assert result["local_passed"] is True
+        assert result["codeql_passed"] is False
+
+    @patch("badges.status.get_status_cache")
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    def test_get_comprehensive_security_status_unknown(
+        self, mock_codeql: Mock, mock_local: Mock, mock_cache: Mock
+    ) -> None:
+        """Test comprehensive security status when CodeQL status is unknown."""
+        # Mock cache to return None (no cached results)
+        mock_cache_instance = Mock()
+        mock_cache_instance.get.return_value = None
+        mock_cache_instance.is_expired.return_value = True
+        mock_cache.return_value = mock_cache_instance
+
+        mock_local.return_value = {
+            "bandit": True,
+            "safety": True,
+            "semgrep": True,
+            "codeql_simulation": True,
+        }
+        mock_codeql.return_value = "unknown"
+
+        result = get_comprehensive_security_status()
+
+        assert result["status"] == "Unknown"
+        assert result["local_passed"] is True
+        assert result["codeql_passed"] is False
+        assert "/security" in result["link_url"]
+        assert "code-scanning" not in result["link_url"]
+
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "testuser/testrepo"})
+    def test_get_comprehensive_security_status_custom_repo(
+        self, mock_codeql: Mock, mock_local: Mock
+    ) -> None:
+        """Test comprehensive security status with custom repository."""
+        mock_local.return_value = {
+            "bandit": True,
+            "safety": True,
+            "semgrep": True,
+            "codeql_simulation": True,
+        }
+        mock_codeql.return_value = "success"
+
+        result = get_comprehensive_security_status()
+
+        assert result["github_repo"] == "testuser/testrepo"
+        assert "testuser/testrepo" in result["link_url"]
+
+    @patch("badges.status.get_status_cache")
+    @patch("badges.security.run_all_security_checks")
+    @patch("badges.security.get_github_codeql_status")
+    def test_get_comprehensive_security_status_exception(
+        self, mock_codeql: Mock, mock_local: Mock, mock_cache: Mock
+    ) -> None:
+        """Test comprehensive security status with exception."""
+        # Mock cache to return None (no cached results)
+        mock_cache_instance = Mock()
+        mock_cache_instance.get.return_value = None
+        mock_cache_instance.is_expired.return_value = True
+        mock_cache.return_value = mock_cache_instance
+
+        mock_local.side_effect = Exception("Test error")
+        mock_codeql.return_value = "success"
+
+        result = get_comprehensive_security_status()
+
+        assert result["status"] == "Unknown"
+        assert result["local_passed"] is False
+        assert result["codeql_passed"] is False
