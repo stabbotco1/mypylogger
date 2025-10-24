@@ -424,8 +424,8 @@ class TestAllBadgeGeneration:
             with patch.dict(os.environ, env_vars, clear=True):
                 # Test all 8 badge types
                 expected_badges = {
-                    "quality_gate": "badge/quality%20gate-passing-brightgreen?style=flat",
-                    "comprehensive_security": "badge/security-Verified-brightgreen?style=flat",
+                    "quality_gate": "github/actions/workflow/status/testuser/testrepo/quality-gate.yml?style=flat&label=quality%20gate",
+                    "comprehensive_security": "badge/security-verified-brightgreen?style=flat",
                     "code_style": "badge/code%20style-ruff-000000?style=flat",
                     "type_checked": "badge/type%20checked-mypy-blue?style=flat",
                     "python_versions": "pypi/pyversions/testpackage?style=flat",
