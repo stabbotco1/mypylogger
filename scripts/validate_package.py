@@ -8,10 +8,10 @@ to ensure it meets quality standards before publishing to PyPI.
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
 
 try:
     import tomllib
@@ -38,9 +38,7 @@ class PackageValidator:
         self.errors: list[str] = []
         self.warnings: list[str] = []
 
-    def run_command(
-        self, cmd: list[str], check: bool = True  # noqa: S603
-    ) -> subprocess.CompletedProcess | None:
+    def run_command(self, cmd: list[str], check: bool = True) -> subprocess.CompletedProcess | None:
         """Run a command and capture output.
 
         Args:

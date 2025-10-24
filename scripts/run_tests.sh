@@ -47,27 +47,27 @@ run_check() {
 
 echo "1. Code Formatting Check"
 echo "------------------------"
-run_check "uv run ruff format --check src/ tests/ --exclude ci-cd-tests" "Code formatting compliance"
+run_check "uv run --active ruff format --check src/ tests/ --exclude ci-cd-tests" "Code formatting compliance"
 
 echo ""
 echo "2. Linting Check"
 echo "----------------"
-run_check "uv run ruff check src/ tests/ --exclude ci-cd-tests" "Linting compliance"
+run_check "uv run --active ruff check src/ tests/ --exclude ci-cd-tests" "Linting compliance"
 
 echo ""
 echo "3. Type Checking"
 echo "----------------"
-run_check "uv run mypy src/" "Type checking compliance"
+run_check "uv run --active mypy src/" "Type checking compliance"
 
 echo ""
 echo "4. Test Execution with Coverage"
 echo "-------------------------------"
-run_check "uv run pytest --cov=mypylogger --cov-fail-under=95 --cov-report=term-missing" "Test execution and coverage (95% minimum)"
+run_check "uv run --active pytest --cov=mypylogger --cov-fail-under=95 --cov-report=term-missing" "Test execution and coverage (95% minimum)"
 
 echo ""
 echo "5. Import Verification"
 echo "----------------------"
-run_check "uv run python -c 'import mypylogger; print(f\"mypylogger v{mypylogger.get_version()} imported successfully\")'" "Package import verification"
+run_check "uv run --active python -c 'import mypylogger; print(f\"mypylogger v{mypylogger.get_version()} imported successfully\")'" "Package import verification"
 
 echo ""
 echo "Summary"
