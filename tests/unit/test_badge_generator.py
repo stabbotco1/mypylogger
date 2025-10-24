@@ -126,7 +126,7 @@ class TestStaticBadgeGeneration:
         with patch.dict(os.environ, {}, clear=True):
             url = generate_license_badge()
 
-            expected = "https://img.shields.io/github/license/username/mypylogger?style=flat"
+            expected = "https://img.shields.io/github/license/stabbotco1/mypylogger?style=flat"
             assert url == expected
 
     def test_generate_license_badge_with_custom_repo(self) -> None:
@@ -152,7 +152,7 @@ class TestStaticBadgeGeneration:
             # Should fallback to default configuration
             url = generate_license_badge()
 
-            expected = "https://img.shields.io/github/license/username/mypylogger?style=flat"
+            expected = "https://img.shields.io/github/license/stabbotco1/mypylogger?style=flat"
             assert url == expected
 
 
@@ -243,7 +243,7 @@ class TestDynamicBadgeGeneration:
                 url = generate_quality_gate_badge()
 
                 expected = (
-                    "https://img.shields.io/badge/quality%20gate-passing-brightgreen?style=flat"
+                    "https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?style=flat&label=quality%20gate"
                 )
                 assert url == expected
 
@@ -262,7 +262,7 @@ class TestDynamicBadgeGeneration:
             with patch.dict(os.environ, env_vars, clear=True):
                 url = generate_quality_gate_badge()
 
-                expected = "https://custom.shields.io/badge/quality%20gate-failing-red?style=flat"
+                expected = "https://custom.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?style=flat&label=quality%20gate"
                 assert url == expected
 
     def test_generate_quality_gate_badge_with_exception(self) -> None:
@@ -275,7 +275,7 @@ class TestDynamicBadgeGeneration:
                 url = generate_quality_gate_badge()
 
                 expected = (
-                    "https://img.shields.io/badge/quality%20gate-unknown-lightgrey?style=flat"
+                    "https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?style=flat&label=quality%20gate"
                 )
                 assert url == expected
 
@@ -538,7 +538,7 @@ class TestComprehensiveSecurityBadge:
         with patch.dict(os.environ, {}, clear=True):
             url = generate_comprehensive_security_badge()
 
-            expected = "https://img.shields.io/badge/security-Verified-brightgreen?style=flat"
+            expected = "https://img.shields.io/badge/security-verified-brightgreen?style=flat"
             assert url == expected
 
     @patch("badges.generator.get_comprehensive_security_status")
