@@ -709,6 +709,7 @@ except Exception as e:
           else
             echo "⚠️ Benchmark results file not found"
           fi
+          fi
       
       # Validate performance thresholds
       - name: Validate performance thresholds
