@@ -1,0 +1,145 @@
+# GitHub Actions Workflow Template for mypylogger v0.2.0
+# 
+# This template demonstrates the standard workflow structure and common patterns
+# used across all mypylogger v0.2.0 GitHub Actions workflows.
+#
+# Key Requirements Addressed:
+# - Requirement 7.1: Use same UV package manager as local development
+# - Requirement 7.4: Use same dependency versions from uv.lock
+# - Requirement 2.4: Cache dependencies for performance
+# - Requirement 5.3: Cache dependencies between runs
+#
+# DO NOT USE THIS FILE DIRECTLY - it's a template for reference
+
+name: Template Workflow
+
+# Common trigger patterns
+on:
+  # For quality gate workflows
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+  
+  # For security scanning workflows  
+  push:
+    branches: [ main ]
+  
+  # For manual workflows (publishing)
+  workflow_dispatch:
+  
+  # For scheduled workflows (security scans)
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+
+# Global environment variables
+env:
+  UV_CACHE_DIR: ~/.cache/uv
+  COVERAGE_THRESHOLD: "95"
+
+# Default permissions (security-first approach)
+permissions:
+  contents: read
+
+jobs:
+  # Template job showing common setup pattern
+  template-job:
+    name: Template Job (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    
+    # Fail-fast strategy for quick feedback
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    
+    # Job timeout for performance requirement (5 minutes)
+    timeout-minutes: 10
+    
+    steps:
+      # Standard checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Python setup with version from matrix
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      # Install UV package manager
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      
+      # Critical: UV dependency caching for performance
+      - name: Cache UV dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            uv-${{ runner.os }}-${{ matrix.python-version }}-
+            uv-${{ runner.os }}-
+      
+      # Install project dependencies using UV
+      - name: Install dependencies
+        run: uv sync
+      
+      # Verify UV installation and dependency sync
+      - name: Verify environment
+        run: |
+          uv --version
+          uv run python --version
+          uv run python -c "import sys; print(f'Python {sys.version}')"
+      
+      # Template quality check commands (uncomment in actual workflows)
+      # 
+      # - name: Run tests with coverage
+      #   run: uv run pytest --cov=mypylogger --cov-fail-under=${{ env.COVERAGE_THRESHOLD }}
+      # 
+      # - name: Run linting checks
+      #   run: uv run ruff check .
+      # 
+      # - name: Check code formatting
+      #   run: uv run ruff format --check .
+      # 
+      # - name: Run type checking
+      #   run: uv run mypy src/
+      # 
+      # - name: Run master test script
+      #   run: ./scripts/run_tests.sh
+
+  # Template job for single Python version (non-matrix)
+  single-version-job:
+    name: Single Version Job
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      
+      - name: Cache UV dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-3.12-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-3.12-
+      
+      - name: Install dependencies
+        run: uv sync
+      
+      # Single version specific tasks would go here
+      - name: Placeholder task
+        run: echo "Single version job completed"

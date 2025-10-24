@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "label": "performance",
+  "message": "init: 0.0ms | log: 0.1ms",
+  "color": "brightgreen"
+}

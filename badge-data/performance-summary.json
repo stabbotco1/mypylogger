@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-10-23T22:26:40.384905Z",
+  "total_benchmarks": 6,
+  "regression_detected": false,
+  "regression_details": [],
+  "benchmark_results": {
+    "test_logger_initialization_performance": {
+      "mean_ms": 0.0,
+      "stddev_ms": 0.0,
+      "min_ms": 0.0,
+      "max_ms": 0.005
+    },
+    "test_logger_initialization_with_file_config_performance": {
+      "mean_ms": 0.002,
+      "stddev_ms": 0.0,
+      "min_ms": 0.002,
+      "max_ms": 0.014
+    },
+    "test_single_log_entry_performance": {
+      "mean_ms": 0.044,
+      "stddev_ms": 0.097,
+      "min_ms": 0.037,
+      "max_ms": 3.665
+    },
+    "test_log_entry_with_extra_fields_performance": {
+      "mean_ms": 0.042,
+      "stddev_ms": 0.002,
+      "min_ms": 0.038,
+      "max_ms": 0.098
+    },
+    "test_file_logging_performance": {
+      "mean_ms": 0.082,
+      "stddev_ms": 0.003,
+      "min_ms": 0.072,
+      "max_ms": 0.119
+    },
+    "test_performance_baseline_validation": {
+      "mean_ms": 0.041,
+      "stddev_ms": 0.002,
+      "min_ms": 0.037,
+      "max_ms": 0.073
+    }
+  },
+  "badge_data": {
+    "schemaVersion": 1,
+    "label": "performance",
+    "message": "init: 0.0ms | log: 0.1ms",
+    "color": "brightgreen",
+    "status": "passing",
+    "init_time_ms": 0.001,
+    "log_time_ms": 0.056,
+    "regression_detected": false
+  }
+}

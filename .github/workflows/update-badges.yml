@@ -1,0 +1,519 @@
+# Badge Update Workflow for mypylogger v0.2.0
+#
+# This workflow updates badge JSON files in the repository for shields.io integration.
+# It runs after quality-gate and security-scan workflows complete to ensure
+# badge data is always current and reflects the latest CI/CD status.
+#
+# Requirements Addressed:
+# - 12.1: Update coverage data for badge generation within 5 minutes
+# - 12.2: Update security status for badge display
+# - 12.3: Update code style status for badge display
+# - 12.4: Reflect exact coverage percentage from most recent test run
+# - 12.5: Badge data refresh timing meets 5-minute requirement
+
+name: Update Badges
+
+# Trigger after quality-gate and security-scan workflows complete
+on:
+  workflow_run:
+    workflows: ["Quality Gate", "Security Scanning"]
+    types: [completed]
+    branches: [main]
+
+# Permissions for updating repository files
+permissions:
+  contents: write
+  actions: read
+
+# Global defaults
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  update-badges:
+    name: Update Badge Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+      
+      - name: Setup badge update environment
+        run: |
+          echo "🏷️ Setting up badge update environment..."
+          
+          # Create badges directory if it doesn't exist
+          mkdir -p .github/badges
+          
+          # Install jq for JSON processing
+          sudo apt-get update && sudo apt-get install -y jq bc
+          
+          echo "Environment ready for badge updates"
+      
+      # Download badge artifacts from the triggering workflow
+      - name: Download badge artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Get the workflow run that triggered this workflow
+            const workflowRun = context.payload.workflow_run;
+            console.log(`Triggered by workflow: ${workflowRun.name} (${workflowRun.id})`);
+            
+            // List artifacts from the triggering workflow run
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: workflowRun.id,
+            });
+            
+            console.log(`Found ${artifacts.data.artifacts.length} artifacts`);
+            
+            // Download relevant badge artifacts (including performance badge data)
+            const badgeArtifacts = artifacts.data.artifacts.filter(artifact => 
+              artifact.name.includes('badge-data') || 
+              artifact.name === 'all-badge-data' ||
+              artifact.name === 'performance-badge-data' ||
+              artifact.name === 'benchmark-results'
+            );
+            
+            for (const artifact of badgeArtifacts) {
+              console.log(`Downloading artifact: ${artifact.name}`);
+              
+              try {
+                const download = await github.rest.actions.downloadArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                  archive_format: 'zip',
+                });
+                
+                fs.writeFileSync(`${artifact.name}.zip`, Buffer.from(download.data));
+                console.log(`Downloaded: ${artifact.name}.zip`);
+              } catch (error) {
+                console.log(`Failed to download ${artifact.name}: ${error.message}`);
+              }
+            }
+      
+      # Extract and process badge data
+      - name: Extract and process badge data
+        run: |
+          echo "📦 Extracting and processing badge data..."
+          
+          # Extract all downloaded artifacts
+          for zip_file in *.zip; do
+            if [ -f "$zip_file" ]; then
+              echo "Extracting $zip_file..."
+              unzip -o "$zip_file" -d extracted/
+            fi
+          done
+          
+          # Create badges directory
+          mkdir -p .github/badges
+          
+          # Process each type of badge data
+          echo "🔄 Processing badge data files..."
+          
+          # Find and copy badge JSON files
+          find extracted/ -name "*.json" -type f | while read -r badge_file; do
+            filename=$(basename "$badge_file")
+            echo "Processing: $filename"
+            
+            # Copy badge files to the badges directory with appropriate names
+            case "$filename" in
+              "build-status-badge.json")
+                cp "$badge_file" .github/badges/build-status.json
+                echo "✅ Updated build status badge"
+                ;;
+              "coverage-badge.json")
+                cp "$badge_file" .github/badges/coverage.json
+                echo "✅ Updated coverage badge"
+                ;;
+              "code-style-badge.json")
+                cp "$badge_file" .github/badges/code-style.json
+                echo "✅ Updated code style badge"
+                ;;
+              "security-badge.json")
+                cp "$badge_file" .github/badges/security.json
+                echo "✅ Updated security badge"
+                ;;
+              "performance-badge.json")
+                cp "$badge_file" .github/badges/performance.json
+                echo "✅ Updated performance badge"
+                ;;
+              *"summary.json")
+                # Keep summary files for debugging
+                cp "$badge_file" ".github/badges/$(basename "$badge_file")"
+                echo "📊 Saved summary: $(basename "$badge_file")"
+                ;;
+            esac
+          done
+          
+          echo "Badge processing completed"
+      
+      # Generate performance badge with regression detection
+      - name: Generate performance badge with regression detection
+        run: |
+          echo "🚀 Generating performance badge with regression detection..."
+          
+          # Install Python for badge generation
+          sudo apt-get update && sudo apt-get install -y python3 python3-pip
+          
+          # Check if we have benchmark results
+          BENCHMARK_FILE=""
+          BASELINE_FILE=""
+          
+          # Look for benchmark results in extracted files
+          if [ -f "extracted/benchmark.json" ]; then
+            BENCHMARK_FILE="extracted/benchmark.json"
+            echo "Found benchmark results: $BENCHMARK_FILE"
+          else
+            echo "⚠️ No benchmark results found - generating fallback performance badge"
+          fi
+          
+          # Look for baseline results (from previous successful runs)
+          if [ -f ".github/badges/performance-baseline.json" ]; then
+            BASELINE_FILE=".github/badges/performance-baseline.json"
+            echo "Found baseline results: $BASELINE_FILE"
+          else
+            echo "⚠️ No baseline results found - skipping regression detection"
+          fi
+          
+          # Generate performance badge
+          if [ -n "$BENCHMARK_FILE" ]; then
+            # Use the performance badge generation script
+            if [ -f "scripts/generate_performance_badge.py" ]; then
+              echo "Using performance badge generation script..."
+              
+              # Make script executable
+              chmod +x scripts/generate_performance_badge.py
+              
+              # Run badge generation with regression detection
+              if python3 scripts/generate_performance_badge.py "$BENCHMARK_FILE" "$BASELINE_FILE" ".github/badges/"; then
+                echo "✅ Performance badge generated successfully"
+                
+                # Save current results as new baseline for future comparisons
+                if [ -f "$BENCHMARK_FILE" ]; then
+                  cp "$BENCHMARK_FILE" ".github/badges/performance-baseline.json"
+                  echo "📊 Updated performance baseline for future regression detection"
+                fi
+              else
+                echo "❌ Performance badge generation failed"
+                
+                # Check if this was due to performance regression
+                if grep -q "regression detected" /tmp/badge_generation.log 2>/dev/null; then
+                  echo "🚨 PERFORMANCE REGRESSION DETECTED"
+                  echo "This indicates a significant performance degradation (>20%)"
+                  echo "Badge update workflow will continue, but the regression should be addressed"
+                  
+                  # Create regression badge
+                  cat > .github/badges/performance.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "performance",
+            "message": "regression detected",
+            "color": "red"
+          }
+          EOF
+                else
+                  # Create error fallback badge
+                  cat > .github/badges/performance.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "performance",
+            "message": "error",
+            "color": "red"
+          }
+          EOF
+                fi
+              fi
+            else
+              echo "⚠️ Performance badge script not found - creating basic badge from data"
+              
+              # Create basic performance badge from extracted data
+              if [ -f "extracted/performance-badge.json" ]; then
+                cp "extracted/performance-badge.json" ".github/badges/performance.json"
+                echo "✅ Used extracted performance badge data"
+              fi
+            fi
+          else
+            echo "⚠️ No benchmark data available - creating fallback badge"
+            # Create fallback performance badge
+            cat > .github/badges/performance.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "performance",
+            "message": "unknown",
+            "color": "lightgrey"
+          }
+          EOF
+          fi
+          
+          echo "Performance badge generation completed"
+      
+      # Update README with performance badge display
+      - name: Update README with performance badge display
+        run: |
+          echo "📝 Updating README with performance badge display..."
+          
+          # Check if README update script exists
+          if [ -f "scripts/update_readme_badges.py" ]; then
+            echo "Using README badge update script..."
+            
+            # Make script executable
+            chmod +x scripts/update_readme_badges.py
+            
+            # Run README update with repository name
+            if python3 scripts/update_readme_badges.py "${{ github.repository }}"; then
+              echo "✅ README updated with performance badge"
+            else
+              echo "⚠️ README update failed - continuing with badge updates"
+            fi
+          else
+            echo "⚠️ README update script not found - skipping README update"
+          fi
+          
+          echo "README update process completed"
+      
+      # Check for performance regression and create notification
+      - name: Check for performance regression and notify
+        run: |
+          echo "🔍 Checking for performance regression indicators..."
+          
+          # Check if performance badge indicates regression
+          if [ -f ".github/badges/performance.json" ]; then
+            PERF_MESSAGE=$(jq -r '.message' .github/badges/performance.json 2>/dev/null || echo "unknown")
+            
+            if [[ "$PERF_MESSAGE" == *"regression"* ]]; then
+              echo "🚨 PERFORMANCE REGRESSION DETECTED IN BADGE DATA"
+              echo "=============================================="
+              echo "The performance badge indicates a regression was detected."
+              echo ""
+              echo "📊 Performance Badge Status:"
+              echo "Message: $PERF_MESSAGE"
+              echo "Color: $(jq -r '.color' .github/badges/performance.json 2>/dev/null || echo 'unknown')"
+              echo ""
+              echo "🔧 Recommended Actions:"
+              echo "1. Review the triggering workflow logs for detailed regression information"
+              echo "2. Identify recent code changes that may have caused performance degradation"
+              echo "3. Run local performance benchmarks to reproduce the issue"
+              echo "4. Consider reverting changes or optimizing performance-critical code"
+              echo ""
+              echo "⚠️ Note: Badge update continues, but performance regression should be addressed"
+              
+              # Create regression summary file for potential future use
+              cat > .github/badges/performance-regression-alert.json << EOF
+          {
+            "regression_detected": true,
+            "detection_time": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')",
+            "workflow_run": "${{ github.event.workflow_run.id }}",
+            "commit_sha": "${{ github.event.workflow_run.head_sha }}",
+            "badge_message": "$PERF_MESSAGE",
+            "alert_level": "warning"
+          }
+          EOF
+              
+              echo "📄 Regression alert summary saved for tracking"
+            else
+              echo "✅ No performance regression detected in badge data"
+              
+              # Remove any existing regression alert
+              rm -f .github/badges/performance-regression-alert.json
+            fi
+          else
+            echo "⚠️ Performance badge not found - cannot check for regression"
+          fi
+      
+      # Generate fallback badges if data is missing
+      - name: Generate fallback badges
+        run: |
+          echo "🔧 Generating fallback badges for missing data..."
+          
+          # Build status fallback
+          if [ ! -f ".github/badges/build-status.json" ]; then
+            cat > .github/badges/build-status.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "build",
+            "message": "unknown",
+            "color": "lightgrey"
+          }
+          EOF
+            echo "⚠️ Generated fallback build status badge"
+          fi
+          
+          # Coverage fallback
+          if [ ! -f ".github/badges/coverage.json" ]; then
+            cat > .github/badges/coverage.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "unknown",
+            "color": "lightgrey"
+          }
+          EOF
+            echo "⚠️ Generated fallback coverage badge"
+          fi
+          
+          # Code style fallback
+          if [ ! -f ".github/badges/code-style.json" ]; then
+            cat > .github/badges/code-style.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "code style",
+            "message": "unknown",
+            "color": "lightgrey"
+          }
+          EOF
+            echo "⚠️ Generated fallback code style badge"
+          fi
+          
+          # Security fallback
+          if [ ! -f ".github/badges/security.json" ]; then
+            cat > .github/badges/security.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "security",
+            "message": "unknown",
+            "color": "lightgrey"
+          }
+          EOF
+            echo "⚠️ Generated fallback security badge"
+          fi
+          
+          # Performance fallback (if not already created above)
+          if [ ! -f ".github/badges/performance.json" ]; then
+            cat > .github/badges/performance.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "performance",
+            "message": "unknown",
+            "color": "lightgrey"
+          }
+          EOF
+            echo "⚠️ Generated fallback performance badge"
+          fi
+      
+      # Validate badge JSON files
+      - name: Validate badge JSON files
+        run: |
+          echo "✅ Validating badge JSON files..."
+          
+          for badge_file in .github/badges/*.json; do
+            if [ -f "$badge_file" ]; then
+              filename=$(basename "$badge_file")
+              echo "Validating: $filename"
+              
+              # Validate JSON syntax
+              if jq empty "$badge_file" 2>/dev/null; then
+                # Check required fields for shields.io
+                if jq -e '.schemaVersion and .label and .message and .color' "$badge_file" >/dev/null; then
+                  echo "✅ $filename: Valid shields.io badge format"
+                else
+                  echo "❌ $filename: Missing required fields"
+                fi
+              else
+                echo "❌ $filename: Invalid JSON syntax"
+              fi
+            fi
+          done
+      
+      # Generate badge status report
+      - name: Generate badge status report
+        run: |
+          echo "📊 Badge Status Report"
+          echo "===================="
+          echo "Updated at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Triggered by: ${{ github.event.workflow_run.name }}"
+          echo "Workflow run: ${{ github.event.workflow_run.id }}"
+          echo "Commit: ${{ github.event.workflow_run.head_sha }}"
+          echo ""
+          
+          echo "🏷️ Badge Files Status:"
+          echo "====================="
+          
+          for badge_file in .github/badges/*.json; do
+            if [ -f "$badge_file" ]; then
+              filename=$(basename "$badge_file")
+              label=$(jq -r '.label' "$badge_file" 2>/dev/null || echo "unknown")
+              message=$(jq -r '.message' "$badge_file" 2>/dev/null || echo "unknown")
+              color=$(jq -r '.color' "$badge_file" 2>/dev/null || echo "unknown")
+              
+              echo "📋 $filename:"
+              echo "   Label: $label"
+              echo "   Message: $message"
+              echo "   Color: $color"
+              echo ""
+            fi
+          done
+          
+          echo "📋 Badge URLs for README:"
+          echo "========================"
+          echo "Build Status: ![Build Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/.github/badges/build-status.json)"
+          echo "Coverage: ![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/.github/badges/coverage.json)"
+          echo "Code Style: ![Code Style](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/.github/badges/code-style.json)"
+          echo "Security: ![Security](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/.github/badges/security.json)"
+          echo "Performance: ![Performance](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/.github/badges/performance.json)"
+      
+      # Commit updated badge files using simple approach
+      - name: Commit updated badge files
+        run: |
+          echo "💾 Committing updated badge files..."
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Check if there are changes to commit
+          if git diff --quiet .github/badges/; then
+            echo "No badge changes to commit"
+          else
+            echo "Badge files have been updated, committing changes..."
+            
+            # Clean Git workflow: fetch, reset to origin, apply changes (Requirement 13.1, 13.2)
+            # This approach ensures linear history and prevents merge conflicts
+            git fetch origin main
+            
+            # Stash our badge changes
+            git add .github/badges/
+            git stash push -m "badge-updates" -- .github/badges/
+            
+            # Reset to latest origin (equivalent to rebase for clean history)
+            git reset --hard origin/main
+            
+            # Apply our badge changes
+            git stash pop || echo "No stash to pop"
+            
+            # Add and commit badge files
+            git add .github/badges/
+            
+            if ! git diff --staged --quiet; then
+              git commit -m "ci: update status badges from workflow run ${{ github.event.workflow_run.id }}
+
+              - Updated badges from ${{ github.event.workflow_run.name }} workflow
+              - Commit: ${{ github.event.workflow_run.head_sha }}
+              - Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+              
+              [skip ci]"
+              
+              # Push changes with clean linear history (Requirement 13.4)
+              git push origin main
+              echo "✅ Badge files updated and committed successfully"
+            else
+              echo "No changes to commit after reset"
+            fi
+          fi
+      
+      # Clean up temporary files
+      - name: Clean up temporary files
+        if: always()
+        run: |
+          echo "🧹 Cleaning up temporary files..."
+          rm -rf extracted/ *.zip
+          echo "Cleanup completed"

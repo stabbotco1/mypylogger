@@ -1,0 +1,167 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      dry_run:
+        description: 'Dry run (do not publish to PyPI)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write  # Required for PyPI OIDC authentication
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for changelog generation
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          echo "Bumping version: ${{ github.event.inputs.version_type }}"
+          uv run bump2version ${{ github.event.inputs.version_type }} --verbose
+          
+          NEW_VERSION=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "New version: $NEW_VERSION"
+
+      - name: Update package URLs
+        run: |
+          echo "Updating package URLs with repository information"
+          uv run python scripts/update_package_urls.py
+
+      - name: Generate changelog
+        run: |
+          echo "Generating changelog for version $NEW_VERSION"
+          uv run python scripts/generate_changelog.py --version $NEW_VERSION
+
+      - name: Run full quality gate
+        run: |
+          echo "Running complete test suite and quality checks"
+          ./scripts/run_tests.sh
+
+      - name: Validate package
+        run: |
+          echo "Validating package before building"
+          uv run python scripts/validate_package.py
+
+      - name: Build package
+        run: |
+          echo "Building Python package"
+          uv build
+          
+          # Verify build artifacts
+          ls -la dist/
+          
+          # Check package contents
+          uv run twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Create GitHub release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          name: Release v${{ steps.bump_version.outputs.new_version }}
+          body_path: CHANGELOG_LATEST.md
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI (Production)
+        if: ${{ !github.event.inputs.dry_run }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true
+          verbose: true
+
+      - name: Publish to Test PyPI (Dry Run)
+        if: ${{ github.event.inputs.dry_run }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          print-hash: true
+          verbose: true
+
+      - name: Update documentation
+        run: |
+          echo "Triggering documentation update"
+          # Documentation will be updated automatically by docs.yml workflow
+          # when the new tag is pushed
+
+      - name: Post-release summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.current_version.outputs.current_version }} → ${{ steps.bump_version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type**: ${{ github.event.inputs.version_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: v${{ steps.bump_version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release**: ${{ steps.create_release.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "- **PyPI**: Published to Test PyPI (dry run)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **PyPI**: Published to production PyPI" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify the release on [GitHub Releases](https://github.com/${{ github.repository }}/releases)" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event.inputs.dry_run }}" != "true" ]]; then
+            echo "2. Check the package on [PyPI](https://pypi.org/project/mypylogger/)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "3. Update documentation if needed" >> $GITHUB_STEP_SUMMARY
+          echo "4. Announce the release to users" >> $GITHUB_STEP_SUMMARY

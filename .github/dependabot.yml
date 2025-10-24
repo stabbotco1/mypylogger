@@ -1,0 +1,137 @@
+# Dependabot Configuration for mypylogger v0.2.0
+#
+# This configuration implements automated dependency scanning and updates
+# as part of the zero-tolerance security policy. Dependabot will automatically
+# detect security vulnerabilities and create pull requests with fixes.
+#
+# Requirements Addressed:
+# - 6.1: Automated dependency update scanning and security monitoring
+# - 6.5: Scan both direct and transitive dependencies for vulnerabilities
+# - 6.6: Detailed security reporting for dependency vulnerabilities
+
+version: 2
+
+updates:
+  # Python dependency updates using pip ecosystem (UV-compatible)
+  # Note: Dependabot uses pip ecosystem for Python projects with pyproject.toml
+  # UV lock files (uv.lock) are automatically detected and respected
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      # Daily security updates for immediate vulnerability response
+      interval: "daily"
+      time: "03:00"  # 3 AM UTC to avoid peak development hours
+      timezone: "UTC"
+    
+    # Security-focused update configuration
+    open-pull-requests-limit: 10  # Allow multiple security PRs
+    
+    # Dependency update strategy
+    versioning-strategy: "increase"  # Allow major version updates for security
+    
+    # Security update priorities
+    labels:
+      - "security"
+      - "dependencies"
+      - "automated"
+      - "uv-compatible"
+    
+    # Reviewer assignment for security updates
+    reviewers:
+      - "maintainers"  # Assign to maintainers team
+    
+    # Commit message configuration
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    
+    # Allow automatic security updates
+    allow:
+      - dependency-type: "all"  # Monitor all dependencies
+    
+    # Ignore specific dependencies if needed (currently none)
+    ignore: []
+    
+    # Rebase strategy for clean PR history
+    rebase-strategy: "auto"
+    
+    # UV-specific configuration
+    # Dependabot will respect uv.lock file and pyproject.toml dependency groups
+    target-branch: "main"
+
+  # GitHub Actions workflow dependency updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Weekly updates for GitHub Actions
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "UTC"
+    
+    # GitHub Actions update configuration
+    open-pull-requests-limit: 5
+    
+    labels:
+      - "github-actions"
+      - "dependencies"
+      - "automated"
+    
+    reviewers:
+      - "maintainers"
+    
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    
+    # Allow all GitHub Actions updates
+    allow:
+      - dependency-type: "all"
+    
+    # Rebase strategy
+    rebase-strategy: "auto"
+
+# UV Package Manager Integration Notes:
+#
+# 1. UV Compatibility:
+#    - Dependabot uses pip ecosystem but respects pyproject.toml and uv.lock
+#    - UV lock file (uv.lock) provides reproducible dependency resolution
+#    - Dependency groups in pyproject.toml are automatically detected
+#    - UV's faster resolution is maintained through lock file preservation
+#
+# 2. Security Update Priority:
+#    - Dependabot will prioritize security updates over feature updates
+#    - Critical and high severity vulnerabilities trigger immediate PRs
+#    - Security updates bypass normal version constraints when necessary
+#    - UV lock file is automatically updated with security patches
+#
+# 3. Zero-Tolerance Policy Integration:
+#    - Security PRs are automatically created when vulnerabilities are detected
+#    - The security-scan.yml workflow validates all dependency updates
+#    - PRs cannot be merged until security scans pass
+#    - UV sync ensures consistent environment across CI and local development
+#
+# 4. Monitoring Coverage:
+#    - Direct dependencies: Monitored via pyproject.toml [project.dependencies]
+#    - Development dependencies: Monitored via [dependency-groups.dev]
+#    - Transitive dependencies: Automatically included via uv.lock scanning
+#    - GitHub Actions: Monitored separately for workflow security
+#
+# 5. Update Strategy:
+#    - Daily scanning ensures rapid response to new vulnerabilities
+#    - Automatic PR creation reduces manual security maintenance
+#    - Version strategy allows major updates for critical security fixes
+#    - UV lock file maintains reproducible builds across updates
+#
+# 6. Integration with Security Workflow:
+#    - Dependabot PRs trigger the security-scan.yml workflow
+#    - All security scans must pass before PR can be merged
+#    - Failed security scans block dependency updates until resolved
+#    - UV commands in CI ensure consistent dependency resolution
+#
+# 7. UV-Specific Benefits:
+#    - Faster dependency resolution compared to pip
+#    - Consistent lock file format for reproducible builds
+#    - Automatic detection of dependency groups (dev, test, etc.)
+#    - Compatible with existing Python packaging standards
