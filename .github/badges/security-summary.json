@@ -1,12 +1,12 @@
 {
-  "overall_status": "secure",
-  "dependency_scan_result": "success",
-  "codeql_result": "success",
+  "overall_status": "vulnerable",
+  "dependency_scan_result": "failure",
+  "codeql_result": "failure",
   "secret_scan_result": "success",
   "config_validation_result": "success",
-  "badge_color": "brightgreen",
-  "last_updated": "2025-10-23 22:53:58 UTC",
-  "commit_sha": "ca54fc8139dc84c4fb35ad2acd331ced090d2078",
-  "workflow_run": "18764151161",
+  "badge_color": "red",
+  "last_updated": "2025-10-24 03:54:24 UTC",
+  "commit_sha": "8639bd4295a6969d3327568f8ecb68b2cbd70b2f",
+  "workflow_run": "18769056590",
   "scan_type": "push"
 }
