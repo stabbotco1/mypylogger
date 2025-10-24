@@ -94,37 +94,24 @@ def generate_license_badge() -> str:
 
 
 def generate_quality_gate_badge() -> str:
-    """Generate overall quality gate badge that aggregates all quality checks.
+    """Generate overall quality gate badge using GitHub Actions workflow status.
 
     Returns:
-        Shields.io URL for quality gate badge with appropriate status and color.
+        Shields.io URL for GitHub Actions workflow status badge.
     """
     try:
         config = get_badge_config()
-
-        # Get quality gate status (aggregated from all quality checks)
-        from badges.status import get_quality_gate_status
-
-        quality_status = get_quality_gate_status()
-        status = quality_status["status"]
-
-        # Determine badge color based on status
-        color_map = {
-            "passing": "brightgreen",
-            "failing": "red",
-            "pending": "yellow",
-            "unknown": "lightgrey",
-        }
-        color = color_map.get(status, "lightgrey")
-
-        # Create custom badge URL
-        badge_text = f"quality%20gate-{status}-{color}"
-        return f"{config.shields_base_url}/badge/{badge_text}?style=flat"
+        
+        # Use GitHub Actions workflow status badge
+        # This will show the actual CI/CD status from GitHub
+        workflow_name = "ci"  # Default workflow name, can be customized
+        return f"{config.shields_base_url}/github/actions/workflow/status/{config.github_repo}/{workflow_name}.yml?style=flat&label=quality%20gate"
 
     except Exception:
-        # Fallback to unknown status on error
+        # Fallback to default repository
+        repo = BADGE_CONFIG["github_repo"]
         base_url = BADGE_CONFIG["shields_base_url"]
-        return f"{base_url}/badge/quality%20gate-unknown-lightgrey?style=flat"
+        return f"{base_url}/github/actions/workflow/status/{repo}/ci.yml?style=flat&label=quality%20gate"
 
 
 def generate_pypi_version_badge() -> str:
@@ -168,47 +155,35 @@ def generate_downloads_badge() -> str:
 
 
 def generate_comprehensive_security_badge() -> str:
-    """Generate comprehensive security badge combining local and GitHub CodeQL results.
+    """Generate comprehensive security badge using GitHub security features.
 
     Returns:
-        Shields.io URL for comprehensive security badge with appropriate status and color.
+        Shields.io URL for GitHub security badge.
     """
     try:
         config = get_badge_config()
-
-        # Get comprehensive security status
-        security_status = get_comprehensive_security_status()
-        status = security_status["status"]
-
-        # Determine badge color based on status
-        color_map = {
-            "Verified": "brightgreen",
-            "Issues Found": "red",
-            "Scanning": "yellow",
-            "Unknown": "lightgrey",
-        }
-        color = color_map.get(status, "lightgrey")
-
-        # Create custom badge URL
-        badge_text = f"security-{status.replace(' ', '%20')}-{color}"
-        return f"{config.shields_base_url}/badge/{badge_text}?style=flat"
+        
+        # Use GitHub's security advisory count badge
+        # This shows actual security status from GitHub
+        return f"{config.shields_base_url}/github/security-advisories/s/{config.github_repo}?style=flat&label=security"
 
     except Exception:
-        # Fallback to unknown status on error
+        # Fallback to default repository
+        repo = BADGE_CONFIG["github_repo"]
         base_url = BADGE_CONFIG["shields_base_url"]
-        return f"{base_url}/badge/security-Unknown-lightgrey?style=flat"
+        return f"{base_url}/github/security-advisories/s/{repo}?style=flat&label=security"
 
 
 def get_comprehensive_security_badge_link() -> str:
     """Get the link URL for the comprehensive security badge.
 
     Returns:
-        URL linking to GitHub CodeQL results or security tab.
+        URL linking to GitHub security tab.
     """
     try:
-        security_status = get_comprehensive_security_status()
-        return str(security_status["link_url"])
+        config = get_badge_config()
+        return f"https://github.com/{config.github_repo}/security"
     except Exception:
         # Fallback to default repository security tab
-        github_repo = os.getenv("GITHUB_REPOSITORY", "username/mypylogger")
+        github_repo = os.getenv("GITHUB_REPOSITORY", "stabbotco1/mypylogger")
         return f"https://github.com/{github_repo}/security"
