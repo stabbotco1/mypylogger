@@ -1,5 +1,9 @@
 # mypylogger v0.2.0
 
+<!-- BADGES START -->
+[![Quality Gate](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?branch=main&style=flat)](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?branch=main&style=flat) [![Security Scan](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/security-scan.yml?branch=main&style=flat)](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/security-scan.yml?branch=main&style=flat) [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000?style=flat)](https://img.shields.io/badge/code%20style-ruff-000000?style=flat) [![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue?style=flat)](https://img.shields.io/badge/type%20checked-mypy-blue?style=flat) [![Python Versions](https://img.shields.io/pypi/pyversions/mypylogger?style=flat)](https://img.shields.io/pypi/pyversions/mypylogger?style=flat) [![PyPI Version](https://img.shields.io/pypi/v/mypylogger?style=flat)](https://img.shields.io/pypi/v/mypylogger?style=flat) [![Downloads: Development](https://img.shields.io/badge/downloads-development-yellow?style=flat)](https://img.shields.io/badge/downloads-development-yellow?style=flat) [![License: MIT](https://img.shields.io/github/license/stabbotco1/mypylogger?style=flat)](https://img.shields.io/github/license/stabbotco1/mypylogger?style=flat)
+<!-- BADGES END -->
+
 A Python logging library designed to provide enhanced logging capabilities with zero dependencies and sensible defaults.
 
 ## Vision
