@@ -41,11 +41,10 @@ jobs:
         
       - name: Run dependency security scan (pip-audit)
         if: matrix.scan-type == 'dependencies'
-        continue-on-error: true
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
           uv add --dev pip-audit
-          uv run pip-audit --format=json --output=pip-audit-results.json || echo "Dependency scan completed with issues"
+          uv run pip-audit --format=json --output=pip-audit-results.json
           
       - name: Run code security analysis (bandit)
         if: matrix.scan-type == 'code-analysis'
