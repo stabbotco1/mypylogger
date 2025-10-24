@@ -59,6 +59,7 @@ packages = ["src/mypylogger"]
 
 [dependency-groups]
 dev = [
+    "bandit>=1.7.10",
     "build>=1.0.0",
     "bump2version>=1.0.1",
     "codespell>=2.4.1",
@@ -296,7 +297,6 @@ line-ending = "auto"
 "tests/**/*" = ["PLR2004", "S101", "T201", "T203", "SLF001", "SIM117"]
 # Documentation validation scripts need subprocess calls
 "scripts/validate_documentation.py" = ["S603", "PERF203"]
-"scripts/generate_docs_badges.py" = ["S603"]
 
 [tool.ruff.lint.pydocstyle]
 # Use Google-style docstrings

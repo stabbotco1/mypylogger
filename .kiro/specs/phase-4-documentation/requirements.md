@@ -119,14 +119,14 @@ Phase 4 of mypylogger v0.2.0 focuses on creating comprehensive documentation and
 
 ### Requirement 9
 
-**User Story:** As a maintainer, I want performance metrics integrated into CI/CD workflows, so that performance regressions are detected automatically and performance data is displayed on the project README.
+**User Story:** As a maintainer, I want performance metrics integrated into CI/CD workflows, so that performance regressions are detected automatically.
 
 #### Acceptance Criteria
 
 1. THE CI/CD workflow SHALL run performance benchmarks on every pull request and main branch push
 2. THE CI/CD workflow SHALL measure logger initialization time and fail if it exceeds 10ms
 3. THE CI/CD workflow SHALL measure single log entry time and fail if it exceeds 1ms with immediate flush
-4. THE CI/CD workflow SHALL generate performance badges showing current benchmark results
+4. ~~THE CI/CD workflow SHALL generate performance badges showing current benchmark results~~ (Badge system removed)
 5. THE CI/CD workflow SHALL detect performance regressions and fail builds if performance degrades by more than 20%
 
 ### Requirement 10
@@ -191,15 +191,15 @@ Phase 4 of mypylogger v0.2.0 focuses on creating comprehensive documentation and
 
 ### Requirement 15
 
-**User Story:** As a maintainer, I want to enhance existing CI/CD workflows with performance monitoring, so that performance metrics are automatically tracked and displayed.
+**User Story:** As a maintainer, I want to enhance existing CI/CD workflows with performance monitoring, so that performance metrics are automatically tracked.
 
 #### Acceptance Criteria
 
 1. THE existing quality-gate.yml workflow SHALL be updated to include performance benchmark execution
-2. THE existing quality-gate.yml workflow SHALL generate performance data for badge generation
-3. THE existing update-badges.yml workflow SHALL be updated to include performance badge generation
+2. ~~THE existing quality-gate.yml workflow SHALL generate performance data for badge generation~~ (Badge system removed)
+3. ~~THE existing update-badges.yml workflow SHALL be updated to include performance badge generation~~ (Badge system removed)
 4. THE performance benchmarks SHALL be integrated into the existing test matrix alongside quality checks
-5. THE README badges SHALL be updated to include performance metrics from the enhanced CI/CD workflows
+5. ~~THE README badges SHALL be updated to include performance metrics from the enhanced CI/CD workflows~~ (Badge system removed)
 
 ### Requirement 16
 

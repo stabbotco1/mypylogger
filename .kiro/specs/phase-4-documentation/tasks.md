@@ -59,12 +59,12 @@
   - Configure performance data artifact upload for badge generation
   - _Requirements: 9.1, 9.2, 9.3, 15.1, 15.4_
 
-- [x] 4.2 Update badge generation workflow with performance metrics
-  - Enhance existing update-badges.yml workflow to include performance badge generation
-  - Create performance badge generation script using benchmark results
-  - Update README with performance badge display
-  - Implement performance regression detection and failure conditions
-  - _Requirements: 9.4, 9.5, 15.2, 15.3, 15.5_
+- [x] 4.2 Update badge generation workflow with performance metrics (OBSOLETE - Badge system removed)
+  - ~~Enhance existing update-badges.yml workflow to include performance badge generation~~
+  - ~~Create performance badge generation script using benchmark results~~
+  - ~~Update README with performance badge display~~
+  - ~~Implement performance regression detection and failure conditions~~
+  - _Requirements: 9.4, 9.5, 15.2, 15.3, 15.5_ (No longer applicable)
 
 - [x] 5. Create documentation deployment workflow
 - [x] 5.1 Implement automated documentation building and deployment

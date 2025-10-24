@@ -27,8 +27,6 @@ graph TB
     SEARCH --> PAGES
     
     CI[CI/CD Workflows] --> PERF[Performance Benchmarks]
-    PERF --> BADGES[Performance Badges]
-    BADGES --> README[README Display]
     
     RELEASE[Release Workflow] --> VERSION[Version Tagging]
     VERSION --> PYPI[PyPI Publishing]
@@ -141,25 +139,10 @@ jobs:
           path: benchmark.json
 ```
 
-#### Updated `update-badges.yml`:
+#### ~~Updated `update-badges.yml`~~ (Badge system removed):
 ```yaml
-jobs:
-  update-badges:
-    steps:
-      # ... existing badge updates
-      
-      - name: Download benchmark results
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-results
-      
-      - name: Generate performance badge
-        run: |
-          python scripts/generate_performance_badge.py benchmark.json
-      
-      - name: Update README with performance badge
-        run: |
-          python scripts/update_readme_badges.py
+# Badge generation workflow removed as part of badge system cleanup
+# Performance benchmarks are still available via artifacts for manual review
 ```
 
 ### 3. Documentation Deployment Workflow
@@ -494,11 +477,11 @@ Changelog = "https://github.com/username/mypylogger/blob/main/CHANGELOG.md"
 - **Version Management**: Automated version bumping and publishing
 - **Download Analytics**: Track package adoption metrics
 
-### Badge Integration
+### ~~Badge Integration~~ (Badge system removed)
 
-- **Performance Badges**: Real-time performance metrics display
-- **Documentation Badges**: Documentation coverage and build status
-- **Quality Badges**: Overall project health indicators
+- ~~**Performance Badges**: Real-time performance metrics display~~
+- ~~**Documentation Badges**: Documentation coverage and build status~~
+- ~~**Quality Badges**: Overall project health indicators~~
 
 ## Migration Strategy
 

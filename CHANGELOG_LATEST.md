@@ -7,9 +7,9 @@
 ### Changed
 
 - create comprehensive configuration reference documentation
-- update status badges from workflow run 18761538941
-- update status badges from workflow run 18761538936
+- ~~update status badges from workflow run 18761538941~~ (Badge system removed)
+- ~~update status badges from workflow run 18761538936~~ (Badge system removed)
 - implement comprehensive installation and quick start documentation
-- update status badges from workflow run 18760033661
-- update status badges from workflow run 18760033673
-- update status badges from workflow run 18760012053
+- ~~update status badges from workflow run 18760033661~~ (Badge system removed)
+- ~~update status badges from workflow run 18760033673~~ (Badge system removed)
+- ~~update status badges from workflow run 18760012053~~ (Badge system removed)

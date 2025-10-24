@@ -35,7 +35,6 @@
 - **Build time tracking**: Monitor and report build performance
 - **Cache hit rate monitoring**: Track caching effectiveness
 - **Performance grading**: A-F grade system for build performance
-- **Badge generation**: Performance badges for documentation
 
 #### 7. Reusable Actions Created
 - **optimize-docs-build**: Reusable action for optimized Sphinx builds

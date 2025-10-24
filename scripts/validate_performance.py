@@ -194,7 +194,7 @@ class PerformanceValidator:
             print()
 
     def generate_performance_summary(self) -> dict[str, Any]:
-        """Generate performance summary for badge generation and reporting.
+        """Generate performance summary for reporting.
 
         Returns:
             Dictionary containing performance summary data
@@ -375,7 +375,7 @@ def main() -> None:
     # Print summary and determine exit code
     validator.print_summary()
 
-    # Save performance summary for badge generation
+    # Save performance summary for reporting
     summary = validator.generate_performance_summary()
     summary_file = benchmark_file.parent / "performance-summary.json"
     with summary_file.open("w") as f:

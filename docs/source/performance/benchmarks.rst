@@ -379,17 +379,7 @@ CI/CD pipeline includes automated performance regression detection:
 CI/CD Integration and Monitoring
 --------------------------------
 
-**Performance Badge Generation**
 
-Performance metrics are automatically displayed on the project README:
-
-.. code-block:: bash
-
-   # Generated performance badges
-   ![Logger Init](https://img.shields.io/badge/Logger%20Init-4.8ms-green)
-   ![Log Entry](https://img.shields.io/badge/Log%20Entry-0.47ms-green)
-   ![Throughput](https://img.shields.io/badge/Throughput-2100%2Fs-green)
-   ![Memory](https://img.shields.io/badge/Memory-0.9KB%2Fentry-green)
 
 **Historical Performance Tracking**
 

@@ -73,17 +73,6 @@
 
 {quality_trends}
 
-## Badge Status
-
-The following badges are available for display in README.md:
-
-```markdown
-![Documentation Quality](https://img.shields.io/badge/docs-{overall_badge_message}-{overall_badge_color})
-![Docstring Coverage](https://img.shields.io/badge/docstring%20coverage-{docstring_coverage}%25-{docstring_badge_color})
-![Link Validation](https://img.shields.io/badge/links-{link_badge_message}-{link_badge_color})
-![Spelling Check](https://img.shields.io/badge/spelling-{spelling_badge_message}-{spelling_badge_color})
-![API Documentation](https://img.shields.io/badge/API%20docs-{api_badge_message}-{api_badge_color})
-```
 
 ## Next Steps
 
