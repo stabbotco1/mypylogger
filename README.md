@@ -1,9 +1,9 @@
 # mypylogger v0.2.0
 
-[![Build Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/stabbotco1/mypylogger/main/.github/badges/build-status.json)](https://github.com/stabbotco1/mypylogger/actions/workflows/quality-gate.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/stabbotco1/mypylogger/main/.github/badges/coverage.json)](https://github.com/stabbotco1/mypylogger/actions/workflows/quality-gate.yml)
-[![Security](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/stabbotco1/mypylogger/main/.github/badges/security.json)](https://github.com/stabbotco1/mypylogger/actions/workflows/security-scan.yml)
-[![Code Style](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/stabbotco1/mypylogger/main/.github/badges/code-style.json)](https://github.com/astral-sh/ruff)
+[![Quality Gate](https://github.com/stabbotco1/mypylogger/actions/workflows/quality-gate.yml/badge.svg?branch=main)](https://github.com/stabbotco1/mypylogger/actions/workflows/quality-gate.yml)
+[![Security Scanning](https://github.com/stabbotco1/mypylogger/actions/workflows/security-scan.yml/badge.svg?branch=main)](https://github.com/stabbotco1/mypylogger/actions/workflows/security-scan.yml)
+[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
 
 [![Python](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PyPI](https://img.shields.io/badge/pypi-v0.2.0-orange?logo=pypi&logoColor=white)](https://pypi.org/project/mypylogger/)
