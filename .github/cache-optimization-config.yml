@@ -1,0 +1,265 @@
+# Advanced Cache Optimization Configuration for mypylogger v0.2.0
+# This configuration defines the multi-level caching strategy and optimization settings
+# for achieving 90%+ cache hit rates and 30%+ performance improvements.
+
+# Cache Strategy Configuration
+cache_strategy:
+  # Multi-level cache hierarchy (Level 1 = Highest Priority)
+  levels:
+    level_1_dependencies:
+      description: "UV dependencies and Python packages"
+      priority: "highest"
+      paths:
+        - "~/.cache/uv"
+        - "~/.local/share/uv"
+        - "~/.cache/pip"
+      key_strategy: "lock-file-hash"
+      retention_days: 14
+      target_hit_rate: 95
+      
+    level_2_build_tools:
+      description: "Build tools and linting caches"
+      priority: "high"
+      paths:
+        - "~/.mypy_cache"
+        - "~/.ruff_cache"
+        - "~/.pytest_cache"
+        - "~/.cache/pre-commit"
+      key_strategy: "tool-config-hash"
+      retention_days: 7
+      target_hit_rate: 85
+      
+    level_3_cross_job:
+      description: "Cross-job shared artifacts"
+      priority: "medium"
+      paths:
+        - ".cache-shared/"
+        - ".workflow-cache/"
+      key_strategy: "run-id-based"
+      retention_days: 1
+      target_hit_rate: 70
+      
+    level_4_workflow_specific:
+      description: "Workflow-specific artifacts"
+      priority: "low"
+      paths:
+        - ".coverage"
+        - "coverage.xml"
+        - ".tox/"
+        - "node_modules/"
+      key_strategy: "commit-hash"
+      retention_days: 3
+      target_hit_rate: 60
+
+# Cache Key Optimization Strategies
+cache_keys:
+  # Hierarchical key patterns for maximum restore success
+  patterns:
+    dependencies:
+      primary: "v2-{os}-py{python_version}-deps-{lock_hash}-{pyproject_hash}"
+      fallback_1: "v2-{os}-py{python_version}-deps-{lock_hash}-"
+      fallback_2: "v2-{os}-py{python_version}-deps-"
+      fallback_3: "v2-{os}-py{python_version}-"
+      fallback_4: "v2-{os}-"
+      
+    build_tools:
+      primary: "v2-{os}-py{python_version}-tools-{suffix}-{workflow_hash}"
+      fallback_1: "v2-{os}-py{python_version}-tools-{suffix}-"
+      fallback_2: "v2-{os}-py{python_version}-tools-"
+      fallback_3: "v2-{os}-py{python_version}-"
+      
+    cross_job:
+      primary: "v2-{os}-py{python_version}-shared-{run_id}"
+      fallback_1: "v2-{os}-py{python_version}-shared-"
+      fallback_2: "v2-{os}-py{python_version}-"
+      
+    workflow_specific:
+      primary: "v2-{os}-py{python_version}-workflow-{suffix}-{commit_sha}"
+      fallback_1: "v2-{os}-py{python_version}-workflow-{suffix}-"
+      fallback_2: "v2-{os}-py{python_version}-workflow-"
+
+# Performance Optimization Settings
+performance:
+  # Target performance improvements
+  targets:
+    overall_workflow_improvement: 30  # 30% faster execution
+    cache_hit_rate: 90               # 90%+ cache hit rate
+    dependency_install_improvement: 40 # 40% faster dependency installation
+    build_tool_improvement: 25       # 25% faster build tool execution
+    
+  # Optimization techniques
+  techniques:
+    parallel_cache_operations: true
+    aggressive_cache_warming: true
+    smart_cache_invalidation: true
+    cross_job_cache_sharing: true
+    cache_compression: false  # Disabled for speed
+    
+  # Monitoring and analytics
+  monitoring:
+    enable_hit_rate_tracking: true
+    enable_performance_analytics: true
+    enable_cache_size_monitoring: true
+    enable_trend_analysis: true
+    
+  # Cache size optimization
+  size_limits:
+    max_total_cache_size_mb: 2048    # 2GB total cache limit
+    max_single_cache_size_mb: 512    # 512MB per cache limit
+    cleanup_threshold_mb: 1536       # Cleanup when exceeding 1.5GB
+    
+# Workflow-Specific Cache Configurations
+workflows:
+  quality_gate:
+    cache_suffix: "quality"
+    retention_strategy: "standard"
+    enable_cross_job: true
+    optimization_level: "advanced"
+    target_execution_time_minutes: 5
+    
+  security_scan:
+    cache_suffix: "security"
+    retention_strategy: "extended"
+    enable_cross_job: true
+    optimization_level: "advanced"
+    target_execution_time_minutes: 8
+    
+  documentation:
+    cache_suffix: "docs"
+    retention_strategy: "extended"
+    enable_cross_job: true
+    optimization_level: "advanced"
+    target_execution_time_minutes: 5
+    
+  publish:
+    cache_suffix: "publish"
+    retention_strategy: "standard"
+    enable_cross_job: true
+    optimization_level: "aggressive"
+    target_execution_time_minutes: 6
+
+# Cache Invalidation Strategies
+invalidation:
+  # Automatic invalidation triggers
+  triggers:
+    dependency_changes:
+      files: ["uv.lock", "pyproject.toml", "requirements*.txt"]
+      action: "invalidate_dependencies"
+      
+    workflow_changes:
+      files: [".github/workflows/*.yml", ".github/actions/**/*"]
+      action: "invalidate_build_tools"
+      
+    source_code_changes:
+      files: ["src/**/*.py"]
+      action: "invalidate_workflow_specific"
+      
+    configuration_changes:
+      files: ["pyproject.toml", "setup.cfg", ".pre-commit-config.yaml"]
+      action: "invalidate_build_tools"
+  
+  # Smart invalidation rules
+  rules:
+    # Don't invalidate cache for documentation-only changes
+    docs_only_changes:
+      pattern: "docs/**/*"
+      preserve_caches: ["dependencies", "build_tools"]
+      
+    # Don't invalidate cache for test-only changes
+    test_only_changes:
+      pattern: "tests/**/*"
+      preserve_caches: ["dependencies"]
+      
+    # Partial invalidation for minor version bumps
+    minor_version_changes:
+      pattern: "pyproject.toml"
+      condition: "version_bump_minor"
+      preserve_caches: ["dependencies"]
+
+# Cache Warming Strategies
+warming:
+  # Pre-populate caches for common scenarios
+  strategies:
+    common_dependencies:
+      enabled: true
+      python_versions: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+      packages: ["pytest", "ruff", "mypy", "coverage"]
+      
+    build_tools:
+      enabled: true
+      tools: ["mypy", "ruff", "pytest"]
+      configurations: ["default", "strict", "fast"]
+      
+  # Proactive cache population
+  proactive:
+    enabled: true
+    schedule: "weekly"
+    target_workflows: ["quality_gate", "security_scan"]
+
+# Monitoring and Alerting
+monitoring:
+  # Performance thresholds for alerting
+  thresholds:
+    cache_hit_rate_warning: 70    # Warn if hit rate < 70%
+    cache_hit_rate_critical: 50   # Critical if hit rate < 50%
+    cache_size_warning_mb: 1536   # Warn if cache > 1.5GB
+    cache_size_critical_mb: 2048  # Critical if cache > 2GB
+    
+  # Reporting configuration
+  reporting:
+    frequency: "per_workflow"
+    include_trends: true
+    include_recommendations: true
+    generate_badges: true
+    
+  # Analytics collection
+  analytics:
+    collect_hit_rates: true
+    collect_performance_metrics: true
+    collect_size_metrics: true
+    retention_days: 30
+
+# Optimization Recommendations Engine
+recommendations:
+  # Automatic optimization suggestions
+  engine:
+    enabled: true
+    analysis_window_days: 7
+    min_data_points: 5
+    
+  # Recommendation categories
+  categories:
+    cache_key_optimization:
+      enabled: true
+      threshold_hit_rate: 80
+      
+    cache_size_optimization:
+      enabled: true
+      threshold_size_mb: 1024
+      
+    retention_optimization:
+      enabled: true
+      threshold_age_days: 14
+      
+    cross_job_optimization:
+      enabled: true
+      threshold_sharing_rate: 50
+
+# Version and Compatibility
+version: "2.0"
+compatibility:
+  github_actions_version: "v4"
+  runner_os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+  python_versions: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+  
+# Maintenance and Updates
+maintenance:
+  auto_cleanup:
+    enabled: true
+    schedule: "daily"
+    max_age_days: 30
+    
+  performance_tuning:
+    enabled: true
+    schedule: "weekly"
+    auto_apply_safe_optimizations: true

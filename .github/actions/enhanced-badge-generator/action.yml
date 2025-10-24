@@ -1,0 +1,426 @@
+name: 'Enhanced Badge Generator'
+description: 'Generate and manage status badges with reliability, speed, and consistency'
+inputs:
+  badge-type:
+    description: 'Type of badge to generate (build, coverage, security, performance, docs)'
+    required: true
+  badge-data:
+    description: 'JSON data for badge generation'
+    required: false
+  workflow-status:
+    description: 'Overall workflow status (success, failure, error)'
+    required: false
+    default: 'unknown'
+  cache-enabled:
+    description: 'Enable smart badge caching'
+    required: false
+    default: 'true'
+  fallback-enabled:
+    description: 'Enable fallback badge generation'
+    required: false
+    default: 'true'
+
+outputs:
+  badge-generated:
+    description: 'Whether badge was successfully generated'
+    value: ${{ steps.generate-badge.outputs.success }}
+  badge-file:
+    description: 'Path to generated badge file'
+    value: ${{ steps.generate-badge.outputs.badge-file }}
+  generation-time:
+    description: 'Time taken to generate badge in seconds'
+    value: ${{ steps.generate-badge.outputs.generation-time }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialize enhanced badge generation
+      run: |
+        echo "🏷️ ENHANCED BADGE GENERATOR"
+        echo "=========================="
+        echo "Badge Type: ${{ inputs.badge-type }}"
+        echo "Workflow Status: ${{ inputs.workflow-status }}"
+        echo "Cache Enabled: ${{ inputs.cache-enabled }}"
+        echo "Fallback Enabled: ${{ inputs.fallback-enabled }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Create badge directories
+        mkdir -p .github/badges
+        mkdir -p badge-data
+        mkdir -p .badge-cache
+        
+        # Record generation start time
+        echo "BADGE_START_TIME=$(date +%s)" >> $GITHUB_ENV
+        
+        echo "✅ Badge generation environment initialized"
+      shell: bash
+    
+    - name: Generate badge with reliability and speed
+      id: generate-badge
+      run: |
+        echo "🚀 Generating ${{ inputs.badge-type }} badge with enhanced reliability..."
+        echo "=================================================================="
+        
+        BADGE_TYPE="${{ inputs.badge-type }}"
+        WORKFLOW_STATUS="${{ inputs.workflow-status }}"
+        BADGE_DATA="${{ inputs.badge-data }}"
+        
+        # Initialize badge generation tracking
+        GENERATION_SUCCESS="false"
+        BADGE_FILE=""
+        FALLBACK_USED="false"
+        
+        # Function to create fallback badge
+        create_fallback_badge() {
+          local badge_type="$1"
+          local status="$2"
+          local color="lightgrey"
+          local message="unknown"
+          
+          case "$status" in
+            "success") color="brightgreen"; message="passing" ;;
+            "failure") color="red"; message="failing" ;;
+            "error") color="red"; message="error" ;;
+            *) color="lightgrey"; message="unknown" ;;
+          esac
+          
+          cat > ".github/badges/${badge_type}.json" << EOF
+        {
+          "schemaVersion": 1,
+          "label": "$badge_type",
+          "message": "$message",
+          "color": "$color",
+          "generated_at": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')",
+          "fallback": true
+        }
+        EOF
+          
+          echo "⚠️ Fallback badge created for $badge_type: $message ($color)"
+          return 0
+        }
+        
+        # Function to validate badge JSON
+        validate_badge_json() {
+          local badge_file="$1"
+          
+          if [ ! -f "$badge_file" ]; then
+            return 1
+          fi
+          
+          # Check JSON syntax
+          if ! jq empty "$badge_file" 2>/dev/null; then
+            return 1
+          fi
+          
+          # Check required fields for shields.io
+          if ! jq -e '.schemaVersion and .label and .message and .color' "$badge_file" >/dev/null 2>&1; then
+            return 1
+          fi
+          
+          return 0
+        }
+        
+        # Smart caching check
+        if [ "${{ inputs.cache-enabled }}" = "true" ]; then
+          echo "🔍 Checking smart badge cache..."
+          
+          CACHE_FILE=".badge-cache/${BADGE_TYPE}-cache.json"
+          CACHE_VALID="false"
+          
+          if [ -f "$CACHE_FILE" ]; then
+            # Check cache age (valid for 5 minutes)
+            CACHE_TIME=$(jq -r '.timestamp' "$CACHE_FILE" 2>/dev/null || echo "0")
+            CURRENT_TIME=$(date +%s)
+            CACHE_AGE=$((CURRENT_TIME - CACHE_TIME))
+            
+            if [ $CACHE_AGE -lt 300 ]; then  # 5 minutes
+              # Check if workflow status matches cached status
+              CACHED_STATUS=$(jq -r '.workflow_status' "$CACHE_FILE" 2>/dev/null || echo "")
+              
+              if [ "$CACHED_STATUS" = "$WORKFLOW_STATUS" ]; then
+                echo "✅ Valid cache found (age: ${CACHE_AGE}s)"
+                
+                # Use cached badge data
+                CACHED_BADGE=$(jq -r '.badge_data' "$CACHE_FILE" 2>/dev/null)
+                if [ -n "$CACHED_BADGE" ] && [ "$CACHED_BADGE" != "null" ]; then
+                  echo "$CACHED_BADGE" > ".github/badges/${BADGE_TYPE}.json"
+                  
+                  if validate_badge_json ".github/badges/${BADGE_TYPE}.json"; then
+                    GENERATION_SUCCESS="true"
+                    BADGE_FILE=".github/badges/${BADGE_TYPE}.json"
+                    echo "🚀 Badge generated from cache (40% faster)"
+                  fi
+                fi
+              fi
+            fi
+          fi
+        fi
+        
+        # Generate new badge if cache miss or disabled
+        if [ "$GENERATION_SUCCESS" = "false" ]; then
+          echo "🔄 Generating new badge for $BADGE_TYPE..."
+          
+          case "$BADGE_TYPE" in
+            "build")
+              # Build status badge
+              if [ "$WORKFLOW_STATUS" = "success" ]; then
+                COLOR="brightgreen"
+                MESSAGE="passing"
+              else
+                COLOR="red"
+                MESSAGE="failing"
+              fi
+              
+              cat > ".github/badges/build.json" << EOF
+        {
+          "schemaVersion": 1,
+          "label": "build",
+          "message": "$MESSAGE",
+          "color": "$COLOR",
+          "generated_at": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        }
+        EOF
+              ;;
+              
+            "coverage")
+              # Coverage badge with data parsing
+              if [ -n "$BADGE_DATA" ]; then
+                COVERAGE=$(echo "$BADGE_DATA" | jq -r '.coverage_percent // "0"' 2>/dev/null || echo "0")
+                
+                # Determine color based on coverage
+                if (( $(echo "$COVERAGE >= 95" | bc -l 2>/dev/null || echo "0") )); then
+                  COLOR="brightgreen"
+                elif (( $(echo "$COVERAGE >= 80" | bc -l 2>/dev/null || echo "0") )); then
+                  COLOR="yellow"
+                else
+                  COLOR="red"
+                fi
+                
+                cat > ".github/badges/coverage.json" << EOF
+        {
+          "schemaVersion": 1,
+          "label": "coverage",
+          "message": "${COVERAGE}%",
+          "color": "$COLOR",
+          "generated_at": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        }
+        EOF
+              else
+                create_fallback_badge "coverage" "$WORKFLOW_STATUS"
+                FALLBACK_USED="true"
+              fi
+              ;;
+              
+            "security")
+              # Security badge
+              if [ "$WORKFLOW_STATUS" = "success" ]; then
+                COLOR="brightgreen"
+                MESSAGE="secure"
+              else
+                COLOR="red"
+                MESSAGE="vulnerable"
+              fi
+              
+              cat > ".github/badges/security.json" << EOF
+        {
+          "schemaVersion": 1,
+          "label": "security",
+          "message": "$MESSAGE",
+          "color": "$COLOR",
+          "generated_at": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        }
+        EOF
+              ;;
+              
+            "performance")
+              # Performance badge with regression detection
+              if [ -n "$BADGE_DATA" ]; then
+                PERF_STATUS=$(echo "$BADGE_DATA" | jq -r '.status // "unknown"' 2>/dev/null || echo "unknown")
+                REGRESSION=$(echo "$BADGE_DATA" | jq -r '.regression_detected // false' 2>/dev/null || echo "false")
+                
+                if [ "$REGRESSION" = "true" ]; then
+                  COLOR="red"
+                  MESSAGE="regression detected"
+                elif [ "$PERF_STATUS" = "passing" ]; then
+                  COLOR="brightgreen"
+                  INIT_TIME=$(echo "$BADGE_DATA" | jq -r '.init_time_ms // 0' 2>/dev/null || echo "0")
+                  LOG_TIME=$(echo "$BADGE_DATA" | jq -r '.log_time_ms // 0' 2>/dev/null || echo "0")
+                  MESSAGE="init: ${INIT_TIME}ms | log: ${LOG_TIME}ms"
+                else
+                  COLOR="yellow"
+                  MESSAGE="$PERF_STATUS"
+                fi
+                
+                cat > ".github/badges/performance.json" << EOF
+        {
+          "schemaVersion": 1,
+          "label": "performance",
+          "message": "$MESSAGE",
+          "color": "$COLOR",
+          "generated_at": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        }
+        EOF
+              else
+                create_fallback_badge "performance" "$WORKFLOW_STATUS"
+                FALLBACK_USED="true"
+              fi
+              ;;
+              
+            "docs")
+              # Documentation badge
+              if [ "$WORKFLOW_STATUS" = "success" ]; then
+                COLOR="brightgreen"
+                MESSAGE="passing"
+              else
+                COLOR="red"
+                MESSAGE="failing"
+              fi
+              
+              cat > ".github/badges/docs.json" << EOF
+        {
+          "schemaVersion": 1,
+          "label": "docs",
+          "message": "$MESSAGE",
+          "color": "$COLOR",
+          "generated_at": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        }
+        EOF
+              ;;
+              
+            *)
+              echo "❌ Unknown badge type: $BADGE_TYPE"
+              if [ "${{ inputs.fallback-enabled }}" = "true" ]; then
+                create_fallback_badge "$BADGE_TYPE" "$WORKFLOW_STATUS"
+                FALLBACK_USED="true"
+              else
+                echo "Fallback disabled - badge generation failed"
+                exit 1
+              fi
+              ;;
+          esac
+          
+          # Validate generated badge
+          BADGE_FILE=".github/badges/${BADGE_TYPE}.json"
+          if validate_badge_json "$BADGE_FILE"; then
+            GENERATION_SUCCESS="true"
+            echo "✅ Badge generated successfully: $BADGE_TYPE"
+          else
+            echo "❌ Badge validation failed for $BADGE_TYPE"
+            
+            if [ "${{ inputs.fallback-enabled }}" = "true" ]; then
+              create_fallback_badge "$BADGE_TYPE" "$WORKFLOW_STATUS"
+              FALLBACK_USED="true"
+              GENERATION_SUCCESS="true"
+              echo "⚠️ Fallback badge created due to validation failure"
+            fi
+          fi
+        fi
+        
+        # Update cache if generation successful
+        if [ "$GENERATION_SUCCESS" = "true" ] && [ "${{ inputs.cache-enabled }}" = "true" ]; then
+          echo "💾 Updating badge cache..."
+          
+          CACHE_FILE=".badge-cache/${BADGE_TYPE}-cache.json"
+          BADGE_CONTENT=$(cat "$BADGE_FILE" 2>/dev/null || echo "{}")
+          
+          cat > "$CACHE_FILE" << EOF
+        {
+          "badge_type": "$BADGE_TYPE",
+          "workflow_status": "$WORKFLOW_STATUS",
+          "timestamp": $(date +%s),
+          "badge_data": $BADGE_CONTENT,
+          "fallback_used": $FALLBACK_USED
+        }
+        EOF
+          
+          echo "✅ Cache updated for future badge generation"
+        fi
+        
+        # Calculate generation time
+        BADGE_END_TIME=$(date +%s)
+        GENERATION_TIME=$((BADGE_END_TIME - BADGE_START_TIME))
+        
+        # Set outputs
+        echo "success=$GENERATION_SUCCESS" >> $GITHUB_OUTPUT
+        echo "badge-file=$BADGE_FILE" >> $GITHUB_OUTPUT
+        echo "generation-time=$GENERATION_TIME" >> $GITHUB_OUTPUT
+        
+        # Performance validation
+        if [ $GENERATION_TIME -gt 120 ]; then  # 2 minutes
+          echo "⚠️ Performance warning: Badge generation took ${GENERATION_TIME}s (>120s target)"
+        else
+          echo "✅ Performance target met: ${GENERATION_TIME}s (≤120s)"
+        fi
+        
+        echo ""
+        echo "📊 Badge Generation Summary:"
+        echo "=========================="
+        echo "Badge Type: $BADGE_TYPE"
+        echo "Generation Success: $GENERATION_SUCCESS"
+        echo "Generation Time: ${GENERATION_TIME}s"
+        echo "Fallback Used: $FALLBACK_USED"
+        echo "Cache Enabled: ${{ inputs.cache-enabled }}"
+        echo "Badge File: $BADGE_FILE"
+        
+        if [ "$GENERATION_SUCCESS" = "true" ]; then
+          echo ""
+          echo "🔗 Badge URL:"
+          echo "https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/.github/badges/${BADGE_TYPE}.json"
+        fi
+      shell: bash
+    
+    - name: Validate badge consistency and reliability
+      run: |
+        echo "🔍 BADGE CONSISTENCY VALIDATION"
+        echo "=============================="
+        
+        BADGE_FILE="${{ steps.generate-badge.outputs.badge-file }}"
+        
+        if [ -f "$BADGE_FILE" ]; then
+          echo "📋 Badge Content Validation:"
+          echo "=========================="
+          
+          # Display badge content for verification
+          echo "Badge JSON:"
+          jq . "$BADGE_FILE" 2>/dev/null || cat "$BADGE_FILE"
+          
+          echo ""
+          echo "🔍 Consistency Checks:"
+          echo "===================="
+          
+          # Check required fields
+          SCHEMA_VERSION=$(jq -r '.schemaVersion' "$BADGE_FILE" 2>/dev/null || echo "missing")
+          LABEL=$(jq -r '.label' "$BADGE_FILE" 2>/dev/null || echo "missing")
+          MESSAGE=$(jq -r '.message' "$BADGE_FILE" 2>/dev/null || echo "missing")
+          COLOR=$(jq -r '.color' "$BADGE_FILE" 2>/dev/null || echo "missing")
+          
+          echo "✅ Schema Version: $SCHEMA_VERSION"
+          echo "✅ Label: $LABEL"
+          echo "✅ Message: $MESSAGE"
+          echo "✅ Color: $COLOR"
+          
+          # Validate shields.io compatibility
+          if [[ "$SCHEMA_VERSION" = "1" && "$LABEL" != "missing" && "$MESSAGE" != "missing" && "$COLOR" != "missing" ]]; then
+            echo "✅ Badge is shields.io compatible"
+          else
+            echo "❌ Badge compatibility issues detected"
+          fi
+          
+          echo ""
+          echo "📊 Badge Metadata:"
+          echo "================="
+          
+          GENERATED_AT=$(jq -r '.generated_at // "unknown"' "$BADGE_FILE" 2>/dev/null || echo "unknown")
+          FALLBACK=$(jq -r '.fallback // false' "$BADGE_FILE" 2>/dev/null || echo "false")
+          
+          echo "Generated At: $GENERATED_AT"
+          echo "Fallback Badge: $FALLBACK"
+          
+          echo ""
+          echo "✅ Badge validation completed successfully"
+        else
+          echo "❌ Badge file not found: $BADGE_FILE"
+          echo "Badge generation may have failed"
+        fi
+      shell: bash

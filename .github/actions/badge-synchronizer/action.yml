@@ -1,0 +1,369 @@
+name: 'Badge Synchronizer'
+description: 'Synchronize badge updates across workflows with conflict prevention and performance optimization'
+inputs:
+  sync-mode:
+    description: 'Synchronization mode (queue, immediate, batch)'
+    required: false
+    default: 'queue'
+  max-wait-time:
+    description: 'Maximum wait time for synchronization in seconds'
+    required: false
+    default: '120'
+  batch-size:
+    description: 'Number of badges to process in batch mode'
+    required: false
+    default: '5'
+
+outputs:
+  sync-status:
+    description: 'Synchronization status'
+    value: ${{ steps.synchronize.outputs.sync-status }}
+  wait-time:
+    description: 'Actual wait time for synchronization'
+    value: ${{ steps.synchronize.outputs.wait-time }}
+  badges-synced:
+    description: 'Number of badges synchronized'
+    value: ${{ steps.synchronize.outputs.badges-synced }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialize badge synchronization
+      run: |
+        echo "🔄 BADGE SYNCHRONIZATION SYSTEM"
+        echo "=============================="
+        echo "Sync Mode: ${{ inputs.sync-mode }}"
+        echo "Max Wait Time: ${{ inputs.max-wait-time }}s"
+        echo "Batch Size: ${{ inputs.batch-size }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Create synchronization directories
+        mkdir -p .badge-sync
+        mkdir -p .badge-sync/queue
+        mkdir -p .badge-sync/locks
+        mkdir -p .badge-sync/history
+        
+        echo "✅ Badge synchronization system initialized"
+      shell: bash
+    
+    - name: Execute badge synchronization
+      id: synchronize
+      run: |
+        echo "🔄 Executing badge synchronization: ${{ inputs.sync-mode }}"
+        echo "========================================================="
+        
+        SYNC_MODE="${{ inputs.sync-mode }}"
+        MAX_WAIT="${{ inputs.max-wait-time }}"
+        BATCH_SIZE="${{ inputs.batch-size }}"
+        CURRENT_TIME=$(date +%s)
+        START_TIME=$CURRENT_TIME
+        
+        # Initialize outputs
+        SYNC_STATUS="unknown"
+        WAIT_TIME=0
+        BADGES_SYNCED=0
+        
+        # Synchronization queue file
+        QUEUE_FILE=".badge-sync/queue/badge-queue.json"
+        SYNC_LOCK=".badge-sync/locks/sync.lock"
+        HISTORY_FILE=".badge-sync/history/sync-history.json"
+        
+        case "$SYNC_MODE" in
+          "queue")
+            echo "📋 Queue-based badge synchronization..."
+            
+            # Add current workflow to queue
+            QUEUE_ENTRY="{
+              \"workflow_run\": \"${{ github.run_id }}\",
+              \"workflow_name\": \"${{ github.workflow }}\",
+              \"timestamp\": $CURRENT_TIME,
+              \"repository\": \"${{ github.repository }}\",
+              \"commit_sha\": \"${{ github.sha }}\",
+              \"priority\": 1
+            }"
+            
+            # Initialize or update queue
+            if [ -f "$QUEUE_FILE" ]; then
+              QUEUE_CONTENT=$(cat "$QUEUE_FILE")
+              echo "$QUEUE_CONTENT" | jq --argjson entry "$QUEUE_ENTRY" '. + [$entry]' > "$QUEUE_FILE.tmp" && mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
+            else
+              echo "[$QUEUE_ENTRY]" > "$QUEUE_FILE"
+            fi
+            
+            echo "✅ Added to badge update queue"
+            
+            # Wait for turn in queue
+            echo "⏳ Waiting for turn in synchronization queue..."
+            
+            WAIT_START=$CURRENT_TIME
+            while [ $(($(date +%s) - WAIT_START)) -lt $MAX_WAIT ]; do
+              # Check if we're first in queue
+              FIRST_IN_QUEUE=$(jq -r '.[0].workflow_run // "none"' "$QUEUE_FILE" 2>/dev/null || echo "none")
+              
+              if [ "$FIRST_IN_QUEUE" = "${{ github.run_id }}" ]; then
+                echo "✅ Our turn in queue - proceeding with badge update"
+                SYNC_STATUS="ready"
+                break
+              else
+                echo "⏳ Waiting... (first in queue: $FIRST_IN_QUEUE)"
+                sleep 5
+              fi
+            done
+            
+            WAIT_TIME=$(($(date +%s) - WAIT_START))
+            
+            if [ "$SYNC_STATUS" != "ready" ]; then
+              echo "⚠️ Timeout waiting for queue - proceeding anyway"
+              SYNC_STATUS="timeout"
+            fi
+            ;;
+            
+          "immediate")
+            echo "⚡ Immediate badge synchronization..."
+            
+            # Check for active synchronization
+            if [ -f "$SYNC_LOCK" ]; then
+              LOCK_TIME=$(jq -r '.timestamp // 0' "$SYNC_LOCK" 2>/dev/null || echo "0")
+              LOCK_AGE=$((CURRENT_TIME - LOCK_TIME))
+              
+              if [ $LOCK_AGE -lt 60 ]; then  # 1 minute lock timeout
+                echo "⚠️ Another synchronization is active (age: ${LOCK_AGE}s)"
+                echo "Waiting for completion..."
+                
+                WAIT_START=$CURRENT_TIME
+                while [ $(($(date +%s) - WAIT_START)) -lt $MAX_WAIT ]; do
+                  if [ ! -f "$SYNC_LOCK" ]; then
+                    echo "✅ Previous synchronization completed"
+                    break
+                  fi
+                  sleep 2
+                done
+                
+                WAIT_TIME=$(($(date +%s) - WAIT_START))
+              else
+                echo "⚠️ Stale lock detected - removing"
+                rm "$SYNC_LOCK" 2>/dev/null || true
+              fi
+            fi
+            
+            # Acquire synchronization lock
+            cat > "$SYNC_LOCK" << EOF
+        {
+          "timestamp": $CURRENT_TIME,
+          "workflow_run": "${{ github.run_id }}",
+          "workflow_name": "${{ github.workflow }}",
+          "mode": "immediate"
+        }
+        EOF
+            
+            echo "✅ Synchronization lock acquired"
+            SYNC_STATUS="ready"
+            ;;
+            
+          "batch")
+            echo "📦 Batch badge synchronization..."
+            
+            # Collect badges for batch processing
+            BADGE_COUNT=0
+            BATCH_READY="false"
+            
+            # Count available badges
+            for badge_file in .github/badges/*.json; do
+              if [ -f "$badge_file" ]; then
+                BADGE_COUNT=$((BADGE_COUNT + 1))
+              fi
+            done
+            
+            echo "📊 Found $BADGE_COUNT badges for batch processing"
+            
+            # Check if batch is ready
+            if [ $BADGE_COUNT -ge $BATCH_SIZE ]; then
+              BATCH_READY="true"
+              echo "✅ Batch size reached ($BADGE_COUNT >= $BATCH_SIZE)"
+            else
+              echo "⏳ Waiting for more badges to reach batch size..."
+              
+              WAIT_START=$CURRENT_TIME
+              while [ $(($(date +%s) - WAIT_START)) -lt $MAX_WAIT ]; do
+                # Recount badges
+                CURRENT_BADGE_COUNT=0
+                for badge_file in .github/badges/*.json; do
+                  if [ -f "$badge_file" ]; then
+                    CURRENT_BADGE_COUNT=$((CURRENT_BADGE_COUNT + 1))
+                  fi
+                done
+                
+                if [ $CURRENT_BADGE_COUNT -ge $BATCH_SIZE ]; then
+                  BATCH_READY="true"
+                  BADGE_COUNT=$CURRENT_BADGE_COUNT
+                  echo "✅ Batch size reached ($BADGE_COUNT >= $BATCH_SIZE)"
+                  break
+                fi
+                
+                sleep 3
+              done
+              
+              WAIT_TIME=$(($(date +%s) - WAIT_START))
+            fi
+            
+            if [ "$BATCH_READY" = "true" ]; then
+              SYNC_STATUS="ready"
+              BADGES_SYNCED=$BADGE_COUNT
+            else
+              echo "⚠️ Batch timeout - processing available badges"
+              SYNC_STATUS="partial"
+              BADGES_SYNCED=$BADGE_COUNT
+            fi
+            ;;
+            
+          *)
+            echo "❌ Unknown synchronization mode: $SYNC_MODE"
+            SYNC_STATUS="error"
+            ;;
+        esac
+        
+        # Record synchronization in history
+        if [ -f "$HISTORY_FILE" ]; then
+          SYNC_COUNT=$(jq -r '.total_syncs // 0' "$HISTORY_FILE")
+          SYNC_COUNT=$((SYNC_COUNT + 1))
+        else
+          SYNC_COUNT=1
+        fi
+        
+        cat > "$HISTORY_FILE" << EOF
+        {
+          "total_syncs": $SYNC_COUNT,
+          "last_sync_time": $CURRENT_TIME,
+          "last_sync_mode": "$SYNC_MODE",
+          "last_sync_status": "$SYNC_STATUS",
+          "last_wait_time": $WAIT_TIME,
+          "last_badges_synced": $BADGES_SYNCED,
+          "workflow_run": "${{ github.run_id }}"
+        }
+        EOF
+        
+        # Set outputs
+        echo "sync-status=$SYNC_STATUS" >> $GITHUB_OUTPUT
+        echo "wait-time=$WAIT_TIME" >> $GITHUB_OUTPUT
+        echo "badges-synced=$BADGES_SYNCED" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "📊 Synchronization Summary:"
+        echo "========================="
+        echo "Mode: $SYNC_MODE"
+        echo "Status: $SYNC_STATUS"
+        echo "Wait Time: ${WAIT_TIME}s"
+        echo "Badges Synced: $BADGES_SYNCED"
+        echo "Total Time: $(($(date +%s) - START_TIME))s"
+        
+        echo ""
+        echo "✅ Badge synchronization completed"
+      shell: bash
+    
+    - name: Cleanup synchronization resources
+      if: always()
+      run: |
+        echo "🧹 Cleaning up synchronization resources..."
+        
+        SYNC_MODE="${{ inputs.sync-mode }}"
+        QUEUE_FILE=".badge-sync/queue/badge-queue.json"
+        SYNC_LOCK=".badge-sync/locks/sync.lock"
+        
+        case "$SYNC_MODE" in
+          "queue")
+            # Remove ourselves from queue
+            if [ -f "$QUEUE_FILE" ]; then
+              jq --arg workflow "${{ github.run_id }}" 'map(select(.workflow_run != $workflow))' "$QUEUE_FILE" > "$QUEUE_FILE.tmp" && mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
+              echo "✅ Removed from synchronization queue"
+            fi
+            ;;
+            
+          "immediate")
+            # Release synchronization lock
+            if [ -f "$SYNC_LOCK" ]; then
+              LOCK_OWNER=$(jq -r '.workflow_run // "unknown"' "$SYNC_LOCK" 2>/dev/null || echo "unknown")
+              if [ "$LOCK_OWNER" = "${{ github.run_id }}" ]; then
+                rm "$SYNC_LOCK"
+                echo "✅ Released synchronization lock"
+              fi
+            fi
+            ;;
+            
+          "batch")
+            # No specific cleanup needed for batch mode
+            echo "✅ Batch synchronization cleanup completed"
+            ;;
+        esac
+        
+        echo "✅ Synchronization cleanup completed"
+      shell: bash
+    
+    - name: Generate synchronization performance report
+      run: |
+        echo "📈 SYNCHRONIZATION PERFORMANCE REPORT"
+        echo "===================================="
+        
+        HISTORY_FILE=".badge-sync/history/sync-history.json"
+        
+        if [ -f "$HISTORY_FILE" ]; then
+          echo "📊 Performance Metrics:"
+          echo "====================="
+          
+          TOTAL_SYNCS=$(jq -r '.total_syncs // 0' "$HISTORY_FILE")
+          LAST_WAIT_TIME=$(jq -r '.last_wait_time // 0' "$HISTORY_FILE")
+          LAST_BADGES_SYNCED=$(jq -r '.last_badges_synced // 0' "$HISTORY_FILE")
+          LAST_STATUS=$(jq -r '.last_sync_status // "unknown"' "$HISTORY_FILE")
+          
+          echo "Total Synchronizations: $TOTAL_SYNCS"
+          echo "Last Wait Time: ${LAST_WAIT_TIME}s"
+          echo "Last Badges Synced: $LAST_BADGES_SYNCED"
+          echo "Last Status: $LAST_STATUS"
+          
+          # Performance analysis
+          echo ""
+          echo "🚀 Performance Analysis:"
+          echo "======================="
+          
+          if [ $LAST_WAIT_TIME -lt 30 ]; then
+            echo "✅ Excellent synchronization performance (<30s wait)"
+          elif [ $LAST_WAIT_TIME -lt 60 ]; then
+            echo "⚠️ Good synchronization performance (<60s wait)"
+          else
+            echo "❌ Poor synchronization performance (>60s wait)"
+            echo "Consider optimizing synchronization strategy"
+          fi
+          
+          # Recommendations
+          echo ""
+          echo "💡 Recommendations:"
+          echo "=================="
+          
+          case "${{ inputs.sync-mode }}" in
+            "queue")
+              if [ $LAST_WAIT_TIME -gt 60 ]; then
+                echo "- Consider switching to immediate mode for faster updates"
+                echo "- Reduce queue processing time"
+              else
+                echo "- Queue mode is performing well"
+              fi
+              ;;
+            "immediate")
+              if [ "$LAST_STATUS" = "timeout" ]; then
+                echo "- Consider increasing max wait time"
+                echo "- Check for synchronization bottlenecks"
+              else
+                echo "- Immediate mode is performing well"
+              fi
+              ;;
+            "batch")
+              if [ $LAST_BADGES_SYNCED -lt ${{ inputs.batch-size }} ]; then
+                echo "- Consider reducing batch size for faster processing"
+                echo "- Monitor badge generation frequency"
+              else
+                echo "- Batch mode is performing efficiently"
+              fi
+              ;;
+          esac
+        fi
+      shell: bash

@@ -1,0 +1,371 @@
+name: 'Badge Cache Manager'
+description: 'Manage smart badge caching to reduce update frequency and improve performance'
+inputs:
+  operation:
+    description: 'Cache operation (check, update, clear, stats)'
+    required: true
+  badge-type:
+    description: 'Badge type for cache operations'
+    required: false
+  cache-duration:
+    description: 'Cache duration in seconds (default: 300 = 5 minutes)'
+    required: false
+    default: '300'
+  force-update:
+    description: 'Force cache update regardless of age'
+    required: false
+    default: 'false'
+
+outputs:
+  cache-hit:
+    description: 'Whether cache hit occurred'
+    value: ${{ steps.cache-operation.outputs.cache-hit }}
+  cache-age:
+    description: 'Age of cached data in seconds'
+    value: ${{ steps.cache-operation.outputs.cache-age }}
+  cache-valid:
+    description: 'Whether cached data is valid'
+    value: ${{ steps.cache-operation.outputs.cache-valid }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialize badge cache management
+      run: |
+        echo "🗄️ BADGE CACHE MANAGER"
+        echo "===================="
+        echo "Operation: ${{ inputs.operation }}"
+        echo "Badge Type: ${{ inputs.badge-type || 'all' }}"
+        echo "Cache Duration: ${{ inputs.cache-duration }}s"
+        echo "Force Update: ${{ inputs.force-update }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Create cache directories
+        mkdir -p .badge-cache
+        mkdir -p .badge-cache/metadata
+        mkdir -p .badge-cache/stats
+        
+        echo "✅ Cache management environment initialized"
+      shell: bash
+    
+    - name: Execute cache operation
+      id: cache-operation
+      run: |
+        echo "🔄 Executing cache operation: ${{ inputs.operation }}"
+        echo "================================================"
+        
+        OPERATION="${{ inputs.operation }}"
+        BADGE_TYPE="${{ inputs.badge-type }}"
+        CACHE_DURATION="${{ inputs.cache-duration }}"
+        FORCE_UPDATE="${{ inputs.force-update }}"
+        CURRENT_TIME=$(date +%s)
+        
+        # Initialize outputs
+        CACHE_HIT="false"
+        CACHE_AGE="0"
+        CACHE_VALID="false"
+        
+        case "$OPERATION" in
+          "check")
+            echo "🔍 Checking badge cache status..."
+            
+            if [ -n "$BADGE_TYPE" ]; then
+              # Check specific badge cache
+              CACHE_FILE=".badge-cache/${BADGE_TYPE}-cache.json"
+              
+              if [ -f "$CACHE_FILE" ]; then
+                CACHE_TIME=$(jq -r '.timestamp // 0' "$CACHE_FILE" 2>/dev/null || echo "0")
+                CACHE_AGE=$((CURRENT_TIME - CACHE_TIME))
+                
+                echo "📋 Cache Status for $BADGE_TYPE:"
+                echo "Cache file: $CACHE_FILE"
+                echo "Cache age: ${CACHE_AGE}s"
+                echo "Cache duration limit: ${CACHE_DURATION}s"
+                
+                if [ $CACHE_AGE -lt $CACHE_DURATION ]; then
+                  CACHE_HIT="true"
+                  CACHE_VALID="true"
+                  echo "✅ Cache HIT - data is fresh"
+                else
+                  CACHE_HIT="false"
+                  CACHE_VALID="false"
+                  echo "❌ Cache MISS - data is stale"
+                fi
+              else
+                echo "❌ Cache MISS - no cache file found"
+                CACHE_HIT="false"
+                CACHE_VALID="false"
+              fi
+            else
+              # Check all badge caches
+              echo "🔍 Checking all badge caches..."
+              
+              TOTAL_CACHES=0
+              VALID_CACHES=0
+              
+              for cache_file in .badge-cache/*-cache.json; do
+                if [ -f "$cache_file" ]; then
+                  TOTAL_CACHES=$((TOTAL_CACHES + 1))
+                  
+                  CACHE_TIME=$(jq -r '.timestamp // 0' "$cache_file" 2>/dev/null || echo "0")
+                  FILE_CACHE_AGE=$((CURRENT_TIME - CACHE_TIME))
+                  
+                  if [ $FILE_CACHE_AGE -lt $CACHE_DURATION ]; then
+                    VALID_CACHES=$((VALID_CACHES + 1))
+                  fi
+                  
+                  echo "📋 $(basename "$cache_file"): ${FILE_CACHE_AGE}s old"
+                fi
+              done
+              
+              echo "📊 Cache Summary: $VALID_CACHES/$TOTAL_CACHES caches valid"
+              
+              if [ $TOTAL_CACHES -gt 0 ] && [ $VALID_CACHES -gt 0 ]; then
+                CACHE_HIT="true"
+                CACHE_VALID="true"
+              fi
+            fi
+            ;;
+            
+          "update")
+            echo "💾 Updating badge cache..."
+            
+            if [ -n "$BADGE_TYPE" ]; then
+              CACHE_FILE=".badge-cache/${BADGE_TYPE}-cache.json"
+              BADGE_FILE=".github/badges/${BADGE_TYPE}.json"
+              
+              if [ -f "$BADGE_FILE" ]; then
+                echo "📝 Updating cache for $BADGE_TYPE..."
+                
+                # Read badge content
+                BADGE_CONTENT=$(cat "$BADGE_FILE" 2>/dev/null || echo "{}")
+                
+                # Create cache entry
+                cat > "$CACHE_FILE" << EOF
+        {
+          "badge_type": "$BADGE_TYPE",
+          "timestamp": $CURRENT_TIME,
+          "cache_duration": $CACHE_DURATION,
+          "badge_data": $BADGE_CONTENT,
+          "workflow_run": "${{ github.run_id }}",
+          "commit_sha": "${{ github.sha }}",
+          "force_updated": $FORCE_UPDATE
+        }
+        EOF
+                
+                echo "✅ Cache updated for $BADGE_TYPE"
+                
+                # Update cache statistics
+                STATS_FILE=".badge-cache/stats/cache-stats.json"
+                
+                if [ -f "$STATS_FILE" ]; then
+                  TOTAL_UPDATES=$(jq -r '.total_updates // 0' "$STATS_FILE")
+                  TOTAL_UPDATES=$((TOTAL_UPDATES + 1))
+                else
+                  TOTAL_UPDATES=1
+                fi
+                
+                cat > "$STATS_FILE" << EOF
+        {
+          "total_updates": $TOTAL_UPDATES,
+          "last_update": $CURRENT_TIME,
+          "last_updated_badge": "$BADGE_TYPE",
+          "cache_duration": $CACHE_DURATION
+        }
+        EOF
+                
+              else
+                echo "❌ Badge file not found: $BADGE_FILE"
+              fi
+            else
+              echo "📝 Updating all badge caches..."
+              
+              UPDATED_COUNT=0
+              
+              for badge_file in .github/badges/*.json; do
+                if [ -f "$badge_file" ]; then
+                  BADGE_NAME=$(basename "$badge_file" .json)
+                  CACHE_FILE=".badge-cache/${BADGE_NAME}-cache.json"
+                  
+                  BADGE_CONTENT=$(cat "$badge_file" 2>/dev/null || echo "{}")
+                  
+                  cat > "$CACHE_FILE" << EOF
+        {
+          "badge_type": "$BADGE_NAME",
+          "timestamp": $CURRENT_TIME,
+          "cache_duration": $CACHE_DURATION,
+          "badge_data": $BADGE_CONTENT,
+          "workflow_run": "${{ github.run_id }}",
+          "commit_sha": "${{ github.sha }}",
+          "force_updated": $FORCE_UPDATE
+        }
+        EOF
+                  
+                  UPDATED_COUNT=$((UPDATED_COUNT + 1))
+                  echo "✅ Updated cache for $BADGE_NAME"
+                fi
+              done
+              
+              echo "📊 Updated $UPDATED_COUNT badge caches"
+            fi
+            ;;
+            
+          "clear")
+            echo "🧹 Clearing badge cache..."
+            
+            if [ -n "$BADGE_TYPE" ]; then
+              CACHE_FILE=".badge-cache/${BADGE_TYPE}-cache.json"
+              
+              if [ -f "$CACHE_FILE" ]; then
+                rm "$CACHE_FILE"
+                echo "✅ Cleared cache for $BADGE_TYPE"
+              else
+                echo "⚠️ No cache found for $BADGE_TYPE"
+              fi
+            else
+              CLEARED_COUNT=0
+              
+              for cache_file in .badge-cache/*-cache.json; do
+                if [ -f "$cache_file" ]; then
+                  rm "$cache_file"
+                  CLEARED_COUNT=$((CLEARED_COUNT + 1))
+                fi
+              done
+              
+              echo "✅ Cleared $CLEARED_COUNT cache files"
+            fi
+            ;;
+            
+          "stats")
+            echo "📊 Badge cache statistics..."
+            
+            TOTAL_CACHES=0
+            VALID_CACHES=0
+            EXPIRED_CACHES=0
+            TOTAL_SIZE=0
+            
+            echo "📋 Cache Status Report:"
+            echo "====================="
+            
+            for cache_file in .badge-cache/*-cache.json; do
+              if [ -f "$cache_file" ]; then
+                TOTAL_CACHES=$((TOTAL_CACHES + 1))
+                
+                BADGE_NAME=$(basename "$cache_file" -cache.json)
+                CACHE_TIME=$(jq -r '.timestamp // 0' "$cache_file" 2>/dev/null || echo "0")
+                FILE_CACHE_AGE=$((CURRENT_TIME - CACHE_TIME))
+                FILE_SIZE=$(stat -f%z "$cache_file" 2>/dev/null || stat -c%s "$cache_file" 2>/dev/null || echo "0")
+                TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+                
+                if [ $FILE_CACHE_AGE -lt $CACHE_DURATION ]; then
+                  VALID_CACHES=$((VALID_CACHES + 1))
+                  STATUS="✅ VALID"
+                else
+                  EXPIRED_CACHES=$((EXPIRED_CACHES + 1))
+                  STATUS="❌ EXPIRED"
+                fi
+                
+                echo "📋 $BADGE_NAME: ${FILE_CACHE_AGE}s old, ${FILE_SIZE} bytes - $STATUS"
+              fi
+            done
+            
+            echo ""
+            echo "📊 Cache Summary:"
+            echo "================"
+            echo "Total caches: $TOTAL_CACHES"
+            echo "Valid caches: $VALID_CACHES"
+            echo "Expired caches: $EXPIRED_CACHES"
+            echo "Total cache size: $TOTAL_SIZE bytes"
+            
+            if [ $TOTAL_CACHES -gt 0 ]; then
+              HIT_RATE=$(echo "scale=1; $VALID_CACHES * 100 / $TOTAL_CACHES" | bc -l 2>/dev/null || echo "0")
+              echo "Cache hit rate: ${HIT_RATE}%"
+            else
+              echo "Cache hit rate: 0% (no caches)"
+            fi
+            
+            # Generate cache statistics file
+            STATS_FILE=".badge-cache/stats/cache-report.json"
+            cat > "$STATS_FILE" << EOF
+        {
+          "timestamp": $CURRENT_TIME,
+          "total_caches": $TOTAL_CACHES,
+          "valid_caches": $VALID_CACHES,
+          "expired_caches": $EXPIRED_CACHES,
+          "total_size_bytes": $TOTAL_SIZE,
+          "cache_hit_rate": $(echo "scale=2; $VALID_CACHES * 100 / $TOTAL_CACHES" | bc -l 2>/dev/null || echo "0"),
+          "cache_duration": $CACHE_DURATION
+        }
+        EOF
+            
+            echo "📄 Cache report saved to: $STATS_FILE"
+            ;;
+            
+          *)
+            echo "❌ Unknown cache operation: $OPERATION"
+            echo "Valid operations: check, update, clear, stats"
+            exit 1
+            ;;
+        esac
+        
+        # Set outputs
+        echo "cache-hit=$CACHE_HIT" >> $GITHUB_OUTPUT
+        echo "cache-age=$CACHE_AGE" >> $GITHUB_OUTPUT
+        echo "cache-valid=$CACHE_VALID" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "✅ Cache operation completed: $OPERATION"
+      shell: bash
+    
+    - name: Generate cache performance report
+      if: inputs.operation == 'stats'
+      run: |
+        echo "📈 CACHE PERFORMANCE ANALYSIS"
+        echo "============================"
+        
+        STATS_FILE=".badge-cache/stats/cache-report.json"
+        
+        if [ -f "$STATS_FILE" ]; then
+          echo "📊 Performance Metrics:"
+          echo "====================="
+          
+          TOTAL_CACHES=$(jq -r '.total_caches' "$STATS_FILE")
+          VALID_CACHES=$(jq -r '.valid_caches' "$STATS_FILE")
+          HIT_RATE=$(jq -r '.cache_hit_rate' "$STATS_FILE")
+          TOTAL_SIZE=$(jq -r '.total_size_bytes' "$STATS_FILE")
+          
+          echo "Cache Hit Rate: ${HIT_RATE}%"
+          echo "Valid Caches: $VALID_CACHES/$TOTAL_CACHES"
+          echo "Total Cache Size: $TOTAL_SIZE bytes"
+          
+          # Performance recommendations
+          echo ""
+          echo "🚀 Performance Recommendations:"
+          echo "=============================="
+          
+          if (( $(echo "$HIT_RATE >= 80" | bc -l 2>/dev/null || echo "0") )); then
+            echo "✅ Excellent cache performance (${HIT_RATE}% hit rate)"
+            echo "- Cache strategy is working effectively"
+            echo "- Consider maintaining current cache duration"
+          elif (( $(echo "$HIT_RATE >= 60" | bc -l 2>/dev/null || echo "0") )); then
+            echo "⚠️ Good cache performance (${HIT_RATE}% hit rate)"
+            echo "- Consider increasing cache duration slightly"
+            echo "- Monitor badge update frequency"
+          else
+            echo "❌ Poor cache performance (${HIT_RATE}% hit rate)"
+            echo "- Consider increasing cache duration"
+            echo "- Review badge update triggers"
+            echo "- Check for unnecessary cache invalidations"
+          fi
+          
+          # Size recommendations
+          if [ $TOTAL_SIZE -gt 10240 ]; then  # 10KB
+            echo ""
+            echo "💾 Cache Size Optimization:"
+            echo "- Total cache size: $TOTAL_SIZE bytes"
+            echo "- Consider implementing cache cleanup"
+            echo "- Remove expired caches regularly"
+          fi
+        fi
+      shell: bash

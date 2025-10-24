@@ -49,9 +49,8 @@ class TestSecurityIntegration:
         # Check for required workflow components
         required_components = [
             "name: Security Scanning",
-            "dependency-security-scan",
-            "codeql-security-analysis",
-            "secret-scanning-validation",
+            "security-scan-matrix",
+            "security-config-validation",
             "security-summary",
             "zero-tolerance",
             "pip-audit",

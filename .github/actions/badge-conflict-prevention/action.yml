@@ -1,0 +1,346 @@
+name: 'Badge Conflict Prevention'
+description: 'Prevent badge update conflicts with improved synchronization and monitoring'
+inputs:
+  operation:
+    description: 'Operation type (check, lock, unlock, monitor)'
+    required: true
+  timeout:
+    description: 'Lock timeout in seconds'
+    required: false
+    default: '300'
+  force-unlock:
+    description: 'Force unlock even if lock is active'
+    required: false
+    default: 'false'
+
+outputs:
+  lock-acquired:
+    description: 'Whether lock was successfully acquired'
+    value: ${{ steps.conflict-prevention.outputs.lock-acquired }}
+  lock-status:
+    description: 'Current lock status'
+    value: ${{ steps.conflict-prevention.outputs.lock-status }}
+  conflicts-detected:
+    description: 'Whether conflicts were detected'
+    value: ${{ steps.conflict-prevention.outputs.conflicts-detected }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialize conflict prevention system
+      run: |
+        echo "🔒 BADGE CONFLICT PREVENTION SYSTEM"
+        echo "=================================="
+        echo "Operation: ${{ inputs.operation }}"
+        echo "Timeout: ${{ inputs.timeout }}s"
+        echo "Force Unlock: ${{ inputs.force-unlock }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Create lock management directories
+        mkdir -p .badge-locks
+        mkdir -p .badge-locks/history
+        mkdir -p .badge-locks/monitoring
+        
+        echo "✅ Conflict prevention system initialized"
+      shell: bash
+    
+    - name: Execute conflict prevention operation
+      id: conflict-prevention
+      run: |
+        echo "🔄 Executing conflict prevention: ${{ inputs.operation }}"
+        echo "======================================================="
+        
+        OPERATION="${{ inputs.operation }}"
+        TIMEOUT="${{ inputs.timeout }}"
+        FORCE_UNLOCK="${{ inputs.force-unlock }}"
+        CURRENT_TIME=$(date +%s)
+        
+        # Lock file configuration
+        LOCK_FILE=".badge-locks/badge-update.lock"
+        LOCK_HISTORY=".badge-locks/history/lock-history.json"
+        MONITORING_FILE=".badge-locks/monitoring/conflict-monitor.json"
+        
+        # Initialize outputs
+        LOCK_ACQUIRED="false"
+        LOCK_STATUS="unknown"
+        CONFLICTS_DETECTED="false"
+        
+        case "$OPERATION" in
+          "check")
+            echo "🔍 Checking for existing locks and conflicts..."
+            
+            if [ -f "$LOCK_FILE" ]; then
+              LOCK_TIME=$(jq -r '.timestamp // 0' "$LOCK_FILE" 2>/dev/null || echo "0")
+              LOCK_AGE=$((CURRENT_TIME - LOCK_TIME))
+              LOCK_OWNER=$(jq -r '.owner // "unknown"' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+              LOCK_WORKFLOW=$(jq -r '.workflow_run // "unknown"' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+              
+              echo "🔒 Active lock detected:"
+              echo "Lock owner: $LOCK_OWNER"
+              echo "Lock age: ${LOCK_AGE}s"
+              echo "Lock workflow: $LOCK_WORKFLOW"
+              echo "Lock timeout: ${TIMEOUT}s"
+              
+              if [ $LOCK_AGE -gt $TIMEOUT ]; then
+                echo "⚠️ Lock has expired (age: ${LOCK_AGE}s > timeout: ${TIMEOUT}s)"
+                LOCK_STATUS="expired"
+                CONFLICTS_DETECTED="true"
+              else
+                echo "🔒 Lock is active and valid"
+                LOCK_STATUS="active"
+                
+                # Check if this is the same workflow
+                if [ "$LOCK_WORKFLOW" = "${{ github.run_id }}" ]; then
+                  echo "✅ Lock belongs to current workflow - no conflict"
+                  LOCK_ACQUIRED="true"
+                else
+                  echo "⚠️ Lock belongs to different workflow - conflict detected"
+                  CONFLICTS_DETECTED="true"
+                fi
+              fi
+            else
+              echo "✅ No active locks found"
+              LOCK_STATUS="none"
+            fi
+            
+            # Check for concurrent badge updates
+            echo ""
+            echo "🔍 Checking for concurrent badge updates..."
+            
+            # Look for recent badge commits
+            RECENT_COMMITS=$(git log --oneline --since="5 minutes ago" --grep="badge" -- .github/badges/ 2>/dev/null | wc -l || echo "0")
+            
+            if [ $RECENT_COMMITS -gt 1 ]; then
+              echo "⚠️ Multiple recent badge commits detected ($RECENT_COMMITS)"
+              echo "This may indicate concurrent badge updates"
+              CONFLICTS_DETECTED="true"
+            else
+              echo "✅ No concurrent badge updates detected"
+            fi
+            ;;
+            
+          "lock")
+            echo "🔒 Acquiring badge update lock..."
+            
+            # Check for existing lock first
+            if [ -f "$LOCK_FILE" ] && [ "$FORCE_UNLOCK" != "true" ]; then
+              LOCK_TIME=$(jq -r '.timestamp // 0' "$LOCK_FILE" 2>/dev/null || echo "0")
+              LOCK_AGE=$((CURRENT_TIME - LOCK_TIME))
+              
+              if [ $LOCK_AGE -lt $TIMEOUT ]; then
+                EXISTING_OWNER=$(jq -r '.owner // "unknown"' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+                echo "❌ Cannot acquire lock - already held by: $EXISTING_OWNER"
+                echo "Lock age: ${LOCK_AGE}s (timeout: ${TIMEOUT}s)"
+                LOCK_STATUS="blocked"
+                CONFLICTS_DETECTED="true"
+              else
+                echo "⚠️ Existing lock has expired - acquiring new lock"
+                rm "$LOCK_FILE" 2>/dev/null || true
+              fi
+            fi
+            
+            # Acquire lock if not blocked
+            if [ "$LOCK_STATUS" != "blocked" ]; then
+              cat > "$LOCK_FILE" << EOF
+        {
+          "timestamp": $CURRENT_TIME,
+          "owner": "github-actions",
+          "workflow_run": "${{ github.run_id }}",
+          "workflow_name": "${{ github.workflow }}",
+          "repository": "${{ github.repository }}",
+          "commit_sha": "${{ github.sha }}",
+          "timeout": $TIMEOUT,
+          "force_unlock": $FORCE_UNLOCK
+        }
+        EOF
+              
+              LOCK_ACQUIRED="true"
+              LOCK_STATUS="acquired"
+              echo "✅ Badge update lock acquired successfully"
+              
+              # Record lock acquisition in history
+              if [ -f "$LOCK_HISTORY" ]; then
+                LOCK_COUNT=$(jq -r '.total_locks // 0' "$LOCK_HISTORY")
+                LOCK_COUNT=$((LOCK_COUNT + 1))
+              else
+                LOCK_COUNT=1
+              fi
+              
+              cat > "$LOCK_HISTORY" << EOF
+        {
+          "total_locks": $LOCK_COUNT,
+          "last_lock_time": $CURRENT_TIME,
+          "last_lock_workflow": "${{ github.run_id }}",
+          "last_lock_duration": 0
+        }
+        EOF
+            fi
+            ;;
+            
+          "unlock")
+            echo "🔓 Releasing badge update lock..."
+            
+            if [ -f "$LOCK_FILE" ]; then
+              LOCK_OWNER=$(jq -r '.owner // "unknown"' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+              LOCK_WORKFLOW=$(jq -r '.workflow_run // "unknown"' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+              LOCK_TIME=$(jq -r '.timestamp // 0' "$LOCK_FILE" 2>/dev/null || echo "0")
+              LOCK_DURATION=$((CURRENT_TIME - LOCK_TIME))
+              
+              # Verify lock ownership unless force unlock
+              if [ "$FORCE_UNLOCK" = "true" ] || [ "$LOCK_WORKFLOW" = "${{ github.run_id }}" ]; then
+                rm "$LOCK_FILE"
+                echo "✅ Lock released successfully"
+                echo "Lock duration: ${LOCK_DURATION}s"
+                LOCK_STATUS="released"
+                
+                # Update lock history with duration
+                if [ -f "$LOCK_HISTORY" ]; then
+                  jq --arg duration "$LOCK_DURATION" '.last_lock_duration = ($duration | tonumber)' "$LOCK_HISTORY" > "$LOCK_HISTORY.tmp" && mv "$LOCK_HISTORY.tmp" "$LOCK_HISTORY"
+                fi
+              else
+                echo "❌ Cannot release lock - not owned by current workflow"
+                echo "Lock owner: $LOCK_OWNER"
+                echo "Current workflow: ${{ github.run_id }}"
+                LOCK_STATUS="not-owned"
+                CONFLICTS_DETECTED="true"
+              fi
+            else
+              echo "⚠️ No lock file found - already released or never acquired"
+              LOCK_STATUS="none"
+            fi
+            ;;
+            
+          "monitor")
+            echo "📊 Monitoring badge update conflicts and performance..."
+            
+            # Collect monitoring data
+            ACTIVE_LOCKS=0
+            EXPIRED_LOCKS=0
+            TOTAL_CONFLICTS=0
+            
+            # Check current lock status
+            if [ -f "$LOCK_FILE" ]; then
+              LOCK_TIME=$(jq -r '.timestamp // 0' "$LOCK_FILE" 2>/dev/null || echo "0")
+              LOCK_AGE=$((CURRENT_TIME - LOCK_TIME))
+              
+              if [ $LOCK_AGE -gt $TIMEOUT ]; then
+                EXPIRED_LOCKS=1
+                TOTAL_CONFLICTS=1
+              else
+                ACTIVE_LOCKS=1
+              fi
+            fi
+            
+            # Check for recent conflicts in git history
+            RECENT_BADGE_COMMITS=$(git log --oneline --since="1 hour ago" --grep="badge" -- .github/badges/ 2>/dev/null | wc -l || echo "0")
+            
+            # Generate monitoring report
+            cat > "$MONITORING_FILE" << EOF
+        {
+          "timestamp": $CURRENT_TIME,
+          "monitoring_period": "1 hour",
+          "active_locks": $ACTIVE_LOCKS,
+          "expired_locks": $EXPIRED_LOCKS,
+          "total_conflicts": $TOTAL_CONFLICTS,
+          "recent_badge_commits": $RECENT_BADGE_COMMITS,
+          "lock_timeout": $TIMEOUT,
+          "workflow_run": "${{ github.run_id }}",
+          "repository": "${{ github.repository }}"
+        }
+        EOF
+            
+            echo "📋 Conflict Monitoring Report:"
+            echo "============================="
+            echo "Active locks: $ACTIVE_LOCKS"
+            echo "Expired locks: $EXPIRED_LOCKS"
+            echo "Total conflicts: $TOTAL_CONFLICTS"
+            echo "Recent badge commits: $RECENT_BADGE_COMMITS"
+            
+            if [ $TOTAL_CONFLICTS -gt 0 ]; then
+              CONFLICTS_DETECTED="true"
+              echo "⚠️ Conflicts detected in monitoring period"
+            else
+              echo "✅ No conflicts detected"
+            fi
+            
+            LOCK_STATUS="monitored"
+            ;;
+            
+          *)
+            echo "❌ Unknown operation: $OPERATION"
+            echo "Valid operations: check, lock, unlock, monitor"
+            exit 1
+            ;;
+        esac
+        
+        # Set outputs
+        echo "lock-acquired=$LOCK_ACQUIRED" >> $GITHUB_OUTPUT
+        echo "lock-status=$LOCK_STATUS" >> $GITHUB_OUTPUT
+        echo "conflicts-detected=$CONFLICTS_DETECTED" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "✅ Conflict prevention operation completed: $OPERATION"
+      shell: bash
+    
+    - name: Generate conflict prevention report
+      if: inputs.operation == 'monitor'
+      run: |
+        echo "📈 CONFLICT PREVENTION ANALYSIS"
+        echo "=============================="
+        
+        MONITORING_FILE=".badge-locks/monitoring/conflict-monitor.json"
+        LOCK_HISTORY=".badge-locks/history/lock-history.json"
+        
+        if [ -f "$MONITORING_FILE" ]; then
+          echo "📊 Current Status:"
+          echo "================="
+          
+          ACTIVE_LOCKS=$(jq -r '.active_locks' "$MONITORING_FILE")
+          EXPIRED_LOCKS=$(jq -r '.expired_locks' "$MONITORING_FILE")
+          TOTAL_CONFLICTS=$(jq -r '.total_conflicts' "$MONITORING_FILE")
+          RECENT_COMMITS=$(jq -r '.recent_badge_commits' "$MONITORING_FILE")
+          
+          echo "Active Locks: $ACTIVE_LOCKS"
+          echo "Expired Locks: $EXPIRED_LOCKS"
+          echo "Conflicts: $TOTAL_CONFLICTS"
+          echo "Recent Badge Commits: $RECENT_COMMITS"
+        fi
+        
+        if [ -f "$LOCK_HISTORY" ]; then
+          echo ""
+          echo "📈 Historical Performance:"
+          echo "========================"
+          
+          TOTAL_LOCKS=$(jq -r '.total_locks // 0' "$LOCK_HISTORY")
+          LAST_DURATION=$(jq -r '.last_lock_duration // 0' "$LOCK_HISTORY")
+          
+          echo "Total Locks Acquired: $TOTAL_LOCKS"
+          echo "Last Lock Duration: ${LAST_DURATION}s"
+          
+          if [ $LAST_DURATION -gt 0 ]; then
+            if [ $LAST_DURATION -lt 60 ]; then
+              echo "✅ Excellent lock performance (<1 minute)"
+            elif [ $LAST_DURATION -lt 180 ]; then
+              echo "⚠️ Good lock performance (<3 minutes)"
+            else
+              echo "❌ Poor lock performance (>3 minutes)"
+            fi
+          fi
+        fi
+        
+        echo ""
+        echo "🚀 Recommendations:"
+        echo "=================="
+        
+        if [ "${{ steps.conflict-prevention.outputs.conflicts-detected }}" = "true" ]; then
+          echo "⚠️ Conflicts detected - consider:"
+          echo "- Increasing lock timeout"
+          echo "- Implementing retry mechanisms"
+          echo "- Staggering badge update schedules"
+        else
+          echo "✅ No conflicts detected"
+          echo "- Current conflict prevention is effective"
+          echo "- Monitor for future conflicts"
+        fi
+      shell: bash

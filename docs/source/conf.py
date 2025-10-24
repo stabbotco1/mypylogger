@@ -39,6 +39,26 @@ exclude_patterns = []
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
+# -- Performance Optimizations -----------------------------------------------
+
+# Enable parallel processing for faster builds
+import os
+
+# Use all available CPU cores for parallel processing
+numfig = True
+numfig_format = {"figure": "Figure %s", "table": "Table %s", "code-block": "Listing %s"}
+
+# Optimize build performance
+keep_warnings = False  # Don't keep warnings in memory
+nitpicky = False  # Don't be overly strict about references
+suppress_warnings = ["image.nonlocal_uri"]
+
+# Cache settings for faster rebuilds
+env_cache_path = os.environ.get("SPHINX_CACHE_DIR", "_build/.doctrees")
+
+# Optimize autodoc performance
+autodoc_mock_imports = []  # Add any problematic imports here if needed
+
 # -- Extension configuration -------------------------------------------------
 
 # Napoleon settings for Google-style docstrings

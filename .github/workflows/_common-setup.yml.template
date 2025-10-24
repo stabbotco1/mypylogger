@@ -30,7 +30,7 @@ jobs:
       
       # Step 2: Set up Python with caching
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       
@@ -81,7 +81,7 @@ cache-uv-dependencies: &cache-uv
 
 # Pattern 2: Python setup with version matrix
 python-setup-matrix: &python-matrix
-  uses: actions/setup-python@v4
+  uses: actions/setup-python@v5
   with:
     python-version: ${{ matrix.python-version }}
 

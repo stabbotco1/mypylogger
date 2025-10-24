@@ -1,16 +1,18 @@
-# PyPI Publishing Workflow for mypylogger v0.2.0
+# Optimized PyPI Publishing Workflow for mypylogger v0.2.0
 #
-# This workflow provides secure, manual package publishing to PyPI
-# with comprehensive quality gate validation before publishing.
+# Streamlined workflow for secure, fast package publishing to PyPI
+# with comprehensive pre-publishing validation and enhanced error reporting.
 #
 # Requirements Addressed:
-# - 4.1: Provide manual workflow trigger for PyPI publishing
-# - 4.3: Run all quality checks before publishing
-# - 4.4: Authenticate with PyPI using secure token-based authentication
+# - 8.1: Streamlined PyPI publishing workflow for faster execution
+# - 8.2: Comprehensive pre-publishing validation
+# - 8.3: Clear publishing status reporting and error handling
+# - 8.4: Optimized build artifact generation and verification
+# - 8.5: Publishing workflow security and compliance
 
 name: Publish to PyPI
 
-# Manual workflow dispatch trigger only (Requirement 4.1)
+# Manual workflow dispatch trigger only
 on:
   workflow_dispatch:
     inputs:
@@ -24,14 +26,15 @@ on:
         type: boolean
         default: false
 
-# Global environment variables for consistency
+# Optimized environment variables for faster execution
 env:
   UV_CACHE_DIR: ~/.cache/uv
   COVERAGE_THRESHOLD: "95"
   PYTHONUNBUFFERED: "1"
   PYTHONDONTWRITEBYTECODE: "1"
-  UV_HTTP_TIMEOUT: "60"
-  UV_CONCURRENT_DOWNLOADS: "8"
+  UV_HTTP_TIMEOUT: "30"
+  UV_CONCURRENT_DOWNLOADS: "16"
+  PYTHON_VERSION: "3.12"
 
 # OIDC permissions for secure PyPI publishing (Requirement 4.4)
 permissions:
@@ -44,11 +47,11 @@ defaults:
     shell: bash
 
 jobs:
-  # Job 1: Pre-publishing quality gate validation (Requirement 4.3)
+  # Job 1: Streamlined pre-publishing validation (Requirement 8.2)
   pre-publish-validation:
-    name: Pre-Publishing Quality Gate
+    name: Pre-Publishing Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8  # Reduced from 15 for faster execution
     
     outputs:
       validation-passed: ${{ steps.validation-result.outputs.passed }}
@@ -59,153 +62,126 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
       
-      # Install UV with retry strategy for reliability
+      # Streamlined UV installation
       - name: Install UV package manager
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 3
-          max_attempts: 3
-          retry_on: error
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      
-      # Enhanced caching for publishing workflow
-      - name: Cache UV dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/uv
-          key: uv-publish-${{ runner.os }}-3.12-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            uv-publish-${{ runner.os }}-3.12-
-            uv-${{ runner.os }}-3.12-
-            uv-${{ runner.os }}-
-      
-      # Cache for development and build tools
-      - name: Cache build tools
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.local/share/uv
-            ~/.mypy_cache
-            ~/.ruff_cache
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            build-tools-${{ runner.os }}-
-      
-      # Install dependencies with performance optimization
-      - name: Install project dependencies
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_on: error
-          command: |
-            uv --version
-            uv sync --frozen
-      
-      - name: Verify build tools installation
         run: |
-          echo "Verifying build and quality tools are available..."
-          uv run ruff --version
-          uv run mypy --version
-          uv run python -m build --version 2>/dev/null || echo "Build tool will be installed during build step"
-          echo "Tools verification completed"
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       
-      # CRITICAL: Run complete test suite (Requirement 4.3)
-      - name: Run complete test suite with coverage
-        run: |
-          echo "🧪 Running complete test suite for publishing validation..."
-          echo "========================================================"
-          uv run pytest \
-            --cov=mypylogger \
-            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
-            --cov-report=term-missing \
-            --verbose \
-            --tb=short \
-            --durations=10
-          echo "✅ Test suite passed with required coverage"
+      # OPTIMIZED: Advanced multi-level caching for publishing
+      - name: Setup advanced publishing caching
+        uses: ./.github/actions/advanced-cache-manager
+        with:
+          cache-type: all
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache-suffix: publish-validation
+          enable-cross-job: true
+          cache-retention: standard
       
-      # CRITICAL: Run all quality checks (Requirement 4.3)
-      - name: Run linting checks
+      # Fast dependency installation
+      - name: Install dependencies
         run: |
-          echo "🔍 Running linting checks for publishing validation..."
+          uv --version
+          uv sync --frozen
+      
+      # Comprehensive validation with enhanced error reporting
+      - name: Run comprehensive quality validation
+        run: |
+          echo "🚀 Starting comprehensive pre-publishing validation..."
           echo "===================================================="
-          if ! uv run ruff check . --output-format=github; then
-            echo "❌ LINTING FAILED: Cannot publish with linting errors"
-            exit 1
-          fi
-          echo "✅ Linting checks passed"
-      
-      - name: Check code formatting
-        run: |
-          echo "📐 Checking code formatting for publishing validation..."
-          echo "====================================================="
-          if ! uv run ruff format --check --diff .; then
-            echo "❌ FORMATTING FAILED: Cannot publish with formatting issues"
-            exit 1
-          fi
-          echo "✅ Code formatting is compliant"
-      
-      - name: Run type checking
-        run: |
-          echo "🔬 Running type checking for publishing validation..."
-          echo "=================================================="
-          if ! uv run mypy src/ --show-error-codes --pretty; then
-            echo "❌ TYPE CHECKING FAILED: Cannot publish with type errors"
-            exit 1
-          fi
-          echo "✅ Type checking passed"
-      
-      # Run master test script if available for comprehensive validation
-      - name: Run master test script
-        if: hashFiles('./scripts/run_tests.sh') != ''
-        run: |
-          echo "🧪 Running master test script for comprehensive validation..."
-          echo "=========================================================="
-          if ! ./scripts/run_tests.sh; then
-            echo "❌ MASTER TEST SCRIPT FAILED: Cannot publish"
-            exit 1
-          fi
-          echo "✅ Master test script passed"
-      
-      # Validate version format and consistency
-      - name: Validate version format
-        run: |
-          echo "🏷️  Validating version format: ${{ github.event.inputs.version }}"
-          echo "================================================================"
+          
+          # Initialize validation tracking
+          VALIDATION_ERRORS=0
+          
+          # Version format validation
+          echo "🏷️  Validating version format..."
           VERSION="${{ github.event.inputs.version }}"
-          
-          # Check version format (semantic versioning)
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
-            echo "❌ Invalid version format: $VERSION"
-            echo "Expected format: X.Y.Z or X.Y.Z-suffix (e.g., 0.2.0, 0.2.0-beta1)"
-            exit 1
+            echo "❌ Invalid version format: $VERSION (expected: X.Y.Z or X.Y.Z-suffix)"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+          else
+            echo "✅ Version format valid: $VERSION"
           fi
           
-          echo "✅ Version format is valid: $VERSION"
+          # Code formatting check
+          echo "📐 Checking code formatting..."
+          if ! uv run ruff format --check --diff .; then
+            echo "❌ Code formatting issues detected"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+          else
+            echo "✅ Code formatting compliant"
+          fi
+          
+          # Linting check
+          echo "🔍 Running linting checks..."
+          if ! uv run ruff check . --output-format=github; then
+            echo "❌ Linting errors detected"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+          else
+            echo "✅ Linting checks passed"
+          fi
+          
+          # Type checking
+          echo "🔬 Running type checking..."
+          if ! uv run mypy src/ --show-error-codes --pretty; then
+            echo "❌ Type checking errors detected"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+          else
+            echo "✅ Type checking passed"
+          fi
+          
+          # Test suite with coverage
+          echo "🧪 Running test suite with coverage..."
+          if ! uv run pytest --cov=mypylogger --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} --cov-report=term-missing --tb=short; then
+            echo "❌ Test suite failed or coverage below threshold"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+          else
+            echo "✅ Test suite passed with required coverage"
+          fi
+          
+          # Master test script validation (if available)
+          if [[ -f "./scripts/run_tests.sh" ]]; then
+            echo "🧪 Running master test script..."
+            if ! ./scripts/run_tests.sh; then
+              echo "❌ Master test script failed"
+              VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+            else
+              echo "✅ Master test script passed"
+            fi
+          fi
+          
+          # Final validation result
+          echo ""
+          echo "📊 Validation Summary:"
+          echo "====================="
+          if [[ $VALIDATION_ERRORS -eq 0 ]]; then
+            echo "✅ All validations passed successfully ($VALIDATION_ERRORS errors)"
+            echo "Package is ready for building and publishing"
+          else
+            echo "❌ Validation failed with $VALIDATION_ERRORS error(s)"
+            echo "Fix all issues before attempting to publish"
+            exit 1
+          fi
       
-      # Set validation result for next job
+      # Set validation result
       - name: Set validation result
         id: validation-result
         run: |
           echo "passed=true" >> $GITHUB_OUTPUT
-          echo "✅ All pre-publishing validations passed successfully"
-          echo "Ready to proceed with package building and publishing"
+          echo "✅ Pre-publishing validation completed successfully"
 
-  # Job 2: Build and publish package (Requirement 4.2, 4.4, 4.5)
+  # Job 2: Optimized build and publish (Requirements 8.1, 8.4, 8.5)
   build-and-publish:
-    name: Build and Publish Package
+    name: Build and Publish
     runs-on: ubuntu-latest
     needs: pre-publish-validation
     if: needs.pre-publish-validation.outputs.validation-passed == 'true'
-    timeout-minutes: 10
+    timeout-minutes: 6  # Reduced from 10 for faster execution
     
     environment: 
       name: pypi-publishing
@@ -215,132 +191,98 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
       
-      # Install UV with retry strategy for reliability
+      # Streamlined UV installation
       - name: Install UV package manager
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 3
-          max_attempts: 3
-          retry_on: error
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       
-      # Restore caches from validation job
-      - name: Cache UV dependencies
-        uses: actions/cache@v4
+      # OPTIMIZED: Advanced multi-level caching for build and publish
+      - name: Setup advanced build caching
+        uses: ./.github/actions/advanced-cache-manager
         with:
-          path: ~/.cache/uv
-          key: uv-publish-${{ runner.os }}-3.12-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            uv-publish-${{ runner.os }}-3.12-
-            uv-${{ runner.os }}-3.12-
-            uv-${{ runner.os }}-
+          cache-type: all
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache-suffix: publish-build
+          enable-cross-job: true
+          cache-retention: standard
       
-      - name: Cache build tools
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.local/share/uv
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            build-tools-${{ runner.os }}-
-      
-      # Install dependencies and build tools
+      # Fast dependency and build tool installation
       - name: Install dependencies and build tools
         run: |
           uv --version
           uv sync --frozen
-          # Install build tools for package creation
           uv add --dev build twine
       
-      # Build package using standard Python build tools (Requirement 4.2)
-      - name: Build package
+      # Optimized package building with enhanced verification (Requirement 8.4)
+      - name: Build and verify package
         run: |
           echo "📦 Building package for version ${{ needs.pre-publish-validation.outputs.version }}..."
           echo "=============================================================================="
           
-          # Clean any previous build artifacts
+          # Clean build artifacts
           rm -rf dist/ build/ *.egg-info/
           
-          # Build source distribution and wheel
+          # Build package
           uv run python -m build --sdist --wheel --outdir dist/
           
-          echo "✅ Package built successfully"
-          echo "Build artifacts:"
-          ls -la dist/
-      
-      # Verify package contents and metadata
-      - name: Verify package contents
-        run: |
-          echo "🔍 Verifying package contents and metadata..."
-          echo "============================================"
-          
-          # Check that expected files were created
-          if [[ ! -f dist/*.tar.gz ]]; then
-            echo "❌ Source distribution not found"
+          # Verify build artifacts
+          echo "🔍 Verifying build artifacts..."
+          if [[ ! -f dist/*.tar.gz ]] || [[ ! -f dist/*.whl ]]; then
+            echo "❌ Missing build artifacts"
             exit 1
           fi
           
-          if [[ ! -f dist/*.whl ]]; then
-            echo "❌ Wheel distribution not found"
-            exit 1
-          fi
-          
-          # Verify package metadata using twine
+          # Verify package metadata
           uv run twine check dist/*
           
-          echo "✅ Package verification completed successfully"
+          echo "✅ Package built and verified successfully"
+          ls -la dist/
       
-      # Upload verification and error handling (Requirement 4.5)
-      - name: Test package installation (dry run validation)
+      # Fast installation test for package verification
+      - name: Test package installation
         run: |
-          echo "🧪 Testing package installation in clean environment..."
-          echo "====================================================="
+          echo "🧪 Testing package installation..."
+          echo "================================="
           
-          # Create a temporary virtual environment for testing
+          # Quick installation test in isolated environment
           python -m venv test_env
           source test_env/bin/activate
-          
-          # Install the built package
           pip install dist/*.whl
           
-          # Test basic import and functionality
+          # Basic functionality test
           python -c "
           import mypylogger
           logger = mypylogger.get_logger('test')
-          logger.info('Package installation test successful')
-          print('✅ Package imports and basic functionality work correctly')
+          logger.info('Installation test successful')
+          print('✅ Package installation and basic functionality verified')
           "
           
-          # Clean up test environment
           deactivate
           rm -rf test_env
-          
-          echo "✅ Package installation test completed successfully"
       
-      # Dry run check - stop here if dry run requested
+      # Dry run completion check
       - name: Dry run completion
         if: needs.pre-publish-validation.outputs.dry-run == 'true'
         run: |
           echo "🏁 DRY RUN COMPLETED SUCCESSFULLY"
           echo "==============================="
-          echo "✅ All validations passed"
-          echo "✅ Package built successfully"
-          echo "✅ Package verification completed"
+          echo "✅ Pre-publishing validation passed"
+          echo "✅ Package built and verified"
           echo "✅ Installation test passed"
           echo ""
-          echo "The package is ready for publishing to PyPI."
-          echo "To publish for real, run this workflow again with dry_run=false"
-          exit 0
+          echo "📋 Ready for Publishing:"
+          echo "- Version: ${{ needs.pre-publish-validation.outputs.version }}"
+          echo "- Build artifacts: $(ls dist/)"
+          echo ""
+          echo "To publish to PyPI, run this workflow again with dry_run=false"
       
-      # Publish to PyPI using OIDC authentication (Requirement 4.4)
+      # Secure PyPI publishing with OIDC (Requirement 8.5)
       - name: Publish to PyPI
         if: needs.pre-publish-validation.outputs.dry-run != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -349,120 +291,138 @@ jobs:
           verbose: true
           print-hash: true
       
-      # Publishing success confirmation (Requirement 4.5)
-      - name: Publishing success confirmation
+      # Enhanced publishing success reporting (Requirement 8.3)
+      - name: Publishing success report
         if: needs.pre-publish-validation.outputs.dry-run != 'true'
         run: |
           echo "🎉 PUBLISHING COMPLETED SUCCESSFULLY"
           echo "==================================="
-          echo "✅ Package published to PyPI"
-          echo "✅ Version: ${{ needs.pre-publish-validation.outputs.version }}"
-          echo "✅ Package URL: https://pypi.org/project/mypylogger/${{ needs.pre-publish-validation.outputs.version }}/"
+          echo "✅ Package: mypylogger v${{ needs.pre-publish-validation.outputs.version }}"
+          echo "✅ Published to: https://pypi.org/project/mypylogger/${{ needs.pre-publish-validation.outputs.version }}/"
+          echo "✅ Installation: pip install mypylogger==${{ needs.pre-publish-validation.outputs.version }}"
           echo ""
-          echo "📋 Post-Publishing Checklist:"
-          echo "1. Verify package appears on PyPI: https://pypi.org/project/mypylogger/"
-          echo "2. Test installation: pip install mypylogger==${{ needs.pre-publish-validation.outputs.version }}"
-          echo "3. Update documentation with new version"
-          echo "4. Create GitHub release tag"
-          echo "5. Announce release to users"
+          echo "📊 Publishing Metrics:"
+          echo "- Build time: ~$(date -d @$(($(date +%s) - ${{ github.event.head_commit.timestamp }})) -u +%M:%S)"
+          echo "- Artifacts: $(ls dist/ | wc -l) files"
+          echo "- Package size: $(du -sh dist/ | cut -f1)"
           echo ""
-          echo "🔗 Useful links:"
+          echo "🔗 Quick Links:"
           echo "- PyPI Project: https://pypi.org/project/mypylogger/"
-          echo "- Package Stats: https://pypistats.org/packages/mypylogger"
-          echo "- Installation: pip install mypylogger"
+          echo "- Download Stats: https://pypistats.org/packages/mypylogger"
+          echo "- Documentation: https://mypylogger.readthedocs.io/"
 
-  # Job 3: Workflow summary and error reporting
+  # Job 3: Enhanced workflow reporting and error handling (Requirement 8.3)
   publish-summary:
-    name: Publishing Workflow Summary
+    name: Publishing Summary
     runs-on: ubuntu-latest
     needs: [pre-publish-validation, build-and-publish]
     if: always()  # Run even if previous jobs fail
-    timeout-minutes: 3
+    timeout-minutes: 2  # Reduced for faster completion
     
     steps:
-      - name: Generate publishing workflow summary
+      - name: Generate comprehensive workflow summary
         run: |
           echo "📊 PyPI Publishing Workflow Summary"
           echo "=================================="
-          echo "Execution Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          echo "Requested Version: ${{ github.event.inputs.version }}"
-          echo "Dry Run Mode: ${{ github.event.inputs.dry_run }}"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Dry Run: ${{ github.event.inputs.dry_run }}"
+          echo "Workflow: ${{ github.workflow }} #${{ github.run_number }}"
           echo ""
-          echo "Job Results:"
-          echo "- Pre-Publishing Validation: ${{ needs.pre-publish-validation.result }}"
-          echo "- Build and Publish: ${{ needs.build-and-publish.result }}"
-          echo ""
+          echo "📈 Job Results:"
+          echo "- Validation: ${{ needs.pre-publish-validation.result }}"
+          echo "- Build/Publish: ${{ needs.build-and-publish.result }}"
       
-      - name: Provide actionable feedback based on results
+      # Enhanced error reporting and actionable guidance (Requirement 8.3)
+      - name: Provide detailed status and next steps
         run: |
-          echo "📋 Publishing Status and Next Steps:"
-          echo "===================================="
-          
-          # Check validation results
-          if [[ "${{ needs.pre-publish-validation.result }}" == "success" ]]; then
-            echo "✅ Pre-Publishing Validation: PASSED"
-            echo "   - All quality checks completed successfully"
-            echo "   - Test suite passed with required coverage"
-            echo "   - Code quality standards met"
-          else
-            echo "❌ Pre-Publishing Validation: FAILED"
-            echo "   - Quality checks did not pass"
-            echo "   - Fix issues before attempting to publish"
-            echo "   - Run quality checks locally: ./scripts/run_tests.sh"
-          fi
-          
-          echo ""
-          
-          # Check build and publish results
-          if [[ "${{ needs.build-and-publish.result }}" == "success" ]]; then
-            if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-              echo "✅ Build and Publish (Dry Run): COMPLETED"
-              echo "   - Package built successfully"
-              echo "   - All verifications passed"
-              echo "   - Ready for actual publishing"
-              echo ""
-              echo "🚀 To publish for real:"
-              echo "   Run this workflow again with dry_run=false"
-            else
-              echo "✅ Build and Publish: COMPLETED"
-              echo "   - Package successfully published to PyPI"
-              echo "   - Version ${{ github.event.inputs.version }} is now available"
-              echo "   - Users can install with: pip install mypylogger==${{ github.event.inputs.version }}"
-            fi
-          elif [[ "${{ needs.build-and-publish.result }}" == "skipped" ]]; then
-            echo "⏭️  Build and Publish: SKIPPED"
-            echo "   - Pre-publishing validation failed"
-            echo "   - Fix validation issues before publishing"
-          else
-            echo "❌ Build and Publish: FAILED"
-            echo "   - Package building or publishing encountered errors"
-            echo "   - Check job logs for specific failure details"
-            echo "   - Verify PyPI authentication and permissions"
-          fi
-          
-          echo ""
-          echo "🎯 Overall Publishing Result:"
+          echo "🎯 Publishing Status Analysis"
           echo "============================"
           
-          # Determine overall result and provide guidance
-          if [[ "${{ needs.pre-publish-validation.result }}" == "success" && "${{ needs.build-and-publish.result }}" == "success" ]]; then
-            if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-              echo "✅ DRY RUN: SUCCESSFUL"
-              echo "Package is ready for publishing to PyPI"
-            else
-              echo "✅ PUBLISHING: SUCCESSFUL"
-              echo "Package version ${{ github.event.inputs.version }} is now live on PyPI!"
-            fi
+          VALIDATION_RESULT="${{ needs.pre-publish-validation.result }}"
+          BUILD_RESULT="${{ needs.build-and-publish.result }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Analyze validation results
+          if [[ "$VALIDATION_RESULT" == "success" ]]; then
+            echo "✅ Pre-Publishing Validation: PASSED"
+            echo "   → All quality gates satisfied"
+            echo "   → Code quality standards met"
+            echo "   → Test coverage requirements satisfied"
           else
-            echo "❌ PUBLISHING: FAILED"
+            echo "❌ Pre-Publishing Validation: FAILED"
+            echo "   → Quality checks did not pass"
+            echo "   → Action required: Fix validation issues"
+            echo "   → Troubleshooting: Run './scripts/run_tests.sh' locally"
+            echo "   → Common issues: Test failures, linting errors, type errors"
+          fi
+          
+          echo ""
+          
+          # Analyze build/publish results
+          if [[ "$BUILD_RESULT" == "success" ]]; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "✅ Build and Publish (Dry Run): COMPLETED"
+              echo "   → Package built and verified successfully"
+              echo "   → Installation test passed"
+              echo "   → Ready for production publishing"
+              echo ""
+              echo "🚀 Next Steps for Production Publishing:"
+              echo "   1. Run workflow again with dry_run=false"
+              echo "   2. Monitor PyPI for package availability"
+              echo "   3. Test installation: pip install mypylogger==$VERSION"
+            else
+              echo "✅ Build and Publish: COMPLETED"
+              echo "   → Package successfully published to PyPI"
+              echo "   → Version $VERSION is now live"
+              echo "   → Installation: pip install mypylogger==$VERSION"
+              echo ""
+              echo "📋 Post-Publishing Tasks:"
+              echo "   1. Verify package on PyPI: https://pypi.org/project/mypylogger/$VERSION/"
+              echo "   2. Test installation in clean environment"
+              echo "   3. Update project documentation"
+              echo "   4. Create GitHub release tag"
+              echo "   5. Announce release to users"
+            fi
+          elif [[ "$BUILD_RESULT" == "skipped" ]]; then
+            echo "⏭️  Build and Publish: SKIPPED"
+            echo "   → Validation failed, build was not attempted"
+            echo "   → Action required: Fix validation issues first"
+          else
+            echo "❌ Build and Publish: FAILED"
+            echo "   → Package building or publishing failed"
+            echo "   → Action required: Check job logs for details"
+            echo "   → Common issues: Build errors, PyPI authentication, duplicate version"
+          fi
+          
+          echo ""
+          echo "🏁 Overall Workflow Result"
+          echo "========================="
+          
+          # Final status determination
+          if [[ "$VALIDATION_RESULT" == "success" && "$BUILD_RESULT" == "success" ]]; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "✅ DRY RUN SUCCESSFUL - Package ready for publishing"
+            else
+              echo "✅ PUBLISHING SUCCESSFUL - Package live on PyPI"
+            fi
+            exit 0
+          else
+            echo "❌ WORKFLOW FAILED - Publishing incomplete"
             echo ""
-            echo "⚠️  Publishing workflow did not complete successfully."
-            echo "Please review the job logs above and fix any issues."
+            echo "🔧 Troubleshooting Guide:"
+            echo "========================"
+            echo "1. Check job logs for specific error messages"
+            echo "2. Run quality checks locally: ./scripts/run_tests.sh"
+            echo "3. Verify version format: X.Y.Z (e.g., 0.2.0)"
+            echo "4. Ensure version doesn't already exist on PyPI"
+            echo "5. Check PyPI authentication and permissions"
+            echo "6. Verify all required secrets are configured"
             echo ""
-            echo "Common troubleshooting steps:"
-            echo "1. Ensure all quality checks pass locally"
-            echo "2. Verify version format is correct (X.Y.Z)"
-            echo "3. Check PyPI authentication setup"
-            echo "4. Ensure no duplicate version exists on PyPI"
+            echo "📞 Support Resources:"
+            echo "- GitHub Actions logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "- PyPI Project: https://pypi.org/project/mypylogger/"
+            echo "- Workflow file: .github/workflows/publish.yml"
             exit 1
           fi

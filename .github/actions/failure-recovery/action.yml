@@ -1,0 +1,198 @@
+name: 'Failure Recovery and Diagnostics'
+description: 'Comprehensive failure recovery with system diagnostics and suggested fixes'
+inputs:
+  failure-type:
+    description: 'Type of failure (infrastructure, dependency, timeout, resource)'
+    required: true
+  retry-count:
+    description: 'Current retry attempt number'
+    required: false
+    default: '1'
+  max-retries:
+    description: 'Maximum number of retry attempts'
+    required: false
+    default: '3'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: System diagnostics and recovery
+      run: |
+        echo "🔧 FAILURE RECOVERY & DIAGNOSTICS"
+        echo "$(printf '=%.0s' {1..50})"
+        echo "Failure Type: ${{ inputs.failure-type }}"
+        echo "Retry Attempt: ${{ inputs.retry-count }}/${{ inputs.max-retries }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Runner: ${{ runner.os }}"
+        echo ""
+        
+        # System diagnostics
+        echo "🖥️ System Diagnostics:"
+        echo "====================="
+        echo "Available disk space:"
+        df -h / || echo "Unable to check disk space"
+        echo ""
+        echo "Memory usage:"
+        free -h || echo "Unable to check memory"
+        echo ""
+        echo "CPU info:"
+        nproc || echo "Unable to check CPU count"
+        echo ""
+        
+        # Network diagnostics
+        echo "🌐 Network Diagnostics:"
+        echo "======================"
+        echo "Testing connectivity to key services..."
+        
+        # Test GitHub connectivity
+        if curl -s --connect-timeout 5 https://api.github.com/zen > /dev/null; then
+          echo "✅ GitHub API: Accessible"
+        else
+          echo "❌ GitHub API: Connection issues"
+        fi
+        
+        # Test PyPI connectivity
+        if curl -s --connect-timeout 5 https://pypi.org/simple/ > /dev/null; then
+          echo "✅ PyPI: Accessible"
+        else
+          echo "❌ PyPI: Connection issues"
+        fi
+        
+        # Test UV installation source
+        if curl -s --connect-timeout 5 https://astral.sh/uv/install.sh > /dev/null; then
+          echo "✅ UV Install Script: Accessible"
+        else
+          echo "❌ UV Install Script: Connection issues"
+        fi
+        
+        echo ""
+        
+        # Failure-specific recovery strategies
+        case "${{ inputs.failure-type }}" in
+          "infrastructure")
+            echo "🏗️ Infrastructure Failure Recovery:"
+            echo "=================================="
+            echo "- Runner environment issues detected"
+            echo "- Checking system resources and connectivity"
+            echo ""
+            echo "🔧 Recovery Actions:"
+            echo "1. Retry with exponential backoff"
+            echo "2. Clear any corrupted caches"
+            echo "3. Restart services if possible"
+            echo ""
+            # Clear potentially corrupted caches
+            rm -rf ~/.cache/uv ~/.cache/pip ~/.mypy_cache ~/.ruff_cache 2>/dev/null || true
+            echo "✅ Cleared potentially corrupted caches"
+            ;;
+            
+          "dependency")
+            echo "📦 Dependency Failure Recovery:"
+            echo "=============================="
+            echo "- Package installation or resolution issues"
+            echo "- Checking package sources and versions"
+            echo ""
+            echo "🔧 Recovery Actions:"
+            echo "1. Clear package caches"
+            echo "2. Retry with fresh package index"
+            echo "3. Use alternative package sources if needed"
+            echo ""
+            # Clear package caches
+            rm -rf ~/.cache/uv ~/.cache/pip 2>/dev/null || true
+            echo "✅ Cleared package caches"
+            
+            # Check if uv is available and working
+            if command -v uv >/dev/null 2>&1; then
+              echo "✅ UV is available: $(uv --version)"
+            else
+              echo "❌ UV not available, will need reinstallation"
+            fi
+            ;;
+            
+          "timeout")
+            echo "⏰ Timeout Failure Recovery:"
+            echo "==========================="
+            echo "- Operation exceeded time limits"
+            echo "- Analyzing performance bottlenecks"
+            echo ""
+            echo "🔧 Recovery Actions:"
+            echo "1. Increase timeout limits for next attempt"
+            echo "2. Optimize operations for faster execution"
+            echo "3. Use parallel processing where possible"
+            echo ""
+            echo "💡 Performance Tips:"
+            echo "- Use cached dependencies when available"
+            echo "- Minimize network operations"
+            echo "- Optimize test execution order"
+            ;;
+            
+          "resource")
+            echo "💾 Resource Failure Recovery:"
+            echo "============================"
+            echo "- Insufficient system resources (memory, disk, CPU)"
+            echo "- Checking resource availability"
+            echo ""
+            echo "🔧 Recovery Actions:"
+            echo "1. Clean up temporary files"
+            echo "2. Optimize memory usage"
+            echo "3. Reduce parallel operations if needed"
+            echo ""
+            # Clean up temporary files
+            find /tmp -name "pytest-*" -type d -exec rm -rf {} + 2>/dev/null || true
+            find /tmp -name "tmp*" -type f -mtime +1 -delete 2>/dev/null || true
+            echo "✅ Cleaned up temporary files"
+            ;;
+        esac
+        
+        echo ""
+        echo "🔄 Recovery Status:"
+        echo "=================="
+        if [ "${{ inputs.retry-count }}" -lt "${{ inputs.max-retries }}" ]; then
+          echo "✅ Recovery attempt ${{ inputs.retry-count }} of ${{ inputs.max-retries }}"
+          echo "🔄 Will retry operation with recovery measures applied"
+          echo ""
+          echo "⏳ Waiting 30 seconds before retry to allow system stabilization..."
+          sleep 30
+        else
+          echo "❌ Maximum retry attempts (${{ inputs.max-retries }}) reached"
+          echo "🚫 Manual intervention may be required"
+          echo ""
+          echo "📞 Escalation Steps:"
+          echo "1. Check GitHub Actions status page"
+          echo "2. Review runner logs for system issues"
+          echo "3. Consider using different runner type"
+          echo "4. Contact repository maintainers if issue persists"
+        fi
+      shell: bash
+    
+    - name: Generate recovery report
+      run: |
+        echo "📊 RECOVERY REPORT SUMMARY"
+        echo "========================="
+        echo "Failure Type: ${{ inputs.failure-type }}"
+        echo "Recovery Attempt: ${{ inputs.retry-count }}/${{ inputs.max-retries }}"
+        echo "System: ${{ runner.os }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Workflow: ${{ github.workflow }}"
+        echo "Job: ${{ github.job }}"
+        echo "Run ID: ${{ github.run_id }}"
+        echo ""
+        
+        # Create recovery report file
+        mkdir -p recovery-reports
+        cat > recovery-reports/failure-recovery-${{ github.run_id }}.json << EOF
+        {
+          "failure_type": "${{ inputs.failure-type }}",
+          "retry_count": ${{ inputs.retry-count }},
+          "max_retries": ${{ inputs.max-retries }},
+          "system": "${{ runner.os }}",
+          "timestamp": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')",
+          "workflow": "${{ github.workflow }}",
+          "job": "${{ github.job }}",
+          "run_id": "${{ github.run_id }}",
+          "commit_sha": "${{ github.sha }}",
+          "recovery_actions_applied": true
+        }
+        EOF
+        
+        echo "✅ Recovery report generated"
+      shell: bash

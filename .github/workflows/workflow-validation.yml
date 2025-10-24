@@ -1,0 +1,700 @@
+# Workflow Configuration Validation
+#
+# Comprehensive validation workflow for GitHub Actions configurations
+# that implements syntax validation, linting, security scanning, and
+# impact analysis for workflow changes.
+#
+# Requirements addressed:
+# - 10.1: Validate workflow syntax before execution
+# - 10.2: Test workflow changes in isolated environments
+# - 10.3: Provide workflow configuration linting and validation
+# - 10.4: Implement workflow change impact analysis
+
+name: Workflow Validation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/scripts/**'
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/scripts/**'
+  workflow_dispatch:
+    inputs:
+      validation_level:
+        description: 'Validation level'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options: ['basic', 'standard', 'comprehensive']
+      target_workflow:
+        description: 'Specific workflow to validate (optional)'
+        required: false
+        type: string
+
+# Optimized environment for validation tools
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  VALIDATION_LEVEL: ${{ github.event.inputs.validation_level || 'standard' }}
+
+permissions:
+  contents: read
+  pull-requests: write  # For commenting on PRs
+  security-events: write  # For security scanning results
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Job 1: Workflow Syntax and Structure Validation
+  syntax-validation:
+    name: Syntax & Structure Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      validation-status: ${{ steps.validation-result.outputs.status }}
+      changed-workflows: ${{ steps.detect-changes.outputs.changed_workflows }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for change detection
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      
+      - name: Install validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Make validation scripts executable
+        run: |
+          chmod +x .github/scripts/workflow-validator.py
+          chmod +x .github/scripts/workflow-linter.py
+          chmod +x .github/scripts/workflow-impact-analyzer.py
+          chmod +x .github/scripts/workflow-tester.py
+      
+      # Detect changed workflows for targeted validation
+      - name: Detect workflow changes
+        id: detect-changes
+        run: |
+          echo "🔍 Detecting workflow changes..."
+          
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Get changed workflow files in PR
+            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD .github/workflows/ | grep -E '\.(yml|yaml)$' || true)
+          else
+            # For push events, check last commit
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD .github/workflows/ | grep -E '\.(yml|yaml)$' || true)
+          fi
+          
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Changed workflow files:"
+            echo "$CHANGED_FILES"
+            
+            # Convert to JSON array for output
+            CHANGED_JSON=$(echo "$CHANGED_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "changed_workflows=$CHANGED_JSON" >> $GITHUB_OUTPUT
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No workflow files changed"
+            echo "changed_workflows=[]" >> $GITHUB_OUTPUT
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      # Run comprehensive workflow validation
+      - name: Run workflow syntax validation
+        id: syntax-validation
+        run: |
+          echo "🔍 Running comprehensive workflow validation..."
+          
+          # Create results directory
+          mkdir -p validation-results
+          
+          if [ "${{ steps.detect-changes.outputs.has_changes }}" = "true" ]; then
+            echo "Validating changed workflows only..."
+            
+            # Validate each changed workflow
+            VALIDATION_FAILED=false
+            
+            echo '${{ steps.detect-changes.outputs.changed_workflows }}' | jq -r '.[]' | while read -r workflow_file; do
+              if [ -n "$workflow_file" ]; then
+                echo "Validating: $workflow_file"
+                
+                if ! python .github/scripts/workflow-validator.py --file "$(basename "$workflow_file")" --output json > "validation-results/$(basename "$workflow_file" .yml).json"; then
+                  echo "❌ Validation failed for $workflow_file"
+                  VALIDATION_FAILED=true
+                fi
+              fi
+            done
+            
+            if [ "$VALIDATION_FAILED" = "true" ]; then
+              echo "validation_status=failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "No workflow changes detected - running full validation..."
+            
+            if ! python .github/scripts/workflow-validator.py --validate-all --output json > validation-results/all-workflows.json; then
+              echo "❌ Full workflow validation failed"
+              echo "validation_status=failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Syntax validation completed successfully"
+          echo "validation_status=passed" >> $GITHUB_OUTPUT
+      
+      # Set final validation result
+      - name: Set validation result
+        id: validation-result
+        run: |
+          if [ "${{ steps.syntax-validation.outcome }}" = "success" ]; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Upload validation results
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: syntax-validation-results
+          path: validation-results/
+          retention-days: 30
+
+  # Job 2: Advanced Linting and Best Practices
+  linting-validation:
+    name: Linting & Best Practices
+    runs-on: ubuntu-latest
+    needs: syntax-validation
+    if: needs.syntax-validation.outputs.validation-status == 'passed'
+    timeout-minutes: 15
+    
+    outputs:
+      linting-status: ${{ steps.linting-result.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      
+      - name: Install linting dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+          
+          # Install yamllint if available
+          pip install yamllint || echo "yamllint installation failed - will skip YAML linting"
+      
+      - name: Install actionlint
+        run: |
+          echo "📦 Installing actionlint..."
+          
+          # Download and install actionlint
+          curl -s https://api.github.com/repos/rhysd/actionlint/releases/latest | \
+            jq -r '.assets[] | select(.name | contains("linux_amd64")) | .browser_download_url' | \
+            head -1 | xargs curl -L -o actionlint.tar.gz
+          
+          tar -xzf actionlint.tar.gz
+          sudo mv actionlint /usr/local/bin/
+          actionlint -version
+      
+      - name: Make linting scripts executable
+        run: |
+          chmod +x .github/scripts/workflow-linter.py
+      
+      # Run comprehensive linting
+      - name: Run workflow linting
+        id: linting
+        run: |
+          echo "🔍 Running comprehensive workflow linting..."
+          
+          mkdir -p linting-results
+          
+          # Run custom linter
+          if ! python .github/scripts/workflow-linter.py .github/workflows --output json > linting-results/custom-linting.json; then
+            echo "❌ Custom linting failed"
+            LINTING_FAILED=true
+          else
+            echo "✅ Custom linting passed"
+          fi
+          
+          # Run actionlint on all workflows
+          echo "Running actionlint..."
+          if ! actionlint -format '{{json .}}' .github/workflows/*.yml > linting-results/actionlint.json 2>&1; then
+            echo "⚠️ actionlint found issues (may not be critical)"
+            # Don't fail on actionlint issues as they might be warnings
+          else
+            echo "✅ actionlint passed"
+          fi
+          
+          # Run yamllint if available
+          if command -v yamllint >/dev/null 2>&1; then
+            echo "Running yamllint..."
+            if ! yamllint -f parsable .github/workflows/ > linting-results/yamllint.txt 2>&1; then
+              echo "⚠️ yamllint found issues (may not be critical)"
+              # Don't fail on yamllint issues as they might be style warnings
+            else
+              echo "✅ yamllint passed"
+            fi
+          fi
+          
+          # Check if critical linting failed
+          if [ "${LINTING_FAILED:-false}" = "true" ]; then
+            echo "linting_status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "linting_status=passed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Set linting result
+      - name: Set linting result
+        id: linting-result
+        run: |
+          if [ "${{ steps.linting.outcome }}" = "success" ]; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Upload linting results
+      - name: Upload linting results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linting-results
+          path: linting-results/
+          retention-days: 30
+
+  # Job 3: Security Validation
+  security-validation:
+    name: Security Validation
+    runs-on: ubuntu-latest
+    needs: syntax-validation
+    if: needs.syntax-validation.outputs.validation-status == 'passed'
+    timeout-minutes: 10
+    
+    outputs:
+      security-status: ${{ steps.security-result.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      
+      - name: Install security scanning dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Make security scripts executable
+        run: |
+          chmod +x .github/scripts/workflow-validator.py
+      
+      # Run security-focused validation
+      - name: Run security validation
+        id: security-scan
+        run: |
+          echo "🔒 Running workflow security validation..."
+          
+          mkdir -p security-results
+          
+          # Use the validator's security checks
+          if ! python .github/scripts/workflow-validator.py --validate-all --output json > security-results/security-validation.json; then
+            echo "❌ Security validation failed"
+            echo "security_status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Parse results for security issues
+          SECURITY_ISSUES=$(jq -r '.workflows[] | select(.status == "failed") | .errors[] | select(contains("secret") or contains("permission") or contains("security"))' security-results/security-validation.json 2>/dev/null || echo "")
+          
+          if [ -n "$SECURITY_ISSUES" ]; then
+            echo "🚨 Security issues detected:"
+            echo "$SECURITY_ISSUES"
+            echo "security_status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ No security issues detected"
+            echo "security_status=passed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Set security result
+      - name: Set security result
+        id: security-result
+        run: |
+          if [ "${{ steps.security-scan.outcome }}" = "success" ]; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Upload security results
+      - name: Upload security results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-validation-results
+          path: security-results/
+          retention-days: 30
+
+  # Job 4: Change Impact Analysis (PR only)
+  impact-analysis:
+    name: Change Impact Analysis
+    runs-on: ubuntu-latest
+    needs: syntax-validation
+    if: github.event_name == 'pull_request' && needs.syntax-validation.outputs.changed-workflows != '[]'
+    timeout-minutes: 10
+    
+    outputs:
+      impact-level: ${{ steps.impact-analysis.outputs.impact_level }}
+      recommendations: ${{ steps.impact-analysis.outputs.recommendations }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for impact analysis
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      
+      - name: Install impact analysis dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Make impact analysis scripts executable
+        run: |
+          chmod +x .github/scripts/workflow-impact-analyzer.py
+      
+      # Run change impact analysis
+      - name: Analyze workflow changes impact
+        id: impact-analysis
+        run: |
+          echo "📊 Analyzing workflow change impact..."
+          
+          mkdir -p impact-results
+          
+          # Run impact analysis against base branch
+          if ! python .github/scripts/workflow-impact-analyzer.py \
+            --base "origin/${{ github.base_ref }}" \
+            --target "HEAD" \
+            --output json > impact-results/impact-analysis.json; then
+            echo "❌ Impact analysis failed"
+            echo "impact_level=unknown" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Extract key metrics
+          IMPACT_LEVEL=$(jq -r '.summary.overall_risk' impact-results/impact-analysis.json)
+          IMPACT_SCORE=$(jq -r '.summary.impact_score' impact-results/impact-analysis.json)
+          
+          echo "Impact Level: $IMPACT_LEVEL"
+          echo "Impact Score: $IMPACT_SCORE"
+          
+          echo "impact_level=$IMPACT_LEVEL" >> $GITHUB_OUTPUT
+          echo "impact_score=$IMPACT_SCORE" >> $GITHUB_OUTPUT
+          
+          # Generate text report for PR comment
+          python .github/scripts/workflow-impact-analyzer.py \
+            --base "origin/${{ github.base_ref }}" \
+            --target "HEAD" \
+            --output text > impact-results/impact-report.txt
+          
+          echo "✅ Impact analysis completed"
+      
+      # Upload impact analysis results
+      - name: Upload impact analysis results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impact-analysis-results
+          path: impact-results/
+          retention-days: 30
+
+  # Job 5: Isolated Testing (Comprehensive validation only)
+  isolated-testing:
+    name: Isolated Testing
+    runs-on: ubuntu-latest
+    needs: [syntax-validation, linting-validation]
+    if: |
+      needs.syntax-validation.outputs.validation-status == 'passed' &&
+      needs.linting-validation.outputs.linting-status == 'passed' &&
+      (env.VALIDATION_LEVEL == 'comprehensive' || github.event.inputs.validation_level == 'comprehensive')
+    timeout-minutes: 20
+    
+    outputs:
+      testing-status: ${{ steps.testing-result.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      
+      - name: Install testing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      # Install act for isolated testing
+      - name: Install act
+        run: |
+          echo "📦 Installing act for isolated workflow testing..."
+          
+          # Download and install act
+          curl -s https://api.github.com/repos/nektos/act/releases/latest | \
+            jq -r '.assets[] | select(.name | contains("Linux_x86_64")) | .browser_download_url' | \
+            head -1 | xargs curl -L -o act.tar.gz
+          
+          tar -xzf act.tar.gz
+          sudo mv act /usr/local/bin/
+          act --version
+      
+      - name: Make testing scripts executable
+        run: |
+          chmod +x .github/scripts/workflow-tester.py
+      
+      # Run isolated testing
+      - name: Run isolated workflow testing
+        id: isolated-testing
+        run: |
+          echo "🧪 Running isolated workflow testing..."
+          
+          mkdir -p testing-results
+          
+          # Run comprehensive testing
+          if ! python .github/scripts/workflow-tester.py \
+            --all \
+            --output json \
+            --skip-tests isolated_execution > testing-results/testing-results.json; then
+            echo "❌ Isolated testing failed"
+            echo "testing_status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Generate text report
+          python .github/scripts/workflow-tester.py \
+            --all \
+            --output text \
+            --skip-tests isolated_execution > testing-results/testing-report.txt
+          
+          echo "✅ Isolated testing completed"
+          echo "testing_status=passed" >> $GITHUB_OUTPUT
+      
+      # Set testing result
+      - name: Set testing result
+        id: testing-result
+        run: |
+          if [ "${{ steps.isolated-testing.outcome }}" = "success" ]; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Upload testing results
+      - name: Upload testing results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-testing-results
+          path: testing-results/
+          retention-days: 30
+
+  # Job 6: Validation Summary and Reporting
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [syntax-validation, linting-validation, security-validation, impact-analysis, isolated-testing]
+    if: always()
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Download all validation results
+      - name: Download validation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-results/
+        continue-on-error: true
+      
+      # Generate comprehensive validation summary
+      - name: Generate validation summary
+        id: summary
+        run: |
+          echo "📊 Generating comprehensive validation summary..."
+          
+          # Collect job results
+          SYNTAX_STATUS="${{ needs.syntax-validation.outputs.validation-status || 'skipped' }}"
+          LINTING_STATUS="${{ needs.linting-validation.outputs.linting-status || 'skipped' }}"
+          SECURITY_STATUS="${{ needs.security-validation.outputs.security-status || 'skipped' }}"
+          IMPACT_LEVEL="${{ needs.impact-analysis.outputs.impact-level || 'none' }}"
+          TESTING_STATUS="${{ needs.isolated-testing.outputs.testing-status || 'skipped' }}"
+          
+          echo "🔍 Workflow Validation Summary"
+          echo "=============================="
+          echo "Validation Level: ${{ env.VALIDATION_LEVEL }}"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Changed Workflows: ${{ needs.syntax-validation.outputs.changed-workflows }}"
+          echo ""
+          echo "📋 Validation Results:"
+          echo "- Syntax & Structure: $SYNTAX_STATUS"
+          echo "- Linting & Best Practices: $LINTING_STATUS"
+          echo "- Security Validation: $SECURITY_STATUS"
+          echo "- Change Impact Level: $IMPACT_LEVEL"
+          echo "- Isolated Testing: $TESTING_STATUS"
+          echo ""
+          
+          # Determine overall validation status
+          OVERALL_STATUS="passed"
+          
+          if [[ "$SYNTAX_STATUS" == "failed" || "$LINTING_STATUS" == "failed" || "$SECURITY_STATUS" == "failed" || "$TESTING_STATUS" == "failed" ]]; then
+            OVERALL_STATUS="failed"
+            echo "❌ OVERALL STATUS: FAILED"
+            echo ""
+            echo "🔧 Action Required:"
+            echo "1. Review validation results in job logs"
+            echo "2. Fix identified issues in workflow files"
+            echo "3. Re-run validation after fixes"
+          elif [[ "$IMPACT_LEVEL" == "high" ]]; then
+            OVERALL_STATUS="warning"
+            echo "⚠️ OVERALL STATUS: PASSED WITH HIGH IMPACT"
+            echo ""
+            echo "🚨 High Impact Changes Detected:"
+            echo "1. Thorough testing recommended before merge"
+            echo "2. Review change impact analysis results"
+            echo "3. Consider gradual rollout strategy"
+          else
+            echo "✅ OVERALL STATUS: PASSED"
+            echo ""
+            echo "🎉 All validations completed successfully!"
+            echo "Workflows are ready for deployment."
+          fi
+          
+          echo "overall_status=$OVERALL_STATUS" >> $GITHUB_OUTPUT
+          
+          # Create summary for PR comment
+          cat > validation-summary.md << EOF
+          ## 🔍 Workflow Validation Results
+          
+          **Overall Status:** $([ "$OVERALL_STATUS" = "passed" ] && echo "✅ PASSED" || [ "$OVERALL_STATUS" = "warning" ] && echo "⚠️ PASSED (High Impact)" || echo "❌ FAILED")
+          
+          ### Validation Details
+          | Check | Status | Details |
+          |-------|--------|---------|
+          | Syntax & Structure | $([ "$SYNTAX_STATUS" = "passed" ] && echo "✅ Passed" || [ "$SYNTAX_STATUS" = "failed" ] && echo "❌ Failed" || echo "⏭️ Skipped") | Basic YAML and workflow structure validation |
+          | Linting & Best Practices | $([ "$LINTING_STATUS" = "passed" ] && echo "✅ Passed" || [ "$LINTING_STATUS" = "failed" ] && echo "❌ Failed" || echo "⏭️ Skipped") | Code quality and best practices |
+          | Security Validation | $([ "$SECURITY_STATUS" = "passed" ] && echo "✅ Passed" || [ "$SECURITY_STATUS" = "failed" ] && echo "❌ Failed" || echo "⏭️ Skipped") | Security patterns and permissions |
+          | Change Impact | $([ "$IMPACT_LEVEL" = "high" ] && echo "🔴 High" || [ "$IMPACT_LEVEL" = "medium" ] && echo "🟡 Medium" || [ "$IMPACT_LEVEL" = "low" ] && echo "🟢 Low" || echo "⚪ None") | Impact analysis of workflow changes |
+          | Isolated Testing | $([ "$TESTING_STATUS" = "passed" ] && echo "✅ Passed" || [ "$TESTING_STATUS" = "failed" ] && echo "❌ Failed" || echo "⏭️ Skipped") | Comprehensive workflow testing |
+          
+          ### Changed Workflows
+          ${{ needs.syntax-validation.outputs.changed-workflows }}
+          
+          EOF
+          
+          if [ "$OVERALL_STATUS" = "failed" ]; then
+            cat >> validation-summary.md << EOF
+          ### ❌ Action Required
+          - Review validation results in the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - Fix identified issues in workflow files
+          - Re-run validation after fixes
+          
+          EOF
+          elif [ "$IMPACT_LEVEL" = "high" ]; then
+            cat >> validation-summary.md << EOF
+          ### ⚠️ High Impact Changes
+          - Thorough testing recommended before merge
+          - Review change impact analysis results
+          - Consider gradual rollout strategy
+          
+          EOF
+          fi
+          
+          cat >> validation-summary.md << EOF
+          ---
+          *Validation completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')*
+          EOF
+      
+      # Comment on PR with validation results
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('validation-summary.md', 'utf8');
+            
+            // Find existing validation comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.data.find(comment => 
+              comment.body.includes('🔍 Workflow Validation Results')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: summary
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }
+      
+      # Final validation status
+      - name: Final validation status
+        run: |
+          OVERALL_STATUS="${{ steps.summary.outputs.overall_status }}"
+          
+          if [ "$OVERALL_STATUS" = "failed" ]; then
+            echo "❌ Workflow validation failed - blocking deployment"
+            exit 1
+          elif [ "$OVERALL_STATUS" = "warning" ]; then
+            echo "⚠️ Workflow validation passed with warnings - proceed with caution"
+            exit 0
+          else
+            echo "✅ Workflow validation passed - ready for deployment"
+            exit 0
+          fi

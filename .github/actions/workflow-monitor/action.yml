@@ -1,0 +1,349 @@
+name: 'Workflow Performance Monitor'
+description: 'Monitor workflow performance and generate actionable insights'
+inputs:
+  job-name:
+    description: 'Name of the job being monitored'
+    required: true
+  start-time:
+    description: 'Job start time (ISO format)'
+    required: false
+  expected-duration:
+    description: 'Expected job duration in minutes'
+    required: false
+    default: '5'
+  workflow-status:
+    description: 'Workflow status (success, failure, cancelled)'
+    required: false
+    default: 'success'
+  cache-hit-rate:
+    description: 'Cache hit rate percentage (0-100)'
+    required: false
+  generate-alerts:
+    description: 'Generate alerts if thresholds exceeded'
+    required: false
+    default: 'true'
+  monitoring-enabled:
+    description: 'Enable comprehensive monitoring'
+    required: false
+    default: 'true'
+
+outputs:
+  performance-status:
+    description: 'Performance status assessment'
+    value: ${{ steps.performance-analysis.outputs.performance-status }}
+  performance-score:
+    description: 'Performance score (0-100)'
+    value: ${{ steps.performance-analysis.outputs.performance-score }}
+  alert-generated:
+    description: 'Whether an alert was generated'
+    value: ${{ steps.performance-analysis.outputs.alert-generated }}
+  metrics-file:
+    description: 'Path to generated metrics file'
+    value: ${{ steps.performance-analysis.outputs.metrics-file }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup monitoring environment
+      run: |
+        echo "🔧 Setting up workflow monitoring environment..."
+        
+        # Create monitoring directories
+        mkdir -p monitoring-results
+        mkdir -p monitoring-reports
+        
+        # Install Python dependencies if needed
+        if command -v python3 >/dev/null 2>&1; then
+          echo "✅ Python3 available for advanced monitoring"
+        else
+          echo "⚠️ Python3 not available - using basic monitoring"
+        fi
+        
+        echo "📊 Monitoring Configuration:"
+        echo "- Job Name: ${{ inputs.job-name }}"
+        echo "- Expected Duration: ${{ inputs.expected-duration }} minutes"
+        echo "- Workflow Status: ${{ inputs.workflow-status }}"
+        echo "- Generate Alerts: ${{ inputs.generate-alerts }}"
+        echo "- Monitoring Enabled: ${{ inputs.monitoring-enabled }}"
+        echo ""
+      shell: bash
+    
+    - name: Collect performance metrics
+      id: performance-analysis
+      run: |
+        echo "📊 WORKFLOW PERFORMANCE MONITORING"
+        echo "=================================="
+        echo "Job: ${{ inputs.job-name }}"
+        echo "Expected Duration: ${{ inputs.expected-duration }} minutes"
+        echo "Workflow Status: ${{ inputs.workflow-status }}"
+        echo "Monitoring Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Calculate execution time if start time provided
+        DURATION=0
+        PERFORMANCE_STATUS="unknown"
+        PERFORMANCE_SCORE=50
+        ALERT_GENERATED="false"
+        
+        if [ -n "${{ inputs.start-time }}" ]; then
+          START_EPOCH=$(date -d "${{ inputs.start-time }}" +%s 2>/dev/null || echo "0")
+          CURRENT_EPOCH=$(date +%s)
+          DURATION=$((CURRENT_EPOCH - START_EPOCH))
+          DURATION_MIN=$((DURATION / 60))
+          DURATION_SEC=$((DURATION % 60))
+          
+          echo "⏱️ Execution Metrics:"
+          echo "===================="
+          echo "Actual Duration: ${DURATION_MIN}m ${DURATION_SEC}s (${DURATION}s)"
+          echo "Expected Duration: ${{ inputs.expected-duration }}m"
+          
+          # Performance analysis
+          EXPECTED_SEC=$((${{ inputs.expected-duration }} * 60))
+          
+          # Determine performance status
+          if [ "${{ inputs.workflow-status }}" != "success" ]; then
+            PERFORMANCE_STATUS="failed"
+            PERFORMANCE_SCORE=0
+          elif [ $DURATION -le $EXPECTED_SEC ]; then
+            PERFORMANCE_STATUS="excellent"
+            PERFORMANCE_SCORE=95
+            echo "✅ Performance: EXCELLENT - Within expected duration"
+          elif [ $DURATION -le $((EXPECTED_SEC + 120)) ]; then  # 2 minutes grace
+            PERFORMANCE_STATUS="good"
+            PERFORMANCE_SCORE=80
+            echo "✅ Performance: GOOD - Slightly over expected duration"
+          elif [ $DURATION -le $((EXPECTED_SEC * 2)) ]; then  # Double expected time
+            PERFORMANCE_STATUS="acceptable"
+            PERFORMANCE_SCORE=60
+            OVERRUN=$((DURATION - EXPECTED_SEC))
+            OVERRUN_MIN=$((OVERRUN / 60))
+            OVERRUN_SEC=$((OVERRUN % 60))
+            echo "⚠️ Performance: ACCEPTABLE - ${OVERRUN_MIN}m ${OVERRUN_SEC}s over expected"
+          else
+            PERFORMANCE_STATUS="poor"
+            PERFORMANCE_SCORE=30
+            OVERRUN=$((DURATION - EXPECTED_SEC))
+            OVERRUN_MIN=$((OVERRUN / 60))
+            OVERRUN_SEC=$((OVERRUN % 60))
+            echo "❌ Performance: POOR - ${OVERRUN_MIN}m ${OVERRUN_SEC}s over expected"
+            ALERT_GENERATED="true"
+          fi
+        else
+          echo "⚠️ No start time provided - using basic monitoring"
+          if [ "${{ inputs.workflow-status }}" = "success" ]; then
+            PERFORMANCE_STATUS="success"
+            PERFORMANCE_SCORE=75
+          else
+            PERFORMANCE_STATUS="failed"
+            PERFORMANCE_SCORE=0
+            ALERT_GENERATED="true"
+          fi
+        fi
+        
+        # Use advanced monitoring if Python is available and monitoring is enabled
+        if [ "${{ inputs.monitoring-enabled }}" = "true" ] && command -v python3 >/dev/null 2>&1; then
+          echo ""
+          echo "🔬 Advanced Performance Analysis:"
+          echo "==============================="
+          
+          # Run advanced monitoring script if available
+          if [ -f ".github/scripts/workflow-performance-tracker.py" ]; then
+            echo "Running centralized performance tracking..."
+            
+            CACHE_HIT_RATE="${{ inputs.cache-hit-rate }}"
+            GENERATE_ALERTS="${{ inputs.generate-alerts }}"
+            
+            python3 .github/scripts/workflow-performance-tracker.py \
+              --workflow-name "${{ inputs.job-name }}" \
+              --status "${{ inputs.workflow-status }}" \
+              --duration "$DURATION" \
+              ${CACHE_HIT_RATE:+--cache-hit-rate "$CACHE_HIT_RATE"} \
+              --output-dir "monitoring-results" \
+              ${GENERATE_ALERTS:+--generate-alert} || echo "⚠️ Advanced monitoring failed"
+          else
+            echo "⚠️ Advanced monitoring script not found"
+          fi
+        fi
+        
+        echo ""
+        echo "🖥️ System Resource Usage:"
+        echo "========================"
+        
+        # Memory usage
+        if command -v free >/dev/null 2>&1; then
+          echo "Memory Usage:"
+          free -h | head -2
+        fi
+        
+        # Disk usage
+        echo ""
+        echo "Disk Usage:"
+        df -h / | tail -1
+        
+        # Load average (if available)
+        if [ -f /proc/loadavg ]; then
+          echo ""
+          echo "System Load:"
+          cat /proc/loadavg
+        fi
+        
+        echo ""
+        echo "🔄 Cache Performance Analysis:"
+        echo "============================="
+        
+        # Check cache directories and calculate hit rate
+        CACHE_DIRS=(
+          "$HOME/.cache/uv"
+          "$HOME/.cache/pip"
+          "$HOME/.mypy_cache"
+          "$HOME/.ruff_cache"
+        )
+        
+        CACHE_HITS=0
+        TOTAL_CACHES=0
+        
+        for cache_dir in "${CACHE_DIRS[@]}"; do
+          TOTAL_CACHES=$((TOTAL_CACHES + 1))
+          if [ -d "$cache_dir" ]; then
+            CACHE_SIZE=$(du -sh "$cache_dir" 2>/dev/null | cut -f1)
+            CACHE_NAME=$(basename "$cache_dir")
+            echo "✅ ${CACHE_NAME}: ${CACHE_SIZE}"
+            CACHE_HITS=$((CACHE_HITS + 1))
+          else
+            CACHE_NAME=$(basename "$cache_dir")
+            echo "❌ ${CACHE_NAME}: Not found (cache miss)"
+          fi
+        done
+        
+        # Calculate cache hit rate if not provided
+        if [ -z "${{ inputs.cache-hit-rate }}" ] && [ $TOTAL_CACHES -gt 0 ]; then
+          CALCULATED_CACHE_RATE=$((CACHE_HITS * 100 / TOTAL_CACHES))
+          echo "📊 Calculated Cache Hit Rate: ${CALCULATED_CACHE_RATE}%"
+        fi
+        
+        echo ""
+        echo "📈 Performance Recommendations:"
+        echo "=============================="
+        
+        # Generate recommendations based on performance status
+        case "$PERFORMANCE_STATUS" in
+          "excellent")
+            echo "🏆 Performance is excellent!"
+            echo "- Continue current optimization strategies"
+            echo "- Monitor for performance regressions"
+            echo "- Share best practices with team"
+            ;;
+          "good")
+            echo "✅ Performance is good with minor optimization opportunities"
+            echo "- Fine-tune caching strategies"
+            echo "- Consider micro-optimizations"
+            ;;
+          "acceptable")
+            echo "⚠️ Performance needs improvement"
+            echo "- Review dependency installation time"
+            echo "- Optimize test execution order"
+            echo "- Improve caching strategies"
+            ;;
+          "poor"|"failed")
+            echo "❌ Performance requires immediate attention"
+            echo "- Investigate workflow failure causes"
+            echo "- Review resource constraints"
+            echo "- Consider infrastructure improvements"
+            echo "- Implement emergency optimizations"
+            ;;
+        esac
+        
+        echo ""
+        echo "📊 Monitoring Summary:"
+        echo "===================="
+        echo "Job: ${{ inputs.job-name }}"
+        echo "Performance Status: $PERFORMANCE_STATUS"
+        echo "Performance Score: $PERFORMANCE_SCORE/100"
+        echo "Alert Generated: $ALERT_GENERATED"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Runner: ${{ runner.os }}"
+        echo "Workflow: ${{ github.workflow }}"
+        echo "Run ID: ${{ github.run_id }}"
+        
+        # Export outputs
+        echo "performance-status=$PERFORMANCE_STATUS" >> $GITHUB_OUTPUT
+        echo "performance-score=$PERFORMANCE_SCORE" >> $GITHUB_OUTPUT
+        echo "alert-generated=$ALERT_GENERATED" >> $GITHUB_OUTPUT
+      shell: bash
+    
+    - name: Generate performance report
+      run: |
+        # Create monitoring reports directory
+        mkdir -p monitoring-reports
+        
+        # Get values from previous step
+        PERFORMANCE_STATUS="${{ steps.performance-analysis.outputs.performance-status }}"
+        PERFORMANCE_SCORE="${{ steps.performance-analysis.outputs.performance-score }}"
+        ALERT_GENERATED="${{ steps.performance-analysis.outputs.alert-generated }}"
+        
+        # Calculate metrics for JSON report
+        if [ -n "${{ inputs.start-time }}" ]; then
+          START_EPOCH=$(date -d "${{ inputs.start-time }}" +%s 2>/dev/null || echo "0")
+          CURRENT_EPOCH=$(date +%s)
+          DURATION=$((CURRENT_EPOCH - START_EPOCH))
+          EXPECTED_SEC=$((${{ inputs.expected-duration }} * 60))
+          PERFORMANCE_RATIO=$(echo "scale=2; $DURATION / $EXPECTED_SEC" | bc -l 2>/dev/null || echo "1.0")
+        else
+          DURATION=0
+          PERFORMANCE_RATIO="0.0"
+        fi
+        
+        # Generate enhanced JSON performance report
+        REPORT_FILE="monitoring-reports/performance-${{ inputs.job-name }}-${{ github.run_id }}.json"
+        
+        cat > "$REPORT_FILE" << EOF
+        {
+          "job_name": "${{ inputs.job-name }}",
+          "workflow": "${{ github.workflow }}",
+          "run_id": "${{ github.run_id }}",
+          "commit_sha": "${{ github.sha }}",
+          "runner_os": "${{ runner.os }}",
+          "timestamp": "$(date -u '+%Y-%m-%d %H:%M:%S UTC')",
+          "status": "${{ inputs.workflow-status }}",
+          "performance_status": "$PERFORMANCE_STATUS",
+          "performance_score": $PERFORMANCE_SCORE,
+          "alert_generated": $ALERT_GENERATED,
+          "metrics": {
+            "actual_duration_seconds": $DURATION,
+            "expected_duration_seconds": $((${{ inputs.expected-duration }} * 60)),
+            "performance_ratio": $PERFORMANCE_RATIO,
+            "within_expectations": $([ $DURATION -le $((${{ inputs.expected-duration }} * 60)) ] && echo "true" || echo "false"),
+            "cache_hit_rate": ${{ inputs.cache-hit-rate }}
+          },
+          "cache_status": {
+            "uv_cache_exists": $([ -d "$HOME/.cache/uv" ] && echo "true" || echo "false"),
+            "pip_cache_exists": $([ -d "$HOME/.cache/pip" ] && echo "true" || echo "false"),
+            "mypy_cache_exists": $([ -d "$HOME/.mypy_cache" ] && echo "true" || echo "false"),
+            "ruff_cache_exists": $([ -d "$HOME/.ruff_cache" ] && echo "true" || echo "false")
+          },
+          "configuration": {
+            "monitoring_enabled": "${{ inputs.monitoring-enabled }}",
+            "generate_alerts": "${{ inputs.generate-alerts }}"
+          }
+        }
+        EOF
+        
+        echo "✅ Enhanced performance report generated: $REPORT_FILE"
+        echo "metrics-file=$REPORT_FILE" >> $GITHUB_OUTPUT
+        
+        # Generate summary for GitHub Actions summary
+        echo "## 📊 Workflow Performance Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Job**: ${{ inputs.job-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ${{ inputs.workflow-status }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Performance**: $PERFORMANCE_STATUS ($PERFORMANCE_SCORE/100)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Duration**: ${DURATION}s (expected: ${{ inputs.expected-duration }}m)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Alert Generated**: $ALERT_GENERATED" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -n "${{ inputs.cache-hit-rate }}" ]; then
+          echo "- **Cache Hit Rate**: ${{ inputs.cache-hit-rate }}%" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📁 **Report File**: \`$REPORT_FILE\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash

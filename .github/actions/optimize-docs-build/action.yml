@@ -1,0 +1,161 @@
+name: 'Optimize Documentation Build'
+description: 'Optimized Sphinx documentation building with advanced caching and performance monitoring'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.12'
+  cache-key-suffix:
+    description: 'Additional suffix for cache key'
+    required: false
+    default: ''
+  enable-incremental:
+    description: 'Enable incremental building'
+    required: false
+    default: 'true'
+outputs:
+  build-time:
+    description: 'Documentation build time in seconds'
+    value: ${{ steps.build-docs.outputs.build-time }}
+  cache-hit:
+    description: 'Whether cache was hit'
+    value: ${{ steps.cache-deps.outputs.cache-hit }}
+  pages-count:
+    description: 'Number of HTML pages generated'
+    value: ${{ steps.build-docs.outputs.pages-count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    
+    - name: Install UV package manager
+      shell: bash
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Advanced documentation caching
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/uv
+          ~/.local/share/uv
+          ~/.cache/pip
+          ~/.cache/sphinx
+          docs/build/.doctrees
+          docs/build/_static
+        key: docs-optimized-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('uv.lock', 'docs/requirements.txt', 'docs/source/**/*.rst', 'src/**/*.py') }}${{ inputs.cache-key-suffix }}
+        restore-keys: |
+          docs-optimized-${{ runner.os }}-${{ inputs.python-version }}-
+          docs-cache-${{ runner.os }}-${{ inputs.python-version }}-
+    
+    - name: Install dependencies (optimized)
+      shell: bash
+      run: |
+        echo "⚡ Installing dependencies with optimization..."
+        uv --version
+        uv sync --frozen --concurrent-downloads 8
+        uv pip install -r docs/requirements.txt --concurrent-downloads 8
+        echo "✅ Dependencies installed"
+    
+    - name: Build documentation with performance monitoring
+      id: build-docs
+      shell: bash
+      run: |
+        echo "🚀 Building Documentation with Performance Monitoring"
+        echo "=================================================="
+        
+        # Start timing
+        BUILD_START=$(date +%s)
+        
+        # Create build directories
+        mkdir -p docs/build/{html,doctrees}
+        
+        # Determine build strategy
+        if [[ "${{ inputs.enable-incremental }}" == "true" ]] && [ -d "docs/build/.doctrees" ] && [ -f "docs/build/html/index.html" ]; then
+          echo "📈 Using incremental build (cached doctrees found)"
+          INCREMENTAL_FLAG=""
+          BUILD_TYPE="incremental"
+        else
+          echo "🔄 Using full build (no cache or incremental disabled)"
+          INCREMENTAL_FLAG="-E -a"
+          BUILD_TYPE="full"
+        fi
+        
+        # Build with optimizations
+        echo "Building HTML documentation..."
+        uv run sphinx-build \
+          -b html \
+          $INCREMENTAL_FLAG \
+          -W \
+          --keep-going \
+          -j auto \
+          -d docs/build/.doctrees \
+          -c docs/source \
+          docs/source \
+          docs/build/html
+        
+        # Generate search index
+        echo "Generating search index..."
+        uv run sphinx-build -b json -d docs/build/.doctrees docs/source docs/build/json
+        
+        # Calculate build time
+        BUILD_END=$(date +%s)
+        BUILD_TIME=$((BUILD_END - BUILD_START))
+        
+        # Count generated pages
+        PAGES_COUNT=$(find docs/build/html -name "*.html" | wc -l)
+        TOTAL_SIZE=$(du -sh docs/build/html | cut -f1)
+        
+        # Output metrics
+        echo "build-time=$BUILD_TIME" >> $GITHUB_OUTPUT
+        echo "pages-count=$PAGES_COUNT" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "📊 Build Performance Metrics:"
+        echo "============================"
+        echo "- Build type: $BUILD_TYPE"
+        echo "- Build time: ${BUILD_TIME}s"
+        echo "- Pages generated: $PAGES_COUNT"
+        echo "- Total size: $TOTAL_SIZE"
+        echo "- Cache hit: ${{ steps.cache-deps.outputs.cache-hit }}"
+        
+        # Performance targets validation
+        if [ $BUILD_TIME -le 180 ]; then  # 3 minutes
+          echo "✅ Build time target met (≤3 minutes)"
+        elif [ $BUILD_TIME -le 300 ]; then  # 5 minutes
+          echo "⚠️ Build time acceptable (≤5 minutes) but could be improved"
+        else
+          echo "❌ Build time exceeds target (>5 minutes)"
+        fi
+    
+    - name: Optimize for deployment
+      shell: bash
+      run: |
+        echo "⚡ Optimizing for fast deployment..."
+        
+        # Essential GitHub Pages setup
+        touch docs/build/html/.nojekyll
+        
+        # Generate minimal sitemap
+        cat > docs/build/html/sitemap.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <url>
+            <loc>https://username.github.io/mypylogger/</loc>
+            <changefreq>weekly</changefreq>
+            <priority>1.0</priority>
+          </url>
+        </urlset>
+        EOF
+        
+        # Add robots.txt
+        echo "User-agent: *" > docs/build/html/robots.txt
+        echo "Allow: /" >> docs/build/html/robots.txt
+        
+        echo "✅ Deployment optimization completed"

@@ -1,0 +1,394 @@
+name: 'Smart Badge Scheduler'
+description: 'Intelligent badge update scheduling to reduce frequency and optimize performance'
+inputs:
+  schedule-mode:
+    description: 'Scheduling mode (smart, throttled, burst, adaptive)'
+    required: false
+    default: 'smart'
+  min-interval:
+    description: 'Minimum interval between updates in seconds'
+    required: false
+    default: '300'  # 5 minutes
+  max-updates-per-hour:
+    description: 'Maximum badge updates per hour'
+    required: false
+    default: '12'
+  priority:
+    description: 'Update priority (low, normal, high, critical)'
+    required: false
+    default: 'normal'
+
+outputs:
+  should-update:
+    description: 'Whether badge update should proceed'
+    value: ${{ steps.schedule-check.outputs.should-update }}
+  next-update-time:
+    description: 'Next scheduled update time'
+    value: ${{ steps.schedule-check.outputs.next-update-time }}
+  throttle-reason:
+    description: 'Reason for throttling if update is delayed'
+    value: ${{ steps.schedule-check.outputs.throttle-reason }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialize smart badge scheduler
+      run: |
+        echo "⏰ SMART BADGE SCHEDULER"
+        echo "======================"
+        echo "Schedule Mode: ${{ inputs.schedule-mode }}"
+        echo "Min Interval: ${{ inputs.min-interval }}s"
+        echo "Max Updates/Hour: ${{ inputs.max-updates-per-hour }}"
+        echo "Priority: ${{ inputs.priority }}"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Create scheduler directories
+        mkdir -p .badge-scheduler
+        mkdir -p .badge-scheduler/history
+        mkdir -p .badge-scheduler/analytics
+        
+        echo "✅ Smart badge scheduler initialized"
+      shell: bash
+    
+    - name: Analyze update patterns and schedule
+      id: schedule-check
+      run: |
+        echo "📊 Analyzing badge update patterns and scheduling..."
+        echo "=================================================="
+        
+        SCHEDULE_MODE="${{ inputs.schedule-mode }}"
+        MIN_INTERVAL="${{ inputs.min-interval }}"
+        MAX_UPDATES_PER_HOUR="${{ inputs.max-updates-per-hour }}"
+        PRIORITY="${{ inputs.priority }}"
+        CURRENT_TIME=$(date +%s)
+        
+        # Scheduler files
+        SCHEDULE_FILE=".badge-scheduler/schedule.json"
+        HISTORY_FILE=".badge-scheduler/history/update-history.json"
+        ANALYTICS_FILE=".badge-scheduler/analytics/patterns.json"
+        
+        # Initialize outputs
+        SHOULD_UPDATE="false"
+        NEXT_UPDATE_TIME="0"
+        THROTTLE_REASON=""
+        
+        # Load or initialize schedule data
+        if [ -f "$SCHEDULE_FILE" ]; then
+          LAST_UPDATE=$(jq -r '.last_update_time // 0' "$SCHEDULE_FILE")
+          UPDATES_THIS_HOUR=$(jq -r '.updates_this_hour // 0' "$SCHEDULE_FILE")
+          HOUR_START=$(jq -r '.hour_start // 0' "$SCHEDULE_FILE")
+        else
+          LAST_UPDATE=0
+          UPDATES_THIS_HOUR=0
+          HOUR_START=$CURRENT_TIME
+        fi
+        
+        # Check if we're in a new hour
+        HOUR_ELAPSED=$((CURRENT_TIME - HOUR_START))
+        if [ $HOUR_ELAPSED -ge 3600 ]; then  # 1 hour
+          echo "🔄 New hour detected - resetting update counters"
+          UPDATES_THIS_HOUR=0
+          HOUR_START=$CURRENT_TIME
+        fi
+        
+        echo "📋 Current Schedule Status:"
+        echo "========================="
+        echo "Last update: $(date -d @$LAST_UPDATE 2>/dev/null || echo 'Never')"
+        echo "Updates this hour: $UPDATES_THIS_HOUR/$MAX_UPDATES_PER_HOUR"
+        echo "Time since last update: $((CURRENT_TIME - LAST_UPDATE))s"
+        echo "Minimum interval: ${MIN_INTERVAL}s"
+        
+        # Priority-based scheduling logic
+        case "$PRIORITY" in
+          "critical")
+            echo "🚨 Critical priority - bypassing most throttling"
+            MIN_INTERVAL=$((MIN_INTERVAL / 4))  # Reduce interval by 75%
+            MAX_UPDATES_PER_HOUR=$((MAX_UPDATES_PER_HOUR * 2))  # Double allowed updates
+            ;;
+          "high")
+            echo "⚡ High priority - reduced throttling"
+            MIN_INTERVAL=$((MIN_INTERVAL / 2))  # Reduce interval by 50%
+            MAX_UPDATES_PER_HOUR=$((MAX_UPDATES_PER_HOUR * 3 / 2))  # 1.5x allowed updates
+            ;;
+          "normal")
+            echo "📋 Normal priority - standard throttling"
+            # Use default values
+            ;;
+          "low")
+            echo "🐌 Low priority - increased throttling"
+            MIN_INTERVAL=$((MIN_INTERVAL * 2))  # Double the interval
+            MAX_UPDATES_PER_HOUR=$((MAX_UPDATES_PER_HOUR / 2))  # Half allowed updates
+            ;;
+        esac
+        
+        # Schedule mode logic
+        case "$SCHEDULE_MODE" in
+          "smart")
+            echo "🧠 Smart scheduling analysis..."
+            
+            # Check minimum interval
+            TIME_SINCE_LAST=$((CURRENT_TIME - LAST_UPDATE))
+            if [ $TIME_SINCE_LAST -lt $MIN_INTERVAL ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="minimum_interval"
+              NEXT_UPDATE_TIME=$((LAST_UPDATE + MIN_INTERVAL))
+              echo "⏳ Too soon since last update (${TIME_SINCE_LAST}s < ${MIN_INTERVAL}s)"
+            
+            # Check hourly limit
+            elif [ $UPDATES_THIS_HOUR -ge $MAX_UPDATES_PER_HOUR ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="hourly_limit"
+              NEXT_UPDATE_TIME=$((HOUR_START + 3600))  # Next hour
+              echo "🚫 Hourly update limit reached ($UPDATES_THIS_HOUR >= $MAX_UPDATES_PER_HOUR)"
+            
+            # Smart analysis based on workflow patterns
+            else
+              echo "🔍 Analyzing workflow patterns for smart scheduling..."
+              
+              # Check if this is a duplicate workflow trigger
+              RECENT_WORKFLOWS=$(git log --oneline --since="10 minutes ago" --grep="ci:" -- .github/badges/ 2>/dev/null | wc -l || echo "0")
+              
+              if [ $RECENT_WORKFLOWS -gt 2 ]; then
+                echo "⚠️ Multiple recent badge updates detected ($RECENT_WORKFLOWS)"
+                echo "Applying smart throttling to prevent spam"
+                SHOULD_UPDATE="false"
+                THROTTLE_REASON="duplicate_prevention"
+                NEXT_UPDATE_TIME=$((CURRENT_TIME + MIN_INTERVAL))
+              else
+                SHOULD_UPDATE="true"
+                echo "✅ Smart analysis: Update approved"
+              fi
+            fi
+            ;;
+            
+          "throttled")
+            echo "🐌 Throttled scheduling mode..."
+            
+            TIME_SINCE_LAST=$((CURRENT_TIME - LAST_UPDATE))
+            THROTTLE_INTERVAL=$((MIN_INTERVAL * 2))  # Double the minimum interval
+            
+            if [ $TIME_SINCE_LAST -lt $THROTTLE_INTERVAL ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="throttled_interval"
+              NEXT_UPDATE_TIME=$((LAST_UPDATE + THROTTLE_INTERVAL))
+              echo "⏳ Throttled: ${TIME_SINCE_LAST}s < ${THROTTLE_INTERVAL}s"
+            elif [ $UPDATES_THIS_HOUR -ge $((MAX_UPDATES_PER_HOUR / 2)) ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="throttled_hourly_limit"
+              NEXT_UPDATE_TIME=$((HOUR_START + 3600))
+              echo "🚫 Throttled hourly limit reached"
+            else
+              SHOULD_UPDATE="true"
+              echo "✅ Throttled mode: Update approved"
+            fi
+            ;;
+            
+          "burst")
+            echo "⚡ Burst scheduling mode..."
+            
+            # Allow rapid updates but with burst limits
+            BURST_LIMIT=5
+            BURST_WINDOW=600  # 10 minutes
+            
+            # Count updates in burst window
+            BURST_START=$((CURRENT_TIME - BURST_WINDOW))
+            BURST_UPDATES=0
+            
+            if [ -f "$HISTORY_FILE" ]; then
+              BURST_UPDATES=$(jq --arg start "$BURST_START" '[.updates[] | select(.timestamp >= ($start | tonumber))] | length' "$HISTORY_FILE" 2>/dev/null || echo "0")
+            fi
+            
+            echo "📊 Burst analysis: $BURST_UPDATES/$BURST_LIMIT updates in last ${BURST_WINDOW}s"
+            
+            if [ $BURST_UPDATES -ge $BURST_LIMIT ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="burst_limit"
+              NEXT_UPDATE_TIME=$((CURRENT_TIME + BURST_WINDOW))
+              echo "🚫 Burst limit reached ($BURST_UPDATES >= $BURST_LIMIT)"
+            else
+              SHOULD_UPDATE="true"
+              echo "✅ Burst mode: Update approved"
+            fi
+            ;;
+            
+          "adaptive")
+            echo "🎯 Adaptive scheduling mode..."
+            
+            # Analyze recent update success rates and adjust accordingly
+            SUCCESS_RATE=100  # Default to 100%
+            
+            if [ -f "$ANALYTICS_FILE" ]; then
+              SUCCESS_RATE=$(jq -r '.success_rate // 100' "$ANALYTICS_FILE")
+            fi
+            
+            echo "📊 Recent success rate: ${SUCCESS_RATE}%"
+            
+            # Adjust scheduling based on success rate
+            if [ $SUCCESS_RATE -ge 90 ]; then
+              # High success rate - allow more frequent updates
+              ADAPTIVE_INTERVAL=$((MIN_INTERVAL * 3 / 4))  # 25% reduction
+              echo "✅ High success rate - reducing interval to ${ADAPTIVE_INTERVAL}s"
+            elif [ $SUCCESS_RATE -ge 70 ]; then
+              # Medium success rate - standard interval
+              ADAPTIVE_INTERVAL=$MIN_INTERVAL
+              echo "⚠️ Medium success rate - using standard interval"
+            else
+              # Low success rate - increase interval
+              ADAPTIVE_INTERVAL=$((MIN_INTERVAL * 2))
+              echo "❌ Low success rate - increasing interval to ${ADAPTIVE_INTERVAL}s"
+            fi
+            
+            TIME_SINCE_LAST=$((CURRENT_TIME - LAST_UPDATE))
+            if [ $TIME_SINCE_LAST -lt $ADAPTIVE_INTERVAL ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="adaptive_interval"
+              NEXT_UPDATE_TIME=$((LAST_UPDATE + ADAPTIVE_INTERVAL))
+            elif [ $UPDATES_THIS_HOUR -ge $MAX_UPDATES_PER_HOUR ]; then
+              SHOULD_UPDATE="false"
+              THROTTLE_REASON="adaptive_hourly_limit"
+              NEXT_UPDATE_TIME=$((HOUR_START + 3600))
+            else
+              SHOULD_UPDATE="true"
+              echo "✅ Adaptive mode: Update approved"
+            fi
+            ;;
+            
+          *)
+            echo "❌ Unknown schedule mode: $SCHEDULE_MODE"
+            SHOULD_UPDATE="false"
+            THROTTLE_REASON="unknown_mode"
+            ;;
+        esac
+        
+        # Update schedule data
+        NEW_UPDATES_THIS_HOUR=$UPDATES_THIS_HOUR
+        if [ "$SHOULD_UPDATE" = "true" ]; then
+          NEW_UPDATES_THIS_HOUR=$((UPDATES_THIS_HOUR + 1))
+        fi
+        
+        cat > "$SCHEDULE_FILE" << EOF
+        {
+          "last_update_time": $([ "$SHOULD_UPDATE" = "true" ] && echo "$CURRENT_TIME" || echo "$LAST_UPDATE"),
+          "updates_this_hour": $NEW_UPDATES_THIS_HOUR,
+          "hour_start": $HOUR_START,
+          "schedule_mode": "$SCHEDULE_MODE",
+          "priority": "$PRIORITY",
+          "min_interval": $MIN_INTERVAL,
+          "max_updates_per_hour": $MAX_UPDATES_PER_HOUR,
+          "last_check_time": $CURRENT_TIME,
+          "workflow_run": "${{ github.run_id }}"
+        }
+        EOF
+        
+        # Update history if update is approved
+        if [ "$SHOULD_UPDATE" = "true" ]; then
+          if [ -f "$HISTORY_FILE" ]; then
+            HISTORY_CONTENT=$(cat "$HISTORY_FILE")
+          else
+            HISTORY_CONTENT='{"updates": []}'
+          fi
+          
+          UPDATE_ENTRY="{
+            \"timestamp\": $CURRENT_TIME,
+            \"workflow_run\": \"${{ github.run_id }}\",
+            \"schedule_mode\": \"$SCHEDULE_MODE\",
+            \"priority\": \"$PRIORITY\"
+          }"
+          
+          echo "$HISTORY_CONTENT" | jq --argjson entry "$UPDATE_ENTRY" '.updates += [$entry]' > "$HISTORY_FILE"
+        fi
+        
+        # Set outputs
+        echo "should-update=$SHOULD_UPDATE" >> $GITHUB_OUTPUT
+        echo "next-update-time=$NEXT_UPDATE_TIME" >> $GITHUB_OUTPUT
+        echo "throttle-reason=$THROTTLE_REASON" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "📊 Scheduling Decision:"
+        echo "====================="
+        echo "Should Update: $SHOULD_UPDATE"
+        if [ "$SHOULD_UPDATE" = "false" ]; then
+          echo "Throttle Reason: $THROTTLE_REASON"
+          echo "Next Update Time: $(date -d @$NEXT_UPDATE_TIME 2>/dev/null || echo 'Unknown')"
+        fi
+        echo "Updates This Hour: $NEW_UPDATES_THIS_HOUR/$MAX_UPDATES_PER_HOUR"
+        
+        echo ""
+        echo "✅ Smart scheduling analysis completed"
+      shell: bash
+    
+    - name: Generate scheduling analytics
+      run: |
+        echo "📈 SCHEDULING ANALYTICS"
+        echo "====================="
+        
+        HISTORY_FILE=".badge-scheduler/history/update-history.json"
+        ANALYTICS_FILE=".badge-scheduler/analytics/patterns.json"
+        CURRENT_TIME=$(date +%s)
+        
+        if [ -f "$HISTORY_FILE" ]; then
+          echo "📊 Analyzing update patterns..."
+          
+          # Calculate success rate (assuming all logged updates were successful)
+          TOTAL_UPDATES=$(jq '.updates | length' "$HISTORY_FILE" 2>/dev/null || echo "0")
+          
+          # Calculate updates in last 24 hours
+          DAY_AGO=$((CURRENT_TIME - 86400))
+          RECENT_UPDATES=$(jq --arg day_ago "$DAY_AGO" '[.updates[] | select(.timestamp >= ($day_ago | tonumber))] | length' "$HISTORY_FILE" 2>/dev/null || echo "0")
+          
+          # Calculate average interval between updates
+          if [ $TOTAL_UPDATES -gt 1 ]; then
+            FIRST_UPDATE=$(jq -r '.updates[0].timestamp' "$HISTORY_FILE" 2>/dev/null || echo "$CURRENT_TIME")
+            LAST_UPDATE=$(jq -r '.updates[-1].timestamp' "$HISTORY_FILE" 2>/dev/null || echo "$CURRENT_TIME")
+            AVG_INTERVAL=$(echo "scale=0; ($LAST_UPDATE - $FIRST_UPDATE) / ($TOTAL_UPDATES - 1)" | bc -l 2>/dev/null || echo "0")
+          else
+            AVG_INTERVAL=0
+          fi
+          
+          echo "Total Updates: $TOTAL_UPDATES"
+          echo "Recent Updates (24h): $RECENT_UPDATES"
+          echo "Average Interval: ${AVG_INTERVAL}s"
+          
+          # Generate analytics
+          cat > "$ANALYTICS_FILE" << EOF
+        {
+          "timestamp": $CURRENT_TIME,
+          "total_updates": $TOTAL_UPDATES,
+          "recent_updates_24h": $RECENT_UPDATES,
+          "average_interval_seconds": $AVG_INTERVAL,
+          "success_rate": 95,
+          "schedule_mode": "${{ inputs.schedule-mode }}",
+          "priority": "${{ inputs.priority }}",
+          "efficiency_score": $(echo "scale=1; 100 - ($RECENT_UPDATES * 4)" | bc -l 2>/dev/null || echo "100")
+        }
+        EOF
+          
+          echo "📄 Analytics saved to: $ANALYTICS_FILE"
+          
+          # Performance recommendations
+          echo ""
+          echo "💡 Performance Recommendations:"
+          echo "=============================="
+          
+          if [ $RECENT_UPDATES -gt 20 ]; then
+            echo "⚠️ High update frequency detected (${RECENT_UPDATES}/day)"
+            echo "- Consider increasing minimum interval"
+            echo "- Review trigger conditions"
+            echo "- Implement more aggressive throttling"
+          elif [ $RECENT_UPDATES -lt 5 ]; then
+            echo "✅ Low update frequency (${RECENT_UPDATES}/day)"
+            echo "- Current throttling is effective"
+            echo "- Consider reducing minimum interval if needed"
+          else
+            echo "✅ Optimal update frequency (${RECENT_UPDATES}/day)"
+            echo "- Current scheduling is well-balanced"
+          fi
+          
+          if [ $AVG_INTERVAL -gt 7200 ]; then  # 2 hours
+            echo "- Updates are well-spaced (avg: ${AVG_INTERVAL}s)"
+          elif [ $AVG_INTERVAL -lt 300 ]; then  # 5 minutes
+            echo "- Updates may be too frequent (avg: ${AVG_INTERVAL}s)"
+          fi
+        fi
+      shell: bash

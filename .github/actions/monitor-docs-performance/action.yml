@@ -1,0 +1,163 @@
+name: 'Monitor Documentation Performance'
+description: 'Monitor and report documentation workflow performance metrics'
+inputs:
+  build-time:
+    description: 'Documentation build time in seconds'
+    required: true
+  cache-hit:
+    description: 'Whether cache was hit (true/false)'
+    required: true
+  pages-count:
+    description: 'Number of HTML pages generated'
+    required: true
+  workflow-start-time:
+    description: 'Workflow start time (Unix timestamp)'
+    required: true
+outputs:
+  performance-grade:
+    description: 'Performance grade (A, B, C, D, F)'
+    value: ${{ steps.analyze.outputs.grade }}
+  total-time:
+    description: 'Total workflow execution time'
+    value: ${{ steps.analyze.outputs.total-time }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Analyze performance metrics
+      id: analyze
+      shell: bash
+      run: |
+        echo "📊 Documentation Performance Analysis"
+        echo "===================================="
+        
+        # Calculate total workflow time
+        WORKFLOW_END=$(date +%s)
+        TOTAL_TIME=$(($WORKFLOW_END - ${{ inputs.workflow-start-time }}))
+        
+        BUILD_TIME=${{ inputs.build-time }}
+        CACHE_HIT="${{ inputs.cache-hit }}"
+        PAGES_COUNT=${{ inputs.pages-count }}
+        
+        echo "📈 Performance Metrics:"
+        echo "====================="
+        echo "- Total workflow time: ${TOTAL_TIME}s"
+        echo "- Documentation build time: ${BUILD_TIME}s"
+        echo "- Cache hit: $CACHE_HIT"
+        echo "- Pages generated: $PAGES_COUNT"
+        echo ""
+        
+        # Performance grading
+        GRADE="F"
+        if [ $TOTAL_TIME -le 180 ]; then  # 3 minutes
+          GRADE="A"
+          PERFORMANCE_STATUS="🏆 EXCELLENT"
+        elif [ $TOTAL_TIME -le 300 ]; then  # 5 minutes
+          GRADE="B"
+          PERFORMANCE_STATUS="✅ GOOD"
+        elif [ $TOTAL_TIME -le 420 ]; then  # 7 minutes
+          GRADE="C"
+          PERFORMANCE_STATUS="⚠️ ACCEPTABLE"
+        elif [ $TOTAL_TIME -le 600 ]; then  # 10 minutes
+          GRADE="D"
+          PERFORMANCE_STATUS="❌ POOR"
+        else
+          GRADE="F"
+          PERFORMANCE_STATUS="💥 FAILING"
+        fi
+        
+        echo "🎯 Performance Grade: $GRADE ($PERFORMANCE_STATUS)"
+        echo ""
+        
+        # Cache efficiency analysis
+        if [ "$CACHE_HIT" = "true" ]; then
+          echo "💾 Cache Efficiency: ✅ EXCELLENT (Cache hit achieved)"
+        else
+          echo "💾 Cache Efficiency: ⚠️ MISS (First run or cache invalidated)"
+        fi
+        
+        # Build efficiency analysis
+        if [ $BUILD_TIME -le 120 ]; then  # 2 minutes
+          echo "🏗️ Build Efficiency: ✅ EXCELLENT (≤2 minutes)"
+        elif [ $BUILD_TIME -le 180 ]; then  # 3 minutes
+          echo "🏗️ Build Efficiency: ✅ GOOD (≤3 minutes)"
+        elif [ $BUILD_TIME -le 300 ]; then  # 5 minutes
+          echo "🏗️ Build Efficiency: ⚠️ ACCEPTABLE (≤5 minutes)"
+        else
+          echo "🏗️ Build Efficiency: ❌ NEEDS IMPROVEMENT (>5 minutes)"
+        fi
+        
+        # Pages per minute analysis
+        if [ $BUILD_TIME -gt 0 ]; then
+          PAGES_PER_MIN=$(($PAGES_COUNT * 60 / $BUILD_TIME))
+          echo "📄 Build Rate: $PAGES_PER_MIN pages/minute"
+        fi
+        
+        # Output for other steps
+        echo "grade=$GRADE" >> $GITHUB_OUTPUT
+        echo "total-time=$TOTAL_TIME" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "🎯 Optimization Targets:"
+        echo "======================"
+        echo "- Target total time: ≤5 minutes (Current: ${TOTAL_TIME}s)"
+        echo "- Target build time: ≤3 minutes (Current: ${BUILD_TIME}s)"
+        echo "- Target cache hit rate: >90%"
+        echo "- Current grade: $GRADE"
+        
+        if [ "$GRADE" = "A" ] || [ "$GRADE" = "B" ]; then
+          echo ""
+          echo "🎉 Performance targets met! Documentation workflow is optimized."
+        else
+          echo ""
+          echo "💡 Optimization suggestions:"
+          echo "- Enable incremental builds"
+          echo "- Improve caching strategies"
+          echo "- Reduce documentation complexity"
+          echo "- Optimize Sphinx configuration"
+        fi
+    
+    - name: Generate performance badge data
+      shell: bash
+      run: |
+        echo "🏷️ Generating Performance Badge Data"
+        echo "=================================="
+        
+        GRADE="${{ steps.analyze.outputs.grade }}"
+        TOTAL_TIME="${{ steps.analyze.outputs.total-time }}"
+        
+        # Create badge data directory
+        mkdir -p badge-data
+        
+        # Generate performance badge JSON
+        cat > badge-data/docs-performance.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "docs build",
+          "message": "${TOTAL_TIME}s (Grade: $GRADE)",
+          "color": "$(case $GRADE in
+            A) echo "brightgreen" ;;
+            B) echo "green" ;;
+            C) echo "yellow" ;;
+            D) echo "orange" ;;
+            F) echo "red" ;;
+          esac)"
+        }
+        EOF
+        
+        echo "✅ Performance badge data generated"
+        
+        # Generate performance summary
+        cat > badge-data/docs-performance-summary.json << EOF
+        {
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "total_time_seconds": $TOTAL_TIME,
+          "build_time_seconds": ${{ inputs.build-time }},
+          "cache_hit": ${{ inputs.cache-hit }},
+          "pages_count": ${{ inputs.pages-count }},
+          "performance_grade": "$GRADE",
+          "target_met": $([ "$GRADE" = "A" ] || [ "$GRADE" = "B" ] && echo "true" || echo "false")
+        }
+        EOF
+        
+        echo "✅ Performance summary generated"

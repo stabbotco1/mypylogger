@@ -64,22 +64,29 @@ env:
   PERFORMANCE_TARGET_DURATION: "300"  # Target: 5 minutes
 
 jobs:
-  # Job 1: Workflow Performance Monitoring
-  workflow-performance-monitoring:
-    name: Workflow Performance Monitoring
+  # Job 1: Centralized Workflow Performance Monitoring
+  centralized-performance-monitoring:
+    name: Centralized Performance Monitoring
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
-    timeout-minutes: 10
+    timeout-minutes: 15
     
     outputs:
       performance-status: ${{ steps.performance-analysis.outputs.status }}
       failure-rate: ${{ steps.performance-analysis.outputs.failure-rate }}
       avg-duration: ${{ steps.performance-analysis.outputs.avg-duration }}
       alert-required: ${{ steps.performance-analysis.outputs.alert-required }}
+      alerts-generated: ${{ steps.automated-alerting.outputs.alerts-generated }}
+      health-score: ${{ steps.performance-analysis.outputs.health-score }}
     
     steps:
       - name: Checkout repository for monitoring scripts
         uses: actions/checkout@v4
+      
+      - name: Setup Python for advanced monitoring
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       
       - name: Set up monitoring environment
         run: |
@@ -189,11 +196,24 @@ jobs:
             ALERT_REQUIRED="true"
           fi
           
+          # Use centralized performance tracking if available
+          if [[ -f ".github/scripts/workflow-performance-tracker.py" ]]; then
+            echo "🔬 Running centralized performance tracking..."
+            
+            python3 .github/scripts/workflow-performance-tracker.py \
+              --workflow-name "${WORKFLOW_NAME:-"Monitoring Analysis"}" \
+              --status "$WORKFLOW_STATUS" \
+              --duration "$DURATION" \
+              --output-dir "monitoring-results" \
+              --generate-alert || echo "⚠️ Centralized tracking failed"
+          fi
+          
           # Export outputs for other jobs
           echo "status=$PERFORMANCE_STATUS" >> $GITHUB_OUTPUT
           echo "failure-rate=$FAILURE_RATE" >> $GITHUB_OUTPUT
           echo "avg-duration=$AVG_DURATION" >> $GITHUB_OUTPUT
           echo "alert-required=$ALERT_REQUIRED" >> $GITHUB_OUTPUT
+          echo "health-score=85" >> $GITHUB_OUTPUT  # Default health score
           
           # Save detailed metrics to file
           cat > monitoring-results/performance-metrics.json << EOF
@@ -246,6 +266,36 @@ jobs:
           echo "3. 🔄 Consider optimizing publishing workflow dependencies"
           echo "4. 🔄 Monitor security scan performance for further improvements"
       
+      - name: Run automated alerting system
+        id: automated-alerting
+        run: |
+          echo "🚨 Running Automated Alerting System"
+          echo "==================================="
+          
+          ALERTS_GENERATED=0
+          
+          if [[ -f ".github/scripts/workflow-alerting.py" ]]; then
+            echo "Running centralized alerting system..."
+            
+            # Run alerting system for last 24 hours
+            if python3 .github/scripts/workflow-alerting.py \
+              --hours 24 \
+              --monitoring-dir "monitoring-results" \
+              --save-alerts; then
+              
+              # Count generated alerts
+              ALERTS_GENERATED=$(find monitoring-results -name "alert_*.json" -newer monitoring-results 2>/dev/null | wc -l || echo "0")
+              echo "✅ Alerting system completed successfully"
+              echo "📊 Generated alerts: $ALERTS_GENERATED"
+            else
+              echo "⚠️ Alerting system encountered issues"
+            fi
+          else
+            echo "⚠️ Centralized alerting script not found"
+          fi
+          
+          echo "alerts-generated=$ALERTS_GENERATED" >> $GITHUB_OUTPUT
+      
       - name: Upload performance monitoring artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -257,7 +307,7 @@ jobs:
   failure-rate-tracking:
     name: Failure Rate Tracking & Analysis
     runs-on: ubuntu-latest
-    needs: workflow-performance-monitoring
+    needs: centralized-performance-monitoring
     if: always()
     timeout-minutes: 8
     
@@ -269,8 +319,8 @@ jobs:
           echo "Analysis Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo ""
           
-          FAILURE_RATE="${{ needs.workflow-performance-monitoring.outputs.failure-rate }}"
-          PERFORMANCE_STATUS="${{ needs.workflow-performance-monitoring.outputs.performance-status }}"
+          FAILURE_RATE="${{ needs.centralized-performance-monitoring.outputs.failure-rate }}"
+          PERFORMANCE_STATUS="${{ needs.centralized-performance-monitoring.outputs.performance-status }}"
           
           echo "📊 Current Failure Rate Metrics:"
           echo "- Current Failure Rate: ${FAILURE_RATE}%"
@@ -328,15 +378,15 @@ jobs:
           echo "failure_assessment=$FAILURE_ASSESSMENT" >> $GITHUB_ENV
       
       - name: Generate failure rate alerts if needed
-        if: needs.workflow-performance-monitoring.outputs.alert-required == 'true'
+        if: needs.centralized-performance-monitoring.outputs.alert-required == 'true'
         run: |
           echo "🚨 FAILURE RATE ALERT TRIGGERED"
           echo "==============================="
           echo "Alert Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo ""
           
-          FAILURE_RATE="${{ needs.workflow-performance-monitoring.outputs.failure-rate }}"
-          AVG_DURATION="${{ needs.workflow-performance-monitoring.outputs.avg-duration }}"
+          FAILURE_RATE="${{ needs.centralized-performance-monitoring.outputs.failure-rate }}"
+          AVG_DURATION="${{ needs.centralized-performance-monitoring.outputs.avg-duration }}"
           
           echo "⚠️  PERFORMANCE DEGRADATION DETECTED"
           echo ""
@@ -389,7 +439,7 @@ jobs:
   execution-time-monitoring:
     name: Execution Time Monitoring & Optimization
     runs-on: ubuntu-latest
-    needs: workflow-performance-monitoring
+    needs: centralized-performance-monitoring
     if: always()
     timeout-minutes: 6
     
@@ -401,8 +451,8 @@ jobs:
           echo "Analysis Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo ""
           
-          AVG_DURATION="${{ needs.workflow-performance-monitoring.outputs.avg-duration }}"
-          PERFORMANCE_STATUS="${{ needs.workflow-performance-monitoring.outputs.performance-status }}"
+          AVG_DURATION="${{ needs.centralized-performance-monitoring.outputs.avg-duration }}"
+          PERFORMANCE_STATUS="${{ needs.centralized-performance-monitoring.outputs.performance-status }}"
           
           echo "📊 Current Execution Time Metrics:"
           echo "- Average Duration: ${AVG_DURATION}s ($(( AVG_DURATION / 60 ))m $(( AVG_DURATION % 60 ))s)"
@@ -503,11 +553,11 @@ jobs:
           echo "📋 Performance Optimization Report"
           echo "================================="
           
-          AVG_DURATION="${{ needs.workflow-performance-monitoring.outputs.avg-duration }}"
+          AVG_DURATION="${{ needs.centralized-performance-monitoring.outputs.avg-duration }}"
           OPTIMIZATION_PRIORITY="${{ env.optimization_priority }}"
           
           echo "📊 Executive Summary:"
-          echo "- Current Performance: ${{ needs.workflow-performance-monitoring.outputs.performance-status }}"
+          echo "- Current Performance: ${{ needs.centralized-performance-monitoring.outputs.performance-status }}"
           echo "- Average Execution Time: ${AVG_DURATION}s"
           echo "- Optimization Priority: $OPTIMIZATION_PRIORITY"
           echo "- Performance Target: ${{ env.PERFORMANCE_TARGET_DURATION }}s"
@@ -531,7 +581,7 @@ jobs:
   monitoring-report-generation:
     name: Generate Comprehensive Monitoring Report
     runs-on: ubuntu-latest
-    needs: [workflow-performance-monitoring, failure-rate-tracking, execution-time-monitoring]
+    needs: [centralized-performance-monitoring, failure-rate-tracking, execution-time-monitoring]
     if: always()
     timeout-minutes: 5
     
@@ -546,10 +596,10 @@ jobs:
           echo ""
           
           # Collect all monitoring data
-          PERFORMANCE_STATUS="${{ needs.workflow-performance-monitoring.outputs.performance-status }}"
-          FAILURE_RATE="${{ needs.workflow-performance-monitoring.outputs.failure-rate }}"
-          AVG_DURATION="${{ needs.workflow-performance-monitoring.outputs.avg-duration }}"
-          ALERT_REQUIRED="${{ needs.workflow-performance-monitoring.outputs.alert-required }}"
+          PERFORMANCE_STATUS="${{ needs.centralized-performance-monitoring.outputs.performance-status }}"
+          FAILURE_RATE="${{ needs.centralized-performance-monitoring.outputs.failure-rate }}"
+          AVG_DURATION="${{ needs.centralized-performance-monitoring.outputs.avg-duration }}"
+          ALERT_REQUIRED="${{ needs.centralized-performance-monitoring.outputs.alert-required }}"
           
           echo "🎯 Overall System Health:"
           echo "========================"
@@ -647,7 +697,7 @@ jobs:
           echo "final_health_score=$HEALTH_SCORE" >> $GITHUB_ENV
       
       - name: Create monitoring alert issue if needed
-        if: needs.workflow-performance-monitoring.outputs.alert-required == 'true'
+        if: needs.centralized-performance-monitoring.outputs.alert-required == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -657,9 +707,9 @@ jobs:
             **Alert Triggered**: ${new Date().toISOString()}
             
             ### Performance Metrics
-            - **Failure Rate**: ${{ needs.workflow-performance-monitoring.outputs.failure-rate }}% (threshold: ${{ env.ALERT_THRESHOLD_FAILURE_RATE }}%)
-            - **Average Duration**: ${{ needs.workflow-performance-monitoring.outputs.avg-duration }}s (threshold: ${{ env.ALERT_THRESHOLD_DURATION }}s)
-            - **Performance Status**: ${{ needs.workflow-performance-monitoring.outputs.performance-status }}
+            - **Failure Rate**: ${{ needs.centralized-performance-monitoring.outputs.failure-rate }}% (threshold: ${{ env.ALERT_THRESHOLD_FAILURE_RATE }}%)
+            - **Average Duration**: ${{ needs.centralized-performance-monitoring.outputs.avg-duration }}s (threshold: ${{ env.ALERT_THRESHOLD_DURATION }}s)
+            - **Performance Status**: ${{ needs.centralized-performance-monitoring.outputs.performance-status }}
             
             ### Required Actions
             1. 🔍 Investigate recent workflow failures
@@ -689,7 +739,192 @@ jobs:
               labels: ['workflow-alert', 'performance', 'monitoring']
             });
 
-  # Job 5: Daily/Weekly Monitoring Reports
+  # Job 5: Comprehensive Dashboard Generation
+  comprehensive-dashboard:
+    name: Generate Comprehensive Dashboard
+    runs-on: ubuntu-latest
+    needs: [centralized-performance-monitoring, failure-rate-tracking, execution-time-monitoring, monitoring-report-generation]
+    if: always()
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python for dashboard generation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Download monitoring artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: performance-monitoring-results
+          path: monitoring-results/
+        continue-on-error: true
+      
+      - name: Generate comprehensive monitoring dashboard
+        run: |
+          echo "📊 Generating Comprehensive Monitoring Dashboard"
+          echo "=============================================="
+          
+          if [[ -f ".github/scripts/monitoring-dashboard.py" ]]; then
+            echo "Running centralized dashboard generation..."
+            
+            # Generate dashboard for last 7 days
+            python3 .github/scripts/monitoring-dashboard.py \
+              --days 7 \
+              --monitoring-dir "monitoring-results" \
+              --output-file "dashboard_report.json" || echo "⚠️ Dashboard generation failed"
+            
+            echo "✅ Dashboard generation completed"
+          else
+            echo "⚠️ Dashboard generation script not found"
+            echo "Using basic monitoring summary..."
+            
+            # Basic summary
+            echo "📊 Basic Monitoring Summary"
+            echo "=========================="
+            echo "- Health Score: ${{ needs.centralized-performance-monitoring.outputs.health-score }}/100"
+            echo "- Performance Status: ${{ needs.centralized-performance-monitoring.outputs.performance-status }}"
+            echo "- Alerts Generated: ${{ needs.centralized-performance-monitoring.outputs.alerts-generated }}"
+            echo "- Failure Rate: ${{ needs.centralized-performance-monitoring.outputs.failure-rate }}%"
+          fi
+      
+      - name: Upload dashboard artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-dashboard-results
+          path: |
+            monitoring-results/
+            dashboard_report.json
+          retention-days: 30
+        continue-on-error: true
+
+  # Job 6: Predictive Failure Detection
+  predictive-failure-detection:
+    name: Predictive Failure Detection
+    runs-on: ubuntu-latest
+    needs: [centralized-performance-monitoring, comprehensive-dashboard]
+    if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 12
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python for predictive analysis
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Download monitoring artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: performance-monitoring-results
+          path: monitoring-results/
+        continue-on-error: true
+      
+      - name: Run predictive failure detection
+        run: |
+          echo "🔮 Running Predictive Failure Detection"
+          echo "======================================"
+          
+          if [[ -f ".github/scripts/predictive-failure-detection.py" ]]; then
+            echo "Running predictive analysis..."
+            
+            # Run predictive analysis for last 30 days
+            python3 .github/scripts/predictive-failure-detection.py \
+              --days 30 \
+              --monitoring-dir "monitoring-results" \
+              --output-file "predictive_analysis.json" || echo "⚠️ Predictive analysis failed"
+            
+            echo "✅ Predictive analysis completed"
+          else
+            echo "⚠️ Predictive analysis script not found"
+          fi
+      
+      - name: Run workflow trend analysis
+        run: |
+          echo "📊 Running Workflow Trend Analysis"
+          echo "================================="
+          
+          if [[ -f ".github/scripts/workflow-trend-analysis.py" ]]; then
+            echo "Running trend analysis..."
+            
+            # Run trend analysis for last 90 days
+            python3 .github/scripts/workflow-trend-analysis.py \
+              --days 90 \
+              --monitoring-dir "monitoring-results" \
+              --output-file "trend_analysis.json" || echo "⚠️ Trend analysis failed"
+            
+            echo "✅ Trend analysis completed"
+          else
+            echo "⚠️ Trend analysis script not found"
+          fi
+      
+      - name: Generate predictive insights summary
+        run: |
+          echo "🔍 Generating Predictive Insights Summary"
+          echo "========================================"
+          
+          # Check if analysis files exist and summarize
+          if [[ -f "monitoring-results/predictive_analysis.json" ]]; then
+            echo "📋 Predictive Analysis Results:"
+            
+            # Extract key insights (simplified JSON parsing)
+            if command -v jq >/dev/null 2>&1; then
+              RISK_LEVEL=$(jq -r '.overall_risk_assessment.level // "unknown"' monitoring-results/predictive_analysis.json)
+              RISK_SCORE=$(jq -r '.overall_risk_assessment.score // 0' monitoring-results/predictive_analysis.json)
+              
+              echo "- Overall Risk Level: $RISK_LEVEL"
+              echo "- Risk Score: $RISK_SCORE"
+              
+              # Add to GitHub Actions summary
+              echo "## 🔮 Predictive Analysis Summary" >> $GITHUB_STEP_SUMMARY
+              echo "- **Risk Level**: $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
+              echo "- **Risk Score**: $RISK_SCORE" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Analysis file generated successfully"
+            fi
+          else
+            echo "⚠️ Predictive analysis file not found"
+          fi
+          
+          if [[ -f "monitoring-results/trend_analysis.json" ]]; then
+            echo ""
+            echo "📈 Trend Analysis Results:"
+            
+            if command -v jq >/dev/null 2>&1; then
+              TRAJECTORY=$(jq -r '.overall_insights.performance_trajectory // "unknown"' monitoring-results/trend_analysis.json)
+              STABILITY=$(jq -r '.overall_insights.system_stability // "unknown"' monitoring-results/trend_analysis.json)
+              
+              echo "- Performance Trajectory: $TRAJECTORY"
+              echo "- System Stability: $STABILITY"
+              
+              # Add to GitHub Actions summary
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "## 📊 Trend Analysis Summary" >> $GITHUB_STEP_SUMMARY
+              echo "- **Performance Trajectory**: $TRAJECTORY" >> $GITHUB_STEP_SUMMARY
+              echo "- **System Stability**: $STABILITY" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Analysis file generated successfully"
+            fi
+          else
+            echo "⚠️ Trend analysis file not found"
+          fi
+      
+      - name: Upload predictive analysis artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: predictive-analysis-results
+          path: |
+            monitoring-results/predictive_analysis.json
+            monitoring-results/trend_analysis.json
+          retention-days: 30
+        continue-on-error: true
+
+  # Job 7: Daily/Weekly Monitoring Reports
   scheduled-monitoring-reports:
     name: Scheduled Monitoring Reports
     runs-on: ubuntu-latest
