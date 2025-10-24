@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 
 from badges.config import BADGE_CONFIG, get_badge_config
-from badges.security import get_comprehensive_security_status
 
 
 def generate_code_style_badge() -> str:
@@ -101,7 +100,7 @@ def generate_quality_gate_badge() -> str:
     """
     try:
         config = get_badge_config()
-        
+
         # Use GitHub Actions workflow status badge
         # This will show the actual CI/CD status from GitHub
         workflow_name = "quality-gate"  # Use the actual workflow name
@@ -161,15 +160,32 @@ def generate_comprehensive_security_badge() -> str:
         Shields.io URL for GitHub security badge.
     """
     try:
+        from badges.security import get_comprehensive_security_status
+
         config = get_badge_config()
-        
-        # Use a simple security badge that works reliably
-        # This shows a static security badge since GitHub security APIs may not be available for all repos
-        return f"{config.shields_base_url}/badge/security-verified-brightgreen?style=flat"
+        security_status = get_comprehensive_security_status()
+
+        status = security_status["status"]
+
+        # Map status to badge colors
+        status_colors = {
+            "Verified": "brightgreen",
+            "Issues Found": "red",
+            "Scanning": "yellow",
+            "Unknown": "lightgrey",
+        }
+
+        color = status_colors.get(status, "lightgrey")
+
+        # URL encode the status for shields.io
+        import urllib.parse
+
+        encoded_status = urllib.parse.quote(status.lower())
+
+        return f"{config.shields_base_url}/badge/security-{encoded_status}-{color}?style=flat"
 
     except Exception:
-        # Fallback to default repository
-        repo = BADGE_CONFIG["github_repo"]
+        # Fallback to default configuration on error
         base_url = BADGE_CONFIG["shields_base_url"]
         return f"{base_url}/badge/security-verified-brightgreen?style=flat"
 
@@ -181,8 +197,10 @@ def get_comprehensive_security_badge_link() -> str:
         URL linking to GitHub security tab.
     """
     try:
-        config = get_badge_config()
-        return f"https://github.com/{config.github_repo}/security"
+        from badges.security import get_comprehensive_security_status
+
+        security_status = get_comprehensive_security_status()
+        return security_status["link_url"]
     except Exception:
         # Fallback to default repository security tab
         github_repo = os.getenv("GITHUB_REPOSITORY", "stabbotco1/mypylogger")

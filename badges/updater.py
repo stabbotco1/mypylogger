@@ -1,14 +1,17 @@
-"""README update module with atomic write operations.
+"""README update module with CI-only badge updates.
 
-This module provides functionality to atomically update README.md with
-generated badges, including race condition prevention and retry logic.
+This module provides functionality to update README.md with generated badges
+exclusively in CI/CD environments, with git commit functionality.
 """
 
 from __future__ import annotations
 
-from pathlib import Path
+import os
+import subprocess
+import sys
 import tempfile
 import time
+from pathlib import Path
 
 
 def find_badge_section(content: str) -> tuple[int, int]:
@@ -168,3 +171,126 @@ def update_readme_with_badges(badges: list[str]) -> bool:
 
     except Exception:
         return False
+
+
+def is_ci_environment() -> bool:
+    """Check if we're running in a CI/CD environment.
+    
+    Returns:
+        True if running in CI, False otherwise.
+    """
+    ci_indicators = [
+        "CI",
+        "CONTINUOUS_INTEGRATION", 
+        "GITHUB_ACTIONS",
+        "GITLAB_CI",
+        "JENKINS_URL",
+        "TRAVIS",
+        "CIRCLECI",
+        "BUILDKITE",
+    ]
+    
+    return any(os.getenv(indicator) for indicator in ci_indicators)
+
+
+def setup_git_config() -> bool:
+    """Configure git for CI commits.
+    
+    Returns:
+        True if git config was set up successfully, False otherwise.
+    """
+    try:
+        # Set git user for CI commits
+        subprocess.run(
+            ["git", "config", "--local", "user.email", "action@github.com"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        subprocess.run(
+            ["git", "config", "--local", "user.name", "GitHub Action"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to configure git: {e}", file=sys.stderr)
+        return False
+
+
+def commit_badge_updates() -> bool:
+    """Commit updated README back to main branch with [skip ci] message.
+    
+    Returns:
+        True if commit was successful, False otherwise.
+    """
+    try:
+        # Check if there are changes to commit
+        result = subprocess.run(
+            ["git", "diff", "--staged", "--quiet", "README.md"],
+            check=False,
+            capture_output=True,
+        )
+        
+        if result.returncode == 0:
+            # No changes to commit
+            print("No badge changes to commit", file=sys.stderr)
+            return True
+            
+        # Stage README.md changes
+        subprocess.run(
+            ["git", "add", "README.md"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        
+        # Commit with [skip ci] to prevent infinite loops
+        subprocess.run(
+            ["git", "commit", "-m", "docs: update badges [skip ci]"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        
+        # Push changes
+        subprocess.run(
+            ["git", "push", "origin", "main"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        
+        print("Successfully committed and pushed badge updates", file=sys.stderr)
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to commit badge updates: {e}", file=sys.stderr)
+        return False
+
+
+def update_readme_with_badges_ci_only(badges: list[str]) -> bool:
+    """Update README.md with badges (CI environment only).
+    
+    Args:
+        badges: List of badge markdown strings to insert.
+        
+    Returns:
+        True if update was successful, False otherwise.
+    """
+    # Check if we're in CI environment
+    if not is_ci_environment():
+        print("Badge updates are only allowed in CI/CD environments", file=sys.stderr)
+        return False
+        
+    # Set up git configuration
+    if not setup_git_config():
+        return False
+        
+    # Update README with badges
+    if not update_readme_with_badges(badges):
+        return False
+        
+    # Commit and push changes
+    return commit_badge_updates()

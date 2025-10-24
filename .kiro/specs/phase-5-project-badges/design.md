@@ -24,10 +24,10 @@ mypylogger/
 ### Design Principles
 
 1. **Minimal Code Footprint**: Only essential code for MVP functionality
-2. **Atomic Operations**: Prevent file corruption during concurrent access
+2. **CI-Only Badge Updates**: Badges updated exclusively by CI/CD workflows
 3. **Shields.io Integration**: Leverage external service for badge generation
-4. **Local Security Validation**: Catch issues before GitHub Actions
-5. **PyPI Compatibility**: Ensure badges work post-publication
+4. **Local Testing Focus**: Local development focuses on code quality, not badge updates
+5. **Single Source of Truth**: CI environment determines badge status
 
 ## Components and Interfaces
 
@@ -63,33 +63,35 @@ def generate_license_badge() -> str:
 ```
 
 **Badge Status Detection**:
-- **Quality Gate badge**: Aggregate status from all quality checks (linting, style, type checking, security)
-- **Comprehensive security badge**: Combine all security scans (local: bandit, safety, semgrep + GitHub CodeQL results)
-- **Code quality badges**: Run local checks (ruff, mypy) to determine status
-- **Static badges**: Use project configuration (pyproject.toml, LICENSE)
-- **PyPI badges**: Use PyPI API for version and download information
+- **CI-driven status**: All badge status determined from CI test results
+- **Quality Gate badge**: Reflects CI test execution results (all tests must pass)
+- **Comprehensive security badge**: Combines CI security scans with GitHub CodeQL results
+- **Code quality badges**: Based on CI execution of ruff and mypy
+- **Static badges**: Use project configuration and PyPI API data
+- **Local testing**: Focuses only on test execution, not badge generation
 
 ### README Updater (`badges/updater.py`)
 
-**Purpose**: Atomically update README.md with generated badges
+**Purpose**: Update README.md with generated badges (CI-only execution)
 
 **Key Functions**:
 ```python
 def update_readme_with_badges(badges: List[str]) -> bool:
-    """Update README.md with badge markdown using atomic writes."""
+    """Update README.md with badge markdown (CI environment only)."""
     
-def atomic_write_readme(content: str, max_retries: int = 10) -> bool:
-    """Perform atomic write with retry logic for race condition prevention."""
+def commit_badge_updates() -> bool:
+    """Commit updated README back to main branch with [skip ci] message."""
     
 def find_badge_section(content: str) -> Tuple[int, int]:
     """Locate badge insertion point in README content."""
 ```
 
-**Atomic Write Implementation**:
-1. Create temporary file with new content
-2. Verify content integrity
-3. Rename temporary file to README.md (atomic operation)
-4. Handle file contention with 5-second waits, up to 10 retries
+**CI-Only Update Implementation**:
+1. Generate badges based on CI test results
+2. Update README.md with new badge URLs
+3. Commit changes back to main branch
+4. Use "[skip ci]" to prevent infinite CI loops
+5. Handle git operations safely in CI environment
 
 ### Security Integration (`badges/security.py`)
 

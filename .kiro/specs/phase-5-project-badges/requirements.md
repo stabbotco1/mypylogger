@@ -88,15 +88,15 @@ Implement a fast and lean badge system for mypylogger v0.2.0 that displays profe
 
 ### Requirement 6
 
-**User Story:** As a developer, I want badge status to reflect current project state, so that the information is accurate and up-to-date.
+**User Story:** As a developer, I want badge status to reflect current CI/CD state, so that the information is accurate and represents the actual deployed code quality.
 
 #### Acceptance Criteria
 
-1. WHEN determining badge status, THE Badge_System SHALL run actual tests and checks
-2. WHEN test results exist, THE Badge_System SHALL read results from existing test outputs  
-3. THE Badge_System SHALL determine badge status based on badge type requirements
-4. THE Badge_System SHALL ensure badge status accurately reflects current main branch state
-5. THE Badge_System SHALL update badge status when project state changes
+1. THE Badge_System SHALL update badges only through CI/CD workflows after successful test execution
+2. THE Badge_System SHALL ensure badges reflect the actual state of code in the main branch
+3. THE Badge_System SHALL prevent local badge updates that could create inconsistencies with CI state
+4. THE Badge_System SHALL commit updated README badges back to the main branch after CI success
+5. THE Badge_System SHALL use CI environment as the single source of truth for badge status
 
 ### Requirement 7
 
@@ -112,15 +112,15 @@ Implement a fast and lean badge system for mypylogger v0.2.0 that displays profe
 
 ### Requirement 8
 
-**User Story:** As a project maintainer, I want badges to work correctly with CI/CD workflows, so that automated builds and deployments do not fail due to badge system errors.
+**User Story:** As a project maintainer, I want badges to be updated exclusively by CI/CD workflows, so that badge status always reflects the actual tested and deployed code state.
 
 #### Acceptance Criteria
 
-1. THE Badge_System SHALL execute without errors in GitHub Actions CI/CD environments
-2. THE Badge_System SHALL handle network timeouts and API failures gracefully in CI/CD contexts
-3. THE Badge_System SHALL not cause CI/CD pipeline failures when badge generation encounters errors
-4. THE Badge_System SHALL provide appropriate exit codes for CI/CD integration
-5. THE Badge_System SHALL work correctly with automated testing and deployment workflows
+1. THE Badge_System SHALL update README badges only after successful CI/CD test execution
+2. THE Badge_System SHALL commit updated README back to main branch with appropriate commit messages
+3. THE Badge_System SHALL use "[skip ci]" in badge update commits to prevent infinite CI loops
+4. THE Badge_System SHALL handle CI badge update failures gracefully without breaking the build
+5. THE Badge_System SHALL ensure local development focuses only on code and tests, not badge updates
 
 ### Requirement 9
 

@@ -118,55 +118,39 @@
   - Test error handling and recovery scenarios
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 6. Implement PyPI compatibility and final integration
-- [x] 6.1 Verify PyPI publication compatibility
-  - Test badge functionality with PyPI package structure
-  - Ensure badges work correctly after package publication
-  - Validate shields.io integration with published package information
-  - _Requirements: 3.4, 7.4_
+- [ ] 6. Implement CI-only badge updates and final integration
+- [ ] 6.1 Implement CI-only badge update workflow
+  - Modify badge updater to work exclusively in CI environment
+  - Add git commit functionality for README updates with "[skip ci]" messages
+  - Remove local badge update capabilities to prevent inconsistencies
+  - Ensure badge updates only occur after successful CI test execution
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [x] 6.2 Create documentation and usage examples
-  - Add badge system documentation to project
-  - Create usage examples for manual badge updates
-  - Document configuration options and customization
-  - _Requirements: 7.1, 7.5_
+- [ ] 6.2 Update local testing to focus on code quality only
+  - Modify run_tests.sh to focus on test execution without badge updates
+  - Ensure local security scans run for validation but don't update badges
+  - Remove any local README update functionality
+  - Focus local development on code and test quality only
+  - _Requirements: 6.5, 8.5_
 
-- [x] 6.3 Verify CI/CD integration compatibility
-  - Test badge system execution in local CI/CD environment simulation
-  - Ensure badge generation handles network failures gracefully in automated contexts
-  - Verify badge system provides appropriate exit codes for CI/CD integration
-  - Test badge system does not cause pipeline failures when encountering errors
-  - Push changes to main branch and verify actual GitHub Actions workflows execute successfully
-  - Validate that badge system works correctly in real CI/CD environment without errors
+- [ ] 6.3 Create CI workflow integration
+  - Design GitHub Actions workflow step for badge updates
+  - Implement badge update as post-test CI step
+  - Add proper git configuration and commit handling in CI
+  - Test CI badge update workflow with actual GitHub Actions
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [x] 6.4 Update project README with actual badges
-  - Insert badge section into the main project README.md file
-  - Ensure badges are properly formatted and positioned for visibility
-  - Verify badge links work correctly and display current project status
-  - Test README formatting is maintained after badge insertion
-  - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+- [ ] 6.4 Verify PyPI compatibility and documentation
+  - Test badge functionality with PyPI package structure
+  - Ensure badges work correctly after package publication
+  - Create documentation for CI-only badge update workflow
+  - Document local vs CI development workflow separation
+  - _Requirements: 3.4, 7.4, 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [x] 6.6 Implement and test comprehensive security badge in README
-  - Add comprehensive security badge to README badge section
-  - Verify security badge links correctly to GitHub CodeQL results
-  - Test security badge status updates based on local and GitHub scan results
-  - Ensure security badge displays appropriate status ("Verified", "Issues Found", etc.)
-  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
-
-- [x] 6.7 Simplify badge structure to single security and quality gate badges
-  - Remove separate security scan badge and keep only comprehensive security badge
-  - Update quality gate badge to aggregate all quality checks (linting, style, type checking, security)
-  - Modify badge generation to produce 8 badges total (quality gate, security, code style, type checking, python versions, pypi version, downloads, license)
-  - Update README with simplified badge structure
-  - Update all tests to reflect 8-badge structure
-  - _Requirements: 1.1, 1.2, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
-
-- [x] 6.5 Final testing and validation
-  - Run complete test suite including security scans
-  - Validate all 8 badges generate correctly with current project state (quality gate, comprehensive security, code style, type checking, python versions, pypi version, downloads, license)
-  - Test README update with actual badge insertion including comprehensive security badge
-  - Verify atomic write functionality under concurrent access scenarios
-  - Test GitHub CodeQL integration and security badge linking
-  - Test quality gate aggregation of all quality checks
-  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 10.1, 10.2, 10.3, 10.4, 10.5_
+- [ ] 6.5 Final testing and validation
+  - Run complete local test suite focusing on code quality only
+  - Validate badge generation functions work correctly (without README updates)
+  - Test CI badge update workflow in actual GitHub Actions environment
+  - Verify badges reflect actual CI test results and GitHub CodeQL status
+  - Ensure local development workflow is clean and focused on code quality
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_

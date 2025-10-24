@@ -36,7 +36,7 @@ from .status import (
     get_status_cache,
     validate_badge_status,
 )
-from .updater import atomic_write_readme, update_readme_with_badges
+from .updater import atomic_write_readme, update_readme_with_badges, update_readme_with_badges_ci_only
 
 # Configure logging for badge system
 logger = logging.getLogger(__name__)
@@ -253,11 +253,12 @@ def create_badge_section(badges: list[Badge]) -> BadgeSection:
         raise BadgeSystemError(msg) from e
 
 
-def update_project_badges(detect_status: bool = True) -> bool:
+def update_project_badges(detect_status: bool = True, ci_only: bool = True) -> bool:
     """Main badge update workflow - generate badges and update README.
 
     Args:
         detect_status: Whether to detect actual badge status or use defaults.
+        ci_only: Whether to restrict updates to CI environments only.
 
     Returns:
         True if badge update was successful, False otherwise.
@@ -285,8 +286,11 @@ def update_project_badges(detect_status: bool = True) -> bool:
         # Create badge section
         badge_section = create_badge_section(badges)
 
-        # Update README with badges
-        success = update_readme_with_badges([badge_section.markdown])
+        # Update README with badges (CI-only by default)
+        if ci_only:
+            success = update_readme_with_badges_ci_only([badge_section.markdown])
+        else:
+            success = update_readme_with_badges([badge_section.markdown])
 
         if success:
             logger.info("Badge update workflow completed successfully")
@@ -335,6 +339,12 @@ def main() -> int:
         help="CI/CD mode: never fail pipeline, always return exit code 0",
     )
 
+    parser.add_argument(
+        "--allow-local",
+        action="store_true",
+        help="Allow badge updates in local environment (not recommended)",
+    )
+
     args = parser.parse_args()
 
     # Configure logging
@@ -362,7 +372,8 @@ def main() -> int:
 
         # Normal badge update
         detect_status = not args.no_status_detection
-        success = update_project_badges(detect_status=detect_status)
+        ci_only = not args.allow_local  # Default to CI-only unless explicitly allowed
+        success = update_project_badges(detect_status=detect_status, ci_only=ci_only)
 
         if args.ci_mode:
             # In CI mode, always return 0 to not fail pipelines
