@@ -92,12 +92,12 @@ echo "---------------------------"
 # Run security findings automation if reports exist
 if [ -d "security/reports/latest" ] && [ "$(ls -A security/reports/latest)" ]; then
     echo "Updating security findings document..."
-    if python security/scripts/update-findings.py --verbose; then
+    if uv run python security/scripts/update-findings.py --verbose; then
         echo -e "${GREEN}✅ Security findings document updated${NC}"
         
         # Validate the generated document
         echo "Validating generated findings document..."
-        if python security/scripts/validate-findings-document.py; then
+        if uv run python security/scripts/validate-findings-document.py; then
             echo -e "${GREEN}✅ Security findings document validation passed${NC}"
         else
             echo -e "${RED}❌ Security findings document validation failed${NC}"

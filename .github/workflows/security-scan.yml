@@ -164,7 +164,7 @@ jobs:
       - name: Run security findings automation
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          python security/scripts/update-findings.py --verbose
+          uv run python security/scripts/update-findings.py --verbose
           
       - name: Upload findings document
         uses: actions/upload-artifact@v4
