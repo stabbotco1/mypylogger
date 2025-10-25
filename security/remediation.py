@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -63,7 +63,7 @@ class RemediationDatastore:
             msg = f"Failed to create empty registry: {e}"
             raise RuntimeError(msg) from e
 
-    def _load_registry(self) -> Dict[str, Any]:
+    def _load_registry(self) -> dict[str, Any]:
         """Load the remediation registry from YAML file.
 
         Returns:
@@ -98,7 +98,7 @@ class RemediationDatastore:
             msg = f"Failed to load registry: {e}"
             raise RuntimeError(msg) from e
 
-    def _save_registry(self, data: Dict[str, Any]) -> None:
+    def _save_registry(self, data: dict[str, Any]) -> None:
         """Save the remediation registry to YAML file.
 
         Args:
@@ -185,7 +185,7 @@ class RemediationDatastore:
         self._save_registry(registry)
         return True
 
-    def list_all_plans(self) -> List[RemediationPlan]:
+    def list_all_plans(self) -> list[RemediationPlan]:
         """Get all remediation plans from the registry.
 
         Returns:
@@ -233,7 +233,7 @@ class RemediationDatastore:
 
         return plan
 
-    def validate_registry_structure(self) -> List[str]:
+    def validate_registry_structure(self) -> list[str]:
         """Validate the structure and content of the remediation registry.
 
         Returns:
@@ -286,7 +286,7 @@ class RemediationDatastore:
 
         return errors
 
-    def _dict_to_remediation_plan(self, data: Dict[str, Any]) -> RemediationPlan:
+    def _dict_to_remediation_plan(self, data: dict[str, Any]) -> RemediationPlan:
         """Convert dictionary data to RemediationPlan object.
 
         Args:
@@ -321,7 +321,7 @@ class RemediationDatastore:
             updated_date=updated_date,
         )
 
-    def _remediation_plan_to_dict(self, plan: RemediationPlan) -> Dict[str, Any]:
+    def _remediation_plan_to_dict(self, plan: RemediationPlan) -> dict[str, Any]:
         """Convert RemediationPlan object to dictionary format.
 
         Args:

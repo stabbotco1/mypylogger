@@ -27,10 +27,15 @@ if ! command -v bandit &> /dev/null; then
     uv add --dev bandit
 fi
 
+# Create security reports directory
+mkdir -p security/reports/latest
+
 # Run bandit on source code only
 echo "Running bandit security analysis on src/..."
-if uv run bandit -r src/ -f json -o bandit-ci-results.json -ll; then
+if uv run bandit -r src/ -f json -o security/reports/latest/bandit.json -ll; then
     echo -e "${GREEN}✅ Source code security analysis passed${NC}"
+    # Keep legacy output for compatibility
+    cp security/reports/latest/bandit.json bandit-ci-results.json
 else
     echo -e "${RED}❌ Source code security issues found${NC}"
     SECURITY_ISSUES_FOUND=$((SECURITY_ISSUES_FOUND + 1))
@@ -42,11 +47,14 @@ echo "-------------------------"
 
 # Check for critical vulnerabilities only (not dev dependencies)
 echo "Checking for critical production dependency vulnerabilities..."
-if uv run pip-audit --format=json --output=pip-audit-ci-results.json --desc || true; then
+if uv run pip-audit --format=json --output=security/reports/latest/pip-audit.json --desc || true; then
+    # Keep legacy output for compatibility
+    cp security/reports/latest/pip-audit.json pip-audit-ci-results.json
+    
     # Check if there are any HIGH or CRITICAL vulnerabilities in production dependencies
-    if [ -f "pip-audit-ci-results.json" ]; then
+    if [ -f "security/reports/latest/pip-audit.json" ]; then
         # Simple check - if file is not empty and contains vulnerabilities
-        if grep -q '"vulns":\s*\[' pip-audit-ci-results.json && grep -q '"fix_versions"' pip-audit-ci-results.json; then
+        if grep -q '"vulns":\s*\[' security/reports/latest/pip-audit.json && grep -q '"fix_versions"' security/reports/latest/pip-audit.json; then
             echo -e "${YELLOW}⚠️  Some dependency vulnerabilities found (may include dev dependencies)${NC}"
             # Don't fail CI for dev dependency issues
         else
@@ -78,7 +86,31 @@ else
 fi
 
 echo ""
-echo "4. CI Security Summary"
+echo "4. Security Findings Update"
+echo "---------------------------"
+
+# Run security findings automation if reports exist
+if [ -d "security/reports/latest" ] && [ "$(ls -A security/reports/latest)" ]; then
+    echo "Updating security findings document..."
+    if python security/scripts/update-findings.py --verbose; then
+        echo -e "${GREEN}✅ Security findings document updated${NC}"
+        
+        # Display findings summary if document was created
+        if [ -f "security/findings/SECURITY_FINDINGS.md" ]; then
+            echo ""
+            echo "Current Security Findings Summary:"
+            head -20 security/findings/SECURITY_FINDINGS.md
+            echo ""
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Security findings update completed with warnings${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠️  No security reports found, skipping findings update${NC}"
+fi
+
+echo ""
+echo "5. CI Security Summary"
 echo "====================="
 
 if [ $SECURITY_ISSUES_FOUND -eq 0 ]; then

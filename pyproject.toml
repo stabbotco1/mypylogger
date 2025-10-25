@@ -295,7 +295,7 @@ line-ending = "auto"
 
 [tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, print statements, and access private members
-"tests/**/*" = ["PLR2004", "S101", "T201", "T203", "SLF001", "SIM117"]
+"tests/**/*" = ["PLR2004", "S101", "T201", "T203", "SLF001", "SIM117", "S603", "S607"]
 # Documentation validation scripts need subprocess calls
 "scripts/validate_documentation.py" = ["S603", "PERF203"]
 

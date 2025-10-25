@@ -44,7 +44,10 @@ jobs:
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
           uv add --dev pip-audit
-          uv run pip-audit --format=json --output=pip-audit-results.json
+          mkdir -p security/reports/latest
+          uv run pip-audit --format=json --output=security/reports/latest/pip-audit.json
+          # Keep legacy output for compatibility
+          cp security/reports/latest/pip-audit.json pip-audit-results.json
           
       - name: Run code security analysis (bandit)
         if: matrix.scan-type == 'code-analysis'
@@ -52,13 +55,19 @@ jobs:
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
           uv add --dev bandit
-          uv run bandit -r src/ -f json -o bandit-results.json || echo "Code analysis completed"
+          mkdir -p security/reports/latest
+          uv run bandit -r src/ -f json -o security/reports/latest/bandit.json || echo "Code analysis completed"
+          # Keep legacy output for compatibility
+          cp security/reports/latest/bandit.json bandit-results.json
           
       - name: Run secret detection (trufflehog)
         if: matrix.scan-type == 'secrets'
         continue-on-error: true
         run: |
-          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --json > trufflehog-results.json || echo "Secret scan completed"
+          mkdir -p security/reports/latest
+          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --json > security/reports/latest/secrets-scan.json || echo "Secret scan completed"
+          # Keep legacy output for compatibility
+          cp security/reports/latest/secrets-scan.json trufflehog-results.json
           
       - name: Upload security scan results
         uses: actions/upload-artifact@v4
@@ -105,10 +114,76 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           ./scripts/ci_security_check.sh
 
+  security-findings-update:
+    name: Update Security Findings
+    runs-on: ubuntu-latest
+    needs: [security-scan-matrix]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          source $HOME/.cargo/env
+        
+      - name: Install dependencies
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          uv sync
+          
+      - name: Download security scan results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: security-scan-results-*
+          merge-multiple: true
+          
+      - name: Organize scan results
+        run: |
+          mkdir -p security/reports/latest
+          # Move downloaded results to the expected location
+          if [ -f "pip-audit-results.json" ]; then
+            cp pip-audit-results.json security/reports/latest/pip-audit.json
+          fi
+          if [ -f "bandit-results.json" ]; then
+            cp bandit-results.json security/reports/latest/bandit.json
+          fi
+          if [ -f "trufflehog-results.json" ]; then
+            cp trufflehog-results.json security/reports/latest/secrets-scan.json
+          fi
+          
+      - name: Run security findings automation
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          python security/scripts/update-findings.py --verbose
+          
+      - name: Upload findings document
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-findings-document
+          path: security/findings/SECURITY_FINDINGS.md
+          if-no-files-found: warn
+          
+      - name: Upload remediation plans
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-remediation-plans
+          path: security/findings/remediation-plans.yml
+          if-no-files-found: warn
+
   security-summary:
     name: Security Summary
     runs-on: ubuntu-latest
-    needs: [security-scan-matrix, security-config-validation]
+    needs: [security-scan-matrix, security-config-validation, security-findings-update]
     if: always()
     
     steps:
@@ -116,6 +191,12 @@ jobs:
         uses: actions/download-artifact@v4
         continue-on-error: true
         
+      - name: Download security findings document
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: security-findings-document
+          
       - name: Generate security summary
         run: |
           echo "# Security Scan Summary" > security-summary.md
@@ -127,6 +208,13 @@ jobs:
             exit 1
           else
             echo "✅ All security scans passed - Zero-tolerance policy satisfied" >> security-summary.md
+          fi
+          
+          # Include findings summary if available
+          if [ -f "SECURITY_FINDINGS.md" ]; then
+            echo "" >> security-summary.md
+            echo "## Current Security Findings" >> security-summary.md
+            cat SECURITY_FINDINGS.md >> security-summary.md
           fi
           
       - name: Upload security summary

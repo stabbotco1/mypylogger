@@ -9,11 +9,13 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import TYPE_CHECKING
 
-from security.models import SecurityFinding
 from security.parsers import extract_all_findings
-from security.remediation import RemediationDatastore
+
+if TYPE_CHECKING:
+    from security.models import SecurityFinding
+    from security.remediation import RemediationDatastore
 
 
 class RemediationSynchronizer:
@@ -39,7 +41,7 @@ class RemediationSynchronizer:
             reports_dir = Path("security/reports/latest")
         self.reports_dir = Path(reports_dir)
 
-    def synchronize_findings(self, preserve_manual_edits: bool = True) -> Dict[str, int]:
+    def synchronize_findings(self, preserve_manual_edits: bool = True) -> dict[str, int]:
         """Synchronize remediation plans with current security findings.
 
         Args:
@@ -115,7 +117,7 @@ class RemediationSynchronizer:
             msg = f"Failed to synchronize findings: {e}"
             raise RuntimeError(msg) from e
 
-    def _get_current_findings(self) -> List[SecurityFinding]:
+    def _get_current_findings(self) -> list[SecurityFinding]:
         """Get current security findings from scan reports.
 
         Returns:
@@ -128,8 +130,7 @@ class RemediationSynchronizer:
             if not self.reports_dir.exists():
                 return []
 
-            findings = extract_all_findings(self.reports_dir)
-            return findings
+            return extract_all_findings(self.reports_dir)
 
         except Exception as e:
             msg = f"Failed to extract current findings: {e}"
@@ -168,12 +169,9 @@ class RemediationSynchronizer:
             return True
 
         # Check if target date has been set
-        if plan.target_date is not None:
-            return True
+        return plan.target_date is not None
 
-        return False
-
-    def resolve_conflicts(self, finding_ids: List[str]) -> Dict[str, str]:
+    def resolve_conflicts(self, finding_ids: list[str]) -> dict[str, str]:
         """Resolve conflicts for specific findings.
 
         Args:
@@ -227,7 +225,7 @@ class RemediationSynchronizer:
             msg = f"Failed to resolve conflicts: {e}"
             raise RuntimeError(msg) from e
 
-    def get_synchronization_status(self) -> Dict[str, any]:
+    def get_synchronization_status(self) -> dict[str, any]:
         """Get current synchronization status between findings and plans.
 
         Returns:
@@ -282,7 +280,7 @@ class RemediationSynchronizer:
             msg = f"Failed to get synchronization status: {e}"
             raise RuntimeError(msg) from e
 
-    def validate_synchronization(self) -> List[str]:
+    def validate_synchronization(self) -> list[str]:
         """Validate the current synchronization state.
 
         Returns:

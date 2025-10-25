@@ -133,7 +133,7 @@ class TestSecurityIntegration:
 
         # Test script help/version (should not fail)
         try:
-            subprocess.run(  # noqa: S603
+            subprocess.run(
                 ["/bin/bash", str(script_path), "--help"],
                 check=False,
                 capture_output=True,

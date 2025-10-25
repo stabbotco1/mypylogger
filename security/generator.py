@@ -6,14 +6,15 @@ from security findings and remediation plans.
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List
+from typing import TYPE_CHECKING
 
-from security.models import RemediationPlan, SecurityFinding
 from security.parsers import extract_all_findings
 from security.remediation import RemediationDatastore
+
+if TYPE_CHECKING:
+    from security.models import RemediationPlan, SecurityFinding
 
 
 class FindingsDocumentGenerator:
@@ -57,7 +58,7 @@ class FindingsDocumentGenerator:
             error_msg = f"Failed to generate findings document: {e}"
             raise RuntimeError(error_msg) from e
 
-    def _get_current_findings(self) -> List[SecurityFinding]:
+    def _get_current_findings(self) -> list[SecurityFinding]:
         """Get current security findings from reports."""
         try:
             if not self.reports_dir.exists():
@@ -68,7 +69,7 @@ class FindingsDocumentGenerator:
             error_msg = f"Failed to extract current findings: {e}"
             raise RuntimeError(error_msg) from e
 
-    def _get_remediation_plans(self, findings: List[SecurityFinding]) -> Dict[str, RemediationPlan]:
+    def _get_remediation_plans(self, findings: list[SecurityFinding]) -> dict[str, RemediationPlan]:
         """Get remediation plans for the given findings."""
         plans = {}
         for finding in findings:
@@ -83,7 +84,7 @@ class FindingsDocumentGenerator:
         return plans
 
     def _generate_document_content(
-        self, findings: List[SecurityFinding], remediation_plans: Dict[str, RemediationPlan]
+        self, findings: list[SecurityFinding], remediation_plans: dict[str, RemediationPlan]
     ) -> str:
         """Generate the complete document content."""
         # Sort findings by severity (high -> medium -> low -> info)
@@ -103,7 +104,7 @@ class FindingsDocumentGenerator:
 
         return content
 
-    def _generate_header(self, findings: List[SecurityFinding]) -> str:
+    def _generate_header(self, findings: list[SecurityFinding]) -> str:
         """Generate document header with summary statistics."""
         now = datetime.now(timezone.utc)
         total_findings = len(findings)
@@ -119,9 +120,9 @@ class FindingsDocumentGenerator:
 
         header = f"""# Security Findings Summary
 
-**Last Updated**: {now.strftime('%Y-%m-%d %H:%M:%S UTC')}  
-**Total Active Findings**: {total_findings}  
-**Days Since Last Scan**: {days_since_scan}  
+**Last Updated**: {now.strftime("%Y-%m-%d %H:%M:%S UTC")}
+**Total Active Findings**: {total_findings}
+**Days Since Last Scan**: {days_since_scan}
 
 """
 
@@ -137,7 +138,7 @@ class FindingsDocumentGenerator:
         return header
 
     def _generate_findings_sections(
-        self, findings: List[SecurityFinding], remediation_plans: Dict[str, RemediationPlan]
+        self, findings: list[SecurityFinding], remediation_plans: dict[str, RemediationPlan]
     ) -> str:
         """Generate findings sections organized by severity."""
         if not findings:
@@ -166,15 +167,17 @@ class FindingsDocumentGenerator:
     def _generate_severity_section(
         self,
         severity: str,
-        findings: List[SecurityFinding],
-        remediation_plans: Dict[str, RemediationPlan],
+        findings: list[SecurityFinding],
+        remediation_plans: dict[str, RemediationPlan],
     ) -> str:
         """Generate a section for findings of a specific severity."""
         section_title = f"### {severity.title()} Severity\n\n"
         content = section_title
 
         for finding in findings:
-            content += self._generate_finding_entry(finding, remediation_plans.get(finding.finding_id))
+            content += self._generate_finding_entry(
+                finding, remediation_plans.get(finding.finding_id)
+            )
 
         return content
 
@@ -224,7 +227,9 @@ class FindingsDocumentGenerator:
         if remediation_plan:
             entry += f"- **Remediation**: {remediation_plan.planned_action}\n"
             if remediation_plan.target_date:
-                entry += f"- **Planned Fix Date**: {remediation_plan.target_date.strftime('%Y-%m-%d')}\n"
+                entry += (
+                    f"- **Planned Fix Date**: {remediation_plan.target_date.strftime('%Y-%m-%d')}\n"
+                )
             entry += f"- **Assigned To**: {remediation_plan.assigned_to}\n"
             if remediation_plan.workaround and remediation_plan.workaround != "None identified":
                 entry += f"- **Workaround**: {remediation_plan.workaround}\n"
@@ -232,7 +237,7 @@ class FindingsDocumentGenerator:
         entry += "\n"
         return entry
 
-    def _generate_remediation_summary(self, remediation_plans: Dict[str, RemediationPlan]) -> str:
+    def _generate_remediation_summary(self, remediation_plans: dict[str, RemediationPlan]) -> str:
         """Generate remediation summary section."""
         if not remediation_plans:
             return "## Remediation Summary\n\nNo remediation plans available.\n\n"
@@ -241,16 +246,16 @@ class FindingsDocumentGenerator:
         status_counts = {}
         priority_counts = {}
         overdue_count = 0
-        
+
         for plan in remediation_plans.values():
             # Count by status
             status = plan.status
             status_counts[status] = status_counts.get(status, 0) + 1
-            
+
             # Count by priority
             priority = plan.priority
             priority_counts[priority] = priority_counts.get(priority, 0) + 1
-            
+
             # Count overdue plans
             if plan.is_overdue():
                 overdue_count += 1
@@ -265,14 +270,21 @@ class FindingsDocumentGenerator:
         # Status breakdown with more descriptive names
         status_display_names = {
             "new": "New",
-            "in_progress": "In Progress", 
+            "in_progress": "In Progress",
             "awaiting_upstream": "Awaiting Upstream",
             "completed": "Completed",
             "on_hold": "On Hold",
-            "cancelled": "Cancelled"
+            "cancelled": "Cancelled",
         }
 
-        for status in ["new", "in_progress", "awaiting_upstream", "completed", "on_hold", "cancelled"]:
+        for status in [
+            "new",
+            "in_progress",
+            "awaiting_upstream",
+            "completed",
+            "on_hold",
+            "cancelled",
+        ]:
             if status in status_counts:
                 display_name = status_display_names.get(status, status.replace("_", " ").title())
                 content += f"**{display_name}**: {status_counts[status]}  \n"

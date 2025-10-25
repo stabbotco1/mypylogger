@@ -72,8 +72,8 @@
   - Run `./scripts/run_tests.sh` to validate document formatting maintains system integrity
   - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 5. Implement automation and workflow integration
-- [ ] 5.1 Create core automation engine
+- [x] 5. Implement automation and workflow integration
+- [x] 5.1 Create core automation engine
   - Run `./scripts/run_tests.sh` to establish baseline before implementation
   - Implement `security/scripts/update-findings.py` for complete automation workflow
   - Create scanner output processing that reads from `security/reports/latest/`
@@ -82,7 +82,7 @@
   - Run `./scripts/run_tests.sh` to validate automation engine maintains system integrity
   - _Requirements: 1.2, 7.1, 7.3_
 
-- [ ] 5.2 Integrate with existing CI/CD workflows
+- [x] 5.2 Integrate with existing CI/CD workflows
   - Run `./scripts/run_tests.sh` to establish baseline before integration
   - Update existing security workflows to use new `security/reports/latest/` structure
   - Implement automatic findings update as part of security scan execution
