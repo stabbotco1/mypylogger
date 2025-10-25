@@ -101,3 +101,5 @@ A comprehensive security module that provides automated tracking, documentation,
 3. THE Security_Findings_System SHALL update findings document as part of CI/CD execution
 4. THE Security_Findings_System SHALL handle multiple security scanner outputs in a single run
 5. THE Security_Findings_System SHALL maintain workflow performance without significant overhead
+6. THE Security_Findings_System SHALL automatically commit updated findings to the repository when changes are detected
+7. THE Security_Findings_System SHALL use appropriate commit messages that identify automated security updates
