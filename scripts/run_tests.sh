@@ -75,6 +75,11 @@ echo "----------------------"
 run_check "uv run --active python -c 'import mypylogger; print(f\"mypylogger v{mypylogger.get_version()} imported successfully\")'" "Package import verification"
 
 echo ""
+echo "7. Dependency Usage Check"
+echo "-------------------------"
+run_check "uv run --active deptry ." "Unused dependency detection"
+
+echo ""
 echo "Summary"
 echo "======="
 
@@ -86,6 +91,7 @@ if [ "$OVERALL_SUCCESS" = true ]; then
     echo -e "${GREEN}✓ Tests: all passing with 95%+ coverage${NC}"
     echo -e "${GREEN}✓ Security: all scans passed${NC}"
     echo -e "${GREEN}✓ Package: imports successfully${NC}"
+    echo -e "${GREEN}✓ Dependencies: all dependencies are used${NC}"
     echo ""
     echo -e "${GREEN}🚀 Ready for task completion!${NC}"
     exit 0
@@ -99,5 +105,7 @@ else
     echo -e "${YELLOW}  - Add type hints for mypy compliance${NC}"
     echo -e "${YELLOW}  - Add tests to reach 95% coverage${NC}"
     echo -e "${YELLOW}  - Review security scan results and fix issues${NC}"
+    echo -e "${YELLOW}  - Remove unused dependencies with 'uv remove <package>'${NC}"
+    echo -e "${YELLOW}  - Add missing dependencies with 'uv add <package>'${NC}"
     exit 1
 fi
