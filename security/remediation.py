@@ -35,7 +35,7 @@ class RemediationDatastore:
                 "Install it with: pip install 'mypylogger[security]' or pip install PyYAML"
             )
             raise ImportError(msg)
-            
+
         if registry_path is None:
             registry_path = Path("security/findings/remediation-plans.yml")
 

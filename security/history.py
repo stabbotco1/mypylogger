@@ -95,7 +95,7 @@ class HistoricalDataManager:
                 "Install it with: pip install 'mypylogger[security]' or pip install PyYAML"
             )
             raise ImportError(msg)
-            
+
         self.history_dir = history_dir or Path("security/findings/history")
         self.reports_dir = reports_dir or Path("security/reports/latest")
         self.archived_reports_dir = archived_reports_dir or Path("security/reports/archived")

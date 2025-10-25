@@ -116,7 +116,7 @@ class ComplianceReporter:
                 "Install it with: pip install 'mypylogger[security]' or pip install PyYAML"
             )
             raise ImportError(msg)
-            
+
         from security.history import get_default_historical_manager
         from security.remediation import get_default_datastore
 
