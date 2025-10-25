@@ -1,0 +1,143 @@
+mypylogger v0.2.0
+├── jinja2 v3.1.6
+│   └── markupsafe v3.0.3
+├── python-json-logger v4.0.0
+├── bandit v1.8.6 (group: dev)
+│   ├── pyyaml v6.0.3
+│   ├── rich v14.2.0
+│   │   ├── markdown-it-py v4.0.0
+│   │   │   └── mdurl v0.1.2
+│   │   └── pygments v2.19.2
+│   └── stevedore v5.5.0
+├── build v1.3.0 (group: dev)
+│   ├── packaging v25.0
+│   └── pyproject-hooks v1.2.0
+├── bump2version v1.0.1 (group: dev)
+├── codespell v2.4.1 (group: dev)
+├── interrogate v1.7.0 (group: dev)
+│   ├── attrs v25.4.0
+│   ├── click v8.3.0
+│   ├── colorama v0.4.6
+│   ├── py v1.11.0
+│   └── tabulate v0.9.0
+├── mypy v1.18.2 (group: dev)
+│   ├── mypy-extensions v1.1.0
+│   ├── pathspec v0.12.1
+│   └── typing-extensions v4.15.0
+├── pip-audit v2.9.0 (group: dev)
+│   ├── cachecontrol[filecache] v0.14.3
+│   │   ├── msgpack v1.1.2
+│   │   ├── requests v2.32.5
+│   │   │   ├── certifi v2025.10.5
+│   │   │   ├── charset-normalizer v3.4.4
+│   │   │   ├── idna v3.11
+│   │   │   └── urllib3 v2.5.0
+│   │   └── filelock v3.20.0 (extra: filecache)
+│   ├── cyclonedx-python-lib v9.1.0
+│   │   ├── license-expression v30.4.4
+│   │   │   └── boolean-py v5.0
+│   │   ├── packageurl-python v0.17.5
+│   │   ├── py-serializable v2.1.0
+│   │   │   └── defusedxml v0.7.1
+│   │   └── sortedcontainers v2.4.0
+│   ├── packaging v25.0
+│   ├── pip-api v0.0.34
+│   │   └── pip v25.2
+│   ├── pip-requirements-parser v32.0.1
+│   │   ├── packaging v25.0
+│   │   └── pyparsing v3.2.5
+│   ├── platformdirs v4.5.0
+│   ├── requests v2.32.5 (*)
+│   ├── rich v14.2.0 (*)
+│   └── toml v0.10.2
+├── pytest v8.4.2 (group: dev)
+│   ├── iniconfig v2.3.0
+│   ├── packaging v25.0
+│   ├── pluggy v1.6.0
+│   └── pygments v2.19.2
+├── pytest-benchmark v5.1.0 (group: dev)
+│   ├── py-cpuinfo v9.0.0
+│   └── pytest v8.4.2 (*)
+├── pytest-cov v7.0.0 (group: dev)
+│   ├── coverage[toml] v7.11.0
+│   ├── pluggy v1.6.0
+│   └── pytest v8.4.2 (*)
+├── pyyaml v6.0.3 (group: dev)
+├── ruff v0.14.1 (group: dev)
+├── safety v3.6.2 (group: dev)
+│   ├── authlib v1.6.5
+│   │   └── cryptography v46.0.3
+│   │       └── cffi v2.0.0
+│   │           └── pycparser v2.23
+│   ├── click v8.3.0
+│   ├── dparse v0.6.4
+│   │   └── packaging v25.0
+│   ├── filelock v3.20.0
+│   ├── httpx v0.28.1
+│   │   ├── anyio v4.11.0
+│   │   │   ├── idna v3.11
+│   │   │   ├── sniffio v1.3.1
+│   │   │   └── typing-extensions v4.15.0
+│   │   ├── certifi v2025.10.5
+│   │   ├── httpcore v1.0.9
+│   │   │   ├── certifi v2025.10.5
+│   │   │   └── h11 v0.16.0
+│   │   └── idna v3.11
+│   ├── jinja2 v3.1.6 (*)
+│   ├── marshmallow v4.0.1
+│   ├── nltk v3.9.2
+│   │   ├── click v8.3.0
+│   │   ├── joblib v1.5.2
+│   │   ├── regex v2025.10.23
+│   │   └── tqdm v4.67.1
+│   ├── packaging v25.0
+│   ├── psutil v7.1.1
+│   ├── pydantic v2.12.3
+│   │   ├── annotated-types v0.7.0
+│   │   ├── pydantic-core v2.41.4
+│   │   │   └── typing-extensions v4.15.0
+│   │   ├── typing-extensions v4.15.0
+│   │   └── typing-inspection v0.4.2
+│   │       └── typing-extensions v4.15.0
+│   ├── requests v2.32.5 (*)
+│   ├── ruamel-yaml v0.18.16
+│   │   └── ruamel-yaml-clib v0.2.14
+│   ├── safety-schemas v0.0.16
+│   │   ├── dparse v0.6.4 (*)
+│   │   ├── packaging v25.0
+│   │   ├── pydantic v2.12.3 (*)
+│   │   ├── ruamel-yaml v0.18.16 (*)
+│   │   └── typing-extensions v4.15.0
+│   ├── setuptools v75.3.2
+│   ├── tenacity v9.1.2
+│   ├── tomlkit v0.13.3
+│   ├── typer v0.20.0
+│   │   ├── click v8.3.0
+│   │   ├── rich v14.2.0 (*)
+│   │   ├── shellingham v1.5.4
+│   │   └── typing-extensions v4.15.0
+│   └── typing-extensions v4.15.0
+├── sphinx-lint v1.0.0 (group: dev)
+│   ├── polib v1.2.0
+│   └── regex v2025.10.23
+└── twine v6.2.0 (group: dev)
+    ├── id v1.5.0
+    │   └── requests v2.32.5 (*)
+    ├── keyring v25.6.0
+    │   ├── jaraco-classes v3.4.0
+    │   │   └── more-itertools v10.8.0
+    │   ├── jaraco-context v6.0.1
+    │   └── jaraco-functools v4.3.0
+    │       └── more-itertools v10.8.0
+    ├── packaging v25.0
+    ├── readme-renderer v44.0
+    │   ├── docutils v0.21.2
+    │   ├── nh3 v0.3.1
+    │   └── pygments v2.19.2
+    ├── requests v2.32.5 (*)
+    ├── requests-toolbelt v1.0.0
+    │   └── requests v2.32.5 (*)
+    ├── rfc3986 v2.0.0
+    ├── rich v14.2.0 (*)
+    └── urllib3 v2.5.0
+(*) Package tree already displayed

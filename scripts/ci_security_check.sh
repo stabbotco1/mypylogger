@@ -95,6 +95,15 @@ if [ -d "security/reports/latest" ] && [ "$(ls -A security/reports/latest)" ]; t
     if python security/scripts/update-findings.py --verbose; then
         echo -e "${GREEN}✅ Security findings document updated${NC}"
         
+        # Validate the generated document
+        echo "Validating generated findings document..."
+        if python security/scripts/validate-findings-document.py; then
+            echo -e "${GREEN}✅ Security findings document validation passed${NC}"
+        else
+            echo -e "${RED}❌ Security findings document validation failed${NC}"
+            SECURITY_ISSUES_FOUND=$((SECURITY_ISSUES_FOUND + 1))
+        fi
+        
         # Display findings summary if document was created
         if [ -f "security/findings/SECURITY_FINDINGS.md" ]; then
             echo ""

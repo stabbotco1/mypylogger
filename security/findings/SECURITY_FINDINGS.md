@@ -1,8 +1,8 @@
 # Security Findings Summary
 
-**Last Updated**: 2025-10-25 00:42:36 UTC  
-**Total Active Findings**: 3  
-**Days Since Last Scan**: 0  
+**Last Updated**: 2025-10-25 01:30:11 UTC
+**Total Active Findings**: 3
+**Days Since Last Scan**: 0
 
 **Severity Breakdown**:  
 - **Medium**: 3  
@@ -19,8 +19,10 @@
 - **Impact**: Vulnerability in pip package
 - **Reference**: https://github.com/advisories/GHSA-4xh5-x5gv-qwph
 - **Fix Available**: No
-- **Remediation**: Under evaluation
-- **Assigned To**: security-team
+- **Remediation**: Upgrade pip to version 25.3 when available
+- **Planned Fix Date**: 2025-11-15
+- **Assigned To**: dev-team
+- **Workaround**: Avoid installing untrusted sdist packages
 
 #### PYSEC-2022-42969 - The py library through 1
 - **Package**: py 1.11.0
@@ -47,8 +49,10 @@
 ## Remediation Summary
 
 **Total Plans**: 3  
-**New**: 3  
+**New**: 2  
+**Completed**: 1  
 
 **Priority Breakdown**:  
-**Medium**: 3  
+**High**: 1  
+**Medium**: 2  
 

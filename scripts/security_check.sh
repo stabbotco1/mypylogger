@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SECURITY_REPORT_DIR="$PROJECT_ROOT/security-reports"
+SECURITY_REPORT_DIR="$PROJECT_ROOT/security/reports/latest"
 TIMESTAMP=$(date -u '+%Y%m%d_%H%M%S')
 
 # Handle command line arguments
@@ -277,7 +277,7 @@ SECRET_PATTERNS=(
 )
 
 for pattern in "${SECRET_PATTERNS[@]}"; do
-    if grep -r -E "$pattern" . --exclude-dir=.git --exclude-dir=.mypy_cache --exclude-dir=.pytest_cache --exclude-dir=security-reports 2>/dev/null; then
+    if grep -r -E "$pattern" . --exclude-dir=.git --exclude-dir=.mypy_cache --exclude-dir=.pytest_cache --exclude-dir=security 2>/dev/null; then
         print_error "Potential secret pattern found: $pattern"
         SECRET_PATTERNS_FOUND=$((SECRET_PATTERNS_FOUND + 1))
     fi
