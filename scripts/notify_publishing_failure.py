@@ -163,12 +163,15 @@ Repository: {self.repository}
             return False
 
         try:
-            import requests
+            import json
+            from urllib.error import HTTPError, URLError
+            import urllib.request
 
             url = f"https://api.github.com/repos/{self.repository}/issues"
             headers = {
                 "Authorization": f"token {self.github_token}",
                 "Accept": "application/vnd.github.v3+json",
+                "Content-Type": "application/json",
             }
 
             data = {
@@ -177,19 +180,31 @@ Repository: {self.repository}
                 "labels": labels or ["bug", "publishing", "automated"],
             }
 
-            response = requests.post(url=url, headers=headers, json=data, timeout=30)
-            response.raise_for_status()
+            request = urllib.request.Request(
+                url=url,
+                data=json.dumps(data).encode("utf-8"),
+                headers=headers,
+                method="POST"
+            )
 
-            issue_data = response.json()
-            issue_url = issue_data.get("html_url", "")
-            issue_number = issue_data.get("number", "")
+            response = urllib.request.urlopen(request, timeout=30)
 
-            print(f"✅ GitHub issue created: #{issue_number}")
-            print(f"🔗 Issue URL: {issue_url}")
-            return True
+            if response.status == 201:  # Created
+                response_data = json.loads(response.read().decode("utf-8"))
+                issue_url = response_data.get("html_url", "")
+                issue_number = response_data.get("number", "")
 
-        except ImportError:
-            print("⚠️  requests library not available - cannot create GitHub issue")
+                print(f"✅ GitHub issue created: #{issue_number}")
+                print(f"🔗 Issue URL: {issue_url}")
+                return True
+            print(f"❌ Failed to create GitHub issue. Status: {response.status}")
+            return False
+
+        except HTTPError as e:
+            print(f"❌ HTTP error creating GitHub issue: {e.code} - {e.reason}")
+            return False
+        except URLError as e:
+            print(f"❌ URL error creating GitHub issue: {e.reason}")
             return False
         except Exception as e:
             print(f"❌ Failed to create GitHub issue: {e}")

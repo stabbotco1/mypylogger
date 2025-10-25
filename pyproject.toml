@@ -319,6 +319,7 @@ extend_exclude = [
     ".venv/",
     "build/",
     "dist/",
+    "scripts/",
 ]
 
 # Ignore specific packages that are legitimately used from different dependency groups

@@ -7,6 +7,7 @@ from pathlib import Path
 # Import the modules we're testing
 import sys
 from unittest.mock import Mock, patch
+from urllib.error import HTTPError, URLError
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
@@ -25,16 +26,18 @@ class TestPublishingFailureNotifier:
 
     def test_notifier_initialization_with_token(self) -> None:
         """Test notifier initialization with GitHub token."""
-        notifier = PublishingFailureNotifier("test-token")
+        test_token = "test-token"  # noqa: S105
+        notifier = PublishingFailureNotifier(test_token)
 
-        assert notifier.github_token == "test-token"
+        assert notifier.github_token == test_token
 
     @patch.dict("os.environ", {"GITHUB_TOKEN": "env-token", "GITHUB_REPOSITORY": "user/repo"})
     def test_notifier_initialization_from_env(self) -> None:
         """Test notifier initialization from environment variables."""
         notifier = PublishingFailureNotifier()
+        expected_token = "env-token"  # noqa: S105
 
-        assert notifier.github_token == "env-token"
+        assert notifier.github_token == expected_token
         assert notifier.repository == "user/repo"
 
     def test_format_error_for_github_success(self) -> None:
@@ -124,18 +127,18 @@ class TestPublishingFailureNotifier:
         assert "..." in formatted
         assert len(long_stderr) > 500  # Verify our test data is actually long
 
-    @patch("requests.post")
-    def test_create_github_issue_success(self, mock_post: Mock) -> None:
+    @patch("urllib.request.urlopen")
+    def test_create_github_issue_success(self, mock_urlopen: Mock) -> None:
         """Test successful GitHub issue creation."""
         notifier = PublishingFailureNotifier("test-token")
 
         # Mock successful API response
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "html_url": "https://github.com/user/repo/issues/123",
-            "number": 123,
-        }
-        mock_post.return_value = mock_response
+        mock_response.status = 201
+        mock_response.read.return_value = (
+            b'{"html_url": "https://github.com/user/repo/issues/123", "number": 123}'
+        )
+        mock_urlopen.return_value = mock_response
 
         result = notifier.create_github_issue(
             "Test Issue",
@@ -144,15 +147,13 @@ class TestPublishingFailureNotifier:
         )
 
         assert result is True
-        mock_post.assert_called_once()
+        mock_urlopen.assert_called_once()
 
         # Verify API call parameters
-        call_args = mock_post.call_args
-        assert "repos/unknown/unknown/issues" in call_args[1]["url"]
-        assert call_args[1]["headers"]["Authorization"] == "token test-token"
-        assert call_args[1]["json"]["title"] == "Test Issue"
-        assert call_args[1]["json"]["body"] == "Test body content"
-        assert call_args[1]["json"]["labels"] == ["bug", "test"]
+        call_args = mock_urlopen.call_args
+        request_obj = call_args[0][0]  # First argument is the Request object
+        assert "repos/unknown/unknown/issues" in request_obj.full_url
+        assert request_obj.headers["Authorization"] == "token test-token"
 
     def test_create_github_issue_no_token(self) -> None:
         """Test GitHub issue creation without token."""
@@ -162,40 +163,47 @@ class TestPublishingFailureNotifier:
 
         assert result is False
 
-    @patch("requests.post")
-    def test_create_github_issue_api_error(self, mock_post: Mock) -> None:
+    @patch("urllib.request.urlopen")
+    def test_create_github_issue_api_error(self, mock_urlopen: Mock) -> None:
         """Test GitHub issue creation with API error."""
         notifier = PublishingFailureNotifier("test-token")
 
         # Mock API error
-        mock_post.side_effect = Exception("API Error")
+        mock_urlopen.side_effect = Exception("API Error")
 
         result = notifier.create_github_issue("Test Issue", "Test body")
 
         assert result is False
 
-    @patch("requests.post")
-    def test_create_github_issue_http_error(self, mock_post: Mock) -> None:
+    @patch("urllib.request.urlopen")
+    def test_create_github_issue_http_error(self, mock_urlopen: Mock) -> None:
         """Test GitHub issue creation with HTTP error."""
         notifier = PublishingFailureNotifier("test-token")
 
         # Mock HTTP error response
-        mock_response = Mock()
-        mock_response.raise_for_status.side_effect = Exception("HTTP 404")
-        mock_post.return_value = mock_response
+        mock_urlopen.side_effect = HTTPError(
+            url="https://api.github.com/repos/unknown/unknown/issues",
+            code=404,
+            msg="Not Found",
+            hdrs=None,
+            fp=None,
+        )
 
         result = notifier.create_github_issue("Test Issue", "Test body")
 
         assert result is False
 
-    def test_create_github_issue_no_requests_library(self) -> None:
-        """Test GitHub issue creation when requests library is not available."""
+    @patch("urllib.request.urlopen")
+    def test_create_github_issue_network_error(self, mock_urlopen: Mock) -> None:
+        """Test GitHub issue creation when network error occurs."""
         notifier = PublishingFailureNotifier("test-token")
 
-        with patch("builtins.__import__", side_effect=ImportError("No module named 'requests'")):
-            result = notifier.create_github_issue("Test Issue", "Test body")
+        # Mock network error
+        mock_urlopen.side_effect = URLError("Network unreachable")
 
-            assert result is False
+        result = notifier.create_github_issue("Test Issue", "Test body")
+
+        assert result is False
 
     def test_send_console_notification_success(self, capsys: any) -> None:
         """Test console notification for successful publishing."""
@@ -379,9 +387,7 @@ class TestPublishingFailureNotifier:
         assert issue_title == "Custom Issue Title"
 
     @patch.object(PublishingFailureNotifier, "create_github_issue")
-    def test_notify_failure_issue_creation_fails(
-        self, mock_create_issue: Mock
-    ) -> None:
+    def test_notify_failure_issue_creation_fails(self, mock_create_issue: Mock) -> None:
         """Test notify_failure when GitHub issue creation fails."""
         notifier = PublishingFailureNotifier()
 

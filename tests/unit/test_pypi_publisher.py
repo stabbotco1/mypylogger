@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
 from publish_with_error_handling import PyPIPublisher
-from publishing_error_handler import ErrorCategory, PublishingError, ErrorSeverity
+from publishing_error_handler import ErrorCategory, ErrorSeverity, PublishingError
 
 
 class TestPyPIPublisher:
