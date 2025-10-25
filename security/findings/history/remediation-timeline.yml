@@ -1,0 +1,7 @@
+# Remediation Timeline
+# This file tracks the timeline of remediation activities for security findings.
+# It is automatically maintained by the security module.
+
+last_updated: null
+findings: {}
+remediation: {}

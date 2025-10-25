@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from security.parsers import extract_all_findings
 
 if TYPE_CHECKING:
+    from security.history import HistoricalDataManager
     from security.models import SecurityFinding
     from security.remediation import RemediationDatastore
 
@@ -25,6 +26,7 @@ class RemediationSynchronizer:
         self,
         datastore: RemediationDatastore | None = None,
         reports_dir: str | Path | None = None,
+        historical_manager: HistoricalDataManager | None = None,
     ) -> None:
         """Initialize the remediation synchronizer.
 
@@ -32,10 +34,13 @@ class RemediationSynchronizer:
             datastore: RemediationDatastore instance. If None, uses default.
             reports_dir: Directory containing security scan reports.
                         Defaults to security/reports/latest/
+            historical_manager: Historical data manager. If None, uses default.
         """
+        from security.history import get_default_historical_manager
         from security.remediation import get_default_datastore
 
         self.datastore = datastore or get_default_datastore()
+        self.historical_manager = historical_manager or get_default_historical_manager()
 
         if reports_dir is None:
             reports_dir = Path("security/reports/latest")
@@ -81,7 +86,20 @@ class RemediationSynchronizer:
             # Create remediation plans for new findings
             for finding_id in new_finding_ids:
                 try:
-                    self.datastore.create_default_plan(finding_id)
+                    # Find the corresponding finding for historical tracking
+                    finding = next(
+                        (f for f in current_findings if f.finding_id == finding_id), None
+                    )
+
+                    # Record finding discovery
+                    if finding:
+                        self.historical_manager.record_finding_discovered(finding)
+
+                    # Create remediation plan
+                    plan = self.datastore.create_default_plan(finding_id)
+                    if plan:
+                        self.historical_manager.record_remediation_created(plan)
+
                     stats["added"] += 1
                 except Exception as e:
                     print(
@@ -92,14 +110,27 @@ class RemediationSynchronizer:
             # Remove remediation plans for resolved findings
             for finding_id in obsolete_plan_ids:
                 try:
+                    # Record finding resolution
+                    self.historical_manager.record_finding_resolved(finding_id, "scanner")
+
                     if preserve_manual_edits:
                         # Check if plan has been manually modified
                         plan = self.datastore.get_remediation_plan(finding_id)
                         if plan and self._is_manually_modified(plan):
                             # Keep the plan but mark it as resolved
+                            old_status = plan.status
                             plan.status = "completed"
                             plan.notes += f"\n[{datetime.now(timezone.utc).date()}] Finding resolved - auto-marked as completed"
                             self.datastore.save_remediation_plan(plan)
+
+                            # Record status change
+                            self.historical_manager.record_remediation_status_change(
+                                finding_id,
+                                old_status,
+                                "completed",
+                                "system",
+                                "Finding resolved - auto-marked as completed",
+                            )
                             continue
 
                     # Remove the plan

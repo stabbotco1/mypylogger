@@ -1,10 +1,10 @@
 metadata:
   version: '1.0'
   created: '2025-10-25T00:23:12.940633+00:00'
-  last_updated: '2025-10-25T00:47:47.242179+00:00'
+  last_updated: '2025-10-25T01:03:13.889577+00:00'
 findings:
-  CVE-2023-12345:
-    finding_id: CVE-2023-12345
+  BANDIT-B101-test_file.py-10:
+    finding_id: BANDIT-B101-test_file.py-10
     status: new
     planned_action: Under evaluation
     assigned_to: security-team

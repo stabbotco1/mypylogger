@@ -19,6 +19,7 @@ sys.path.insert(0, str(security_dir))
 sys.path.insert(0, str(security_dir.parent))  # Add project root for security module
 
 from security.generator import FindingsDocumentGenerator
+from security.history import HistoricalDataManager, get_default_historical_manager
 from security.parsers import ScannerParseError, extract_all_findings
 from security.remediation import RemediationDatastore, get_default_datastore
 from security.synchronizer import RemediationSynchronizer
@@ -32,6 +33,7 @@ class AutomationEngine:
         reports_dir: Path | None = None,
         findings_file: Path | None = None,
         datastore: RemediationDatastore | None = None,
+        historical_manager: HistoricalDataManager | None = None,
         verbose: bool = False,
     ) -> None:
         """Initialize the automation engine.
@@ -40,15 +42,19 @@ class AutomationEngine:
             reports_dir: Directory containing security scan reports
             findings_file: Output file for findings document
             datastore: Remediation datastore instance
+            historical_manager: Historical data manager instance
             verbose: Enable verbose logging
         """
         self.reports_dir = reports_dir or Path("security/reports/latest")
         self.findings_file = findings_file or Path("security/findings/SECURITY_FINDINGS.md")
         self.datastore = datastore or get_default_datastore()
+        self.historical_manager = historical_manager or get_default_historical_manager()
         self.verbose = verbose
 
         # Initialize components
-        self.synchronizer = RemediationSynchronizer(self.datastore, self.reports_dir)
+        self.synchronizer = RemediationSynchronizer(
+            self.datastore, self.reports_dir, self.historical_manager
+        )
         self.generator = FindingsDocumentGenerator(
             self.datastore, self.reports_dir, self.findings_file
         )
@@ -71,6 +77,7 @@ class AutomationEngine:
                 "findings_extracted": 0,
                 "synchronization_stats": {},
                 "document_generated": False,
+                "archive_created": False,
                 "errors": [],
                 "warnings": [],
             }
@@ -90,8 +97,13 @@ class AutomationEngine:
             doc_result = self._generate_findings_document()
             workflow_results["document_generated"] = doc_result
 
-            # Step 4: Validate results
-            self._log("Step 4: Validating results...")
+            # Step 4: Archive scan results
+            self._log("Step 4: Archiving scan results...")
+            archive_result = self._archive_scan_results()
+            workflow_results["archive_created"] = archive_result
+
+            # Step 5: Validate results
+            self._log("Step 5: Validating results...")
             validation_result = self._validate_workflow_results()
             workflow_results["validation_errors"] = validation_result
 
@@ -239,6 +251,27 @@ class AutomationEngine:
             error_msg = f"Failed to generate findings document: {e}"
             self._log(f"ERROR: {error_msg}")
             raise RuntimeError(error_msg) from e
+
+    def _archive_scan_results(self) -> bool:
+        """Archive current scan results for historical tracking.
+
+        Returns:
+            True if archival was successful
+        """
+        try:
+            if not self.reports_dir.exists():
+                self._log("WARNING: No reports directory to archive")
+                return False
+
+            # Archive scan results
+            archive_dir = self.historical_manager.archive_scan_results()
+            self._log(f"Archived scan results to: {archive_dir}")
+            return True
+
+        except Exception as e:
+            error_msg = f"Failed to archive scan results: {e}"
+            self._log(f"ERROR: {error_msg}")
+            return False
 
     def _validate_workflow_results(self) -> list[str]:
         """Validate the results of the workflow execution.

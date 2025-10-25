@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 import pytest
 
+from security.history import HistoricalDataManager
 from security.models import RemediationPlan, SecurityFinding
 from security.remediation import RemediationDatastore
 from security.synchronizer import RemediationSynchronizer, get_default_synchronizer
@@ -23,6 +24,17 @@ from security.synchronizer import RemediationSynchronizer, get_default_synchroni
 
 class TestRemediationSynchronizer:
     """Test cases for RemediationSynchronizer class."""
+
+    def _create_synchronizer(
+        self, datastore: RemediationDatastore, reports_dir: Path, temp_dir: str
+    ) -> RemediationSynchronizer:
+        """Helper to create synchronizer with proper historical manager."""
+        historical_manager = HistoricalDataManager(
+            history_dir=Path(temp_dir) / "history",
+            reports_dir=reports_dir,
+            archived_reports_dir=Path(temp_dir) / "archived",
+        )
+        return RemediationSynchronizer(datastore, reports_dir, historical_manager)
 
     def test_init_with_defaults(self) -> None:
         """Test initialization with default parameters."""
@@ -41,7 +53,7 @@ class TestRemediationSynchronizer:
             reports_dir = Path(temp_dir) / "custom-reports"
 
             datastore = RemediationDatastore(datastore_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             assert synchronizer.datastore == datastore
             assert synchronizer.reports_dir == reports_dir
@@ -90,7 +102,7 @@ class TestRemediationSynchronizer:
                 json.dump(pip_audit_data, f)
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
             findings = synchronizer._get_current_findings()
 
             assert len(findings) == 1
@@ -167,7 +179,7 @@ class TestRemediationSynchronizer:
             ]
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock the _get_current_findings method
             synchronizer._get_current_findings = lambda: findings
@@ -196,7 +208,7 @@ class TestRemediationSynchronizer:
             # Create existing plan
             plan = datastore.create_default_plan("CVE-2025-1234")
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock no current findings (finding resolved)
             synchronizer._get_current_findings = list
@@ -234,7 +246,7 @@ class TestRemediationSynchronizer:
             )
             datastore.save_remediation_plan(plan)
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock no current findings (finding resolved)
             synchronizer._get_current_findings = list
@@ -275,7 +287,7 @@ class TestRemediationSynchronizer:
             ]
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings
             synchronizer._get_current_findings = lambda: findings
@@ -308,7 +320,7 @@ class TestRemediationSynchronizer:
             )
             datastore.save_remediation_plan(plan)
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock no current findings
             synchronizer._get_current_findings = list
@@ -361,7 +373,7 @@ class TestRemediationSynchronizer:
             datastore.create_default_plan("CVE-2025-1111")  # In sync
             datastore.create_default_plan("CVE-2025-3333")  # Orphaned
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings
             synchronizer._get_current_findings = lambda: findings
@@ -402,7 +414,7 @@ class TestRemediationSynchronizer:
             datastore = RemediationDatastore(registry_path)
             datastore.create_default_plan("CVE-2025-1234")
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings
             synchronizer._get_current_findings = lambda: findings
@@ -437,7 +449,7 @@ class TestRemediationSynchronizer:
             # Don't create plan for the finding
             datastore.create_default_plan("CVE-2025-9999")  # Orphaned plan
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings
             synchronizer._get_current_findings = lambda: findings
@@ -458,7 +470,7 @@ class TestRemediationSynchronizer:
             reports_dir.mkdir()
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock _get_current_findings to raise an exception
             def mock_get_findings() -> NoReturn:
@@ -479,7 +491,7 @@ class TestRemediationSynchronizer:
             registry_path = Path(temp_dir) / "registry.yml"
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock extract_all_findings to raise an exception
             with patch("security.synchronizer.extract_all_findings") as mock_extract:
@@ -491,6 +503,17 @@ class TestRemediationSynchronizer:
 
 class TestGetDefaultSynchronizer:
     """Test cases for get_default_synchronizer function."""
+
+    def _create_synchronizer(
+        self, datastore: RemediationDatastore, reports_dir: Path, temp_dir: str
+    ) -> RemediationSynchronizer:
+        """Helper to create synchronizer with proper historical manager."""
+        historical_manager = HistoricalDataManager(
+            history_dir=Path(temp_dir) / "history",
+            reports_dir=reports_dir,
+            archived_reports_dir=Path(temp_dir) / "archived",
+        )
+        return RemediationSynchronizer(datastore, reports_dir, historical_manager)
 
     def test_get_default_synchronizer(self) -> None:
         """Test getting default synchronizer instance."""
@@ -526,7 +549,7 @@ class TestGetDefaultSynchronizer:
             ]
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings
             synchronizer._get_current_findings = lambda: findings
@@ -562,7 +585,7 @@ class TestGetDefaultSynchronizer:
             # Create existing plan
             datastore.create_default_plan("CVE-2025-1234")
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock no current findings (finding resolved)
             synchronizer._get_current_findings = list
@@ -594,7 +617,7 @@ class TestGetDefaultSynchronizer:
             reports_dir.mkdir()
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings to raise an exception
             def mock_get_findings() -> NoReturn:
@@ -615,7 +638,7 @@ class TestGetDefaultSynchronizer:
             reports_dir.mkdir()
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock _get_current_findings to raise an exception
             def mock_get_findings() -> NoReturn:
@@ -636,7 +659,7 @@ class TestGetDefaultSynchronizer:
             reports_dir.mkdir()
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock get_synchronization_status to raise an exception
             def mock_get_status() -> NoReturn:
@@ -659,7 +682,7 @@ class TestGetDefaultSynchronizer:
             reports_dir.mkdir()
 
             datastore = RemediationDatastore(registry_path)
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings (empty)
             synchronizer._get_current_findings = list
@@ -706,7 +729,7 @@ class TestGetDefaultSynchronizer:
             datastore = RemediationDatastore(registry_path)
             datastore.create_default_plan("CVE-2025-1234")
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock current findings
             synchronizer._get_current_findings = lambda: findings
@@ -728,7 +751,7 @@ class TestGetDefaultSynchronizer:
             # Create default plan (not manually modified)
             datastore.create_default_plan("CVE-2025-1234")
 
-            synchronizer = RemediationSynchronizer(datastore, reports_dir)
+            synchronizer = self._create_synchronizer(datastore, reports_dir, temp_dir)
 
             # Mock no current findings (finding resolved)
             synchronizer._get_current_findings = list
