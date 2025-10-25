@@ -2188,10 +2188,6 @@ wheels = [
 name = "mypylogger"
 version = "0.2.0"
 source = { editable = "." }
-dependencies = [
-    { name = "pyyaml" },
-    { name = "tomli", marker = "python_full_version < '3.11'" },
-]
 
 [package.dev-dependencies]
 dev = [
@@ -2217,6 +2213,7 @@ dev = [
     { name = "ruff" },
     { name = "safety" },
     { name = "sphinx-lint" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "twine", version = "6.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "twine", version = "6.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
 ]
@@ -2231,12 +2228,11 @@ docs = [
     { name = "sphinx-autodoc-typehints", version = "3.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "sphinx-rtd-theme" },
 ]
+security = [
+    { name = "pyyaml" },
+]
 
 [package.metadata]
-requires-dist = [
-    { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.0" },
-]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2254,6 +2250,7 @@ dev = [
     { name = "ruff", specifier = ">=0.14.1" },
     { name = "safety", specifier = ">=3.6.2" },
     { name = "sphinx-lint", specifier = ">=1.0.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.0" },
     { name = "twine", specifier = ">=5.0.0" },
 ]
 docs = [
@@ -2261,6 +2258,7 @@ docs = [
     { name = "sphinx-autodoc-typehints", specifier = ">=1.25.0" },
     { name = "sphinx-rtd-theme", specifier = ">=2.0.0" },
 ]
+security = [{ name = "pyyaml", specifier = ">=6.0.3" }]
 
 [[package]]
 name = "nh3"

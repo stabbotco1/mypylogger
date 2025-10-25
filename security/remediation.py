@@ -11,7 +11,10 @@ import os
 from pathlib import Path
 from typing import Any
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 from security.models import RemediationPlan, create_default_remediation_plan
 
@@ -26,6 +29,13 @@ class RemediationDatastore:
             registry_path: Path to the remediation registry YAML file.
                           Defaults to security/findings/remediation-plans.yml
         """
+        if yaml is None:
+            msg = (
+                "PyYAML is required for the security module. "
+                "Install it with: pip install 'mypylogger[security]' or pip install PyYAML"
+            )
+            raise ImportError(msg)
+            
         if registry_path is None:
             registry_path = Path("security/findings/remediation-plans.yml")
 

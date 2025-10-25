@@ -27,7 +27,7 @@ logger.info("Application started")
 
 ## Features
 
-- **Minimal Dependencies** (only `python-json-logger`)
+- **Zero Dependencies** (pure Python standard library)
 - **Clean, Predictable JSON Output**
 - **Developer-Friendly Defaults**
 - **Standard Python Patterns**

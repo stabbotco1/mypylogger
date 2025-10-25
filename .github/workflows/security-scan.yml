@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv sync
+          uv sync --group dev --group security
         
       - name: Run dependency security scan (pip-audit)
         if: matrix.scan-type == 'dependencies'
@@ -106,7 +106,7 @@ jobs:
       - name: Install dependencies for security check
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv sync
+          uv sync --group dev --group security
           
       - name: Run CI security check
         run: |
@@ -138,7 +138,7 @@ jobs:
       - name: Install dependencies
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv sync
+          uv sync --group dev --group security
           
       - name: Download security scan results
         uses: actions/download-artifact@v4

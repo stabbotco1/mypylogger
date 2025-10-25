@@ -36,10 +36,7 @@ classifiers = [
     "Topic :: Software Development :: Debuggers",
     "Typing :: Typed",
 ]
-dependencies = [
-    "pyyaml>=6.0.3",
-    "tomli>=2.0.0 ; python_full_version < '3.11'",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/username/mypylogger"
@@ -73,7 +70,11 @@ dev = [
     "ruff>=0.14.1",
     "safety>=3.6.2",
     "sphinx-lint>=1.0.0",
+    "tomli>=2.0.0 ; python_full_version < '3.11'",
     "twine>=5.0.0",
+]
+security = [
+    "pyyaml>=6.0.3",
 ]
 docs = [
     "sphinx>=7.1.0",
@@ -308,6 +309,23 @@ convention = "google"
 known-first-party = ["mypylogger"]
 force-single-line = false
 force-sort-within-sections = true
+
+[tool.deptry]
+# Configure deptry to understand our project structure
+extend_exclude = [
+    "docs/",
+    "htmlcov/",
+    ".venv/",
+    "build/",
+    "dist/",
+]
+
+# Ignore specific packages that are legitimately used from different dependency groups
+[tool.deptry.per_rule_ignores]
+# DEP004: imported but declared as dev dependency
+# tomli is used in scripts (dev context) and is in dev group - this is correct
+# yaml is used in security modules and is in security group - this is correct
+DEP004 = ["tomli", "yaml"]
 
 [tool.bumpversion]
 current_version = "0.2.0"

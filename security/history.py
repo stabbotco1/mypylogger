@@ -12,7 +12,10 @@ from pathlib import Path
 import shutil
 from typing import TYPE_CHECKING, Any
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 if TYPE_CHECKING:
     from security.models import RemediationPlan, SecurityFinding
@@ -86,6 +89,13 @@ class HistoricalDataManager:
             reports_dir: Directory containing current scan reports
             archived_reports_dir: Directory for archived scan reports
         """
+        if yaml is None:
+            msg = (
+                "PyYAML is required for the security module. "
+                "Install it with: pip install 'mypylogger[security]' or pip install PyYAML"
+            )
+            raise ImportError(msg)
+            
         self.history_dir = history_dir or Path("security/findings/history")
         self.reports_dir = reports_dir or Path("security/reports/latest")
         self.archived_reports_dir = archived_reports_dir or Path("security/reports/archived")

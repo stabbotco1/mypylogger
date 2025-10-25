@@ -5,7 +5,13 @@ Fix corrupted remediation timeline YAML file.
 
 import sys
 from pathlib import Path
-import yaml
+
+try:
+    import yaml
+except ImportError:
+    print("Error: PyYAML is required for the security module.", file=sys.stderr)
+    print("Install it with: pip install 'mypylogger[security]' or pip install PyYAML", file=sys.stderr)
+    sys.exit(1)
 
 def fix_timeline():
     """Fix the corrupted timeline file."""

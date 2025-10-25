@@ -10,7 +10,10 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 if TYPE_CHECKING:
     from security.history import HistoricalDataManager
@@ -107,6 +110,13 @@ class ComplianceReporter:
             datastore: Remediation datastore instance
             historical_manager: Historical data manager instance
         """
+        if yaml is None:
+            msg = (
+                "PyYAML is required for the security module. "
+                "Install it with: pip install 'mypylogger[security]' or pip install PyYAML"
+            )
+            raise ImportError(msg)
+            
         from security.history import get_default_historical_manager
         from security.remediation import get_default_datastore
 

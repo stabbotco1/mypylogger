@@ -163,7 +163,12 @@ class SecurityModuleValidator:
             
             # Create temporary config file
             with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-                import yaml
+                try:
+                    import yaml
+                except ImportError:
+                    print("Error: PyYAML is required for the security module.", file=sys.stderr)
+                    print("Install it with: pip install 'mypylogger[security]' or pip install PyYAML", file=sys.stderr)
+                    return False
                 yaml.dump(minimal_config, f)
                 config_file = f.name
                 
@@ -199,7 +204,12 @@ class SecurityModuleValidator:
         
         for example_file in example_files:
             try:
-                import yaml
+                try:
+                    import yaml
+                except ImportError:
+                    print("Error: PyYAML is required for the security module.", file=sys.stderr)
+                    print("Install it with: pip install 'mypylogger[security]' or pip install PyYAML", file=sys.stderr)
+                    return False
                 with open(example_file, 'r') as f:
                     config = yaml.safe_load(f)
                     
