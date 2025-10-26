@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""PyPI Authentication Verification Script
+"""PyPI Authentication Verification Script.
 
 This script helps verify PyPI authentication and package ownership
 for the mypylogger package as part of Phase 7 Task 0.
 """
+from __future__ import annotations
 
 import os
 from pathlib import Path
 import subprocess
 import sys
-from typing import Optional, Tuple
 
 
-def run_command(cmd: list[str], capture_output: bool = True) -> Tuple[int, str, str]:
+def run_command(cmd: list[str], capture_output: bool = True) -> tuple[int, str, str]:
     """Run a command and return exit code, stdout, stderr."""
     try:
         result = subprocess.run(
@@ -54,7 +54,7 @@ def check_twine_installation() -> bool:
     return True
 
 
-def build_test_package() -> Optional[Path]:
+def build_test_package() -> Path | None:
     """Build the package for testing."""
     print("🏗️ Building package for authentication test...")
 
@@ -66,7 +66,7 @@ def build_test_package() -> Optional[Path]:
         return None
 
     # Build the package
-    exit_code, stdout, stderr = run_command(["python", "-m", "build", "--wheel"])
+    exit_code, _stdout, stderr = run_command(["python", "-m", "build", "--wheel"])
     if exit_code != 0:
         print(f"❌ Package build failed: {stderr}")
         return None
@@ -91,7 +91,7 @@ def test_package_check(wheel_file: Path) -> bool:
     """Test package validation with twine check."""
     print("🔍 Validating package with twine check...")
 
-    exit_code, stdout, stderr = run_command(["twine", "check", str(wheel_file)])
+    exit_code, _stdout, stderr = run_command(["twine", "check", str(wheel_file)])
     if exit_code != 0:
         print(f"❌ Package validation failed: {stderr}")
         return False
@@ -111,7 +111,7 @@ def test_testpypi_upload(wheel_file: Path) -> bool:
     env["TWINE_PASSWORD"] = os.getenv("PYPI_API_TOKEN", "")
 
     # Try to upload (this will fail if package version exists, but will test auth)
-    exit_code, stdout, stderr = run_command(
+    exit_code, _stdout, stderr = run_command(
         ["twine", "upload", "--repository", "testpypi", str(wheel_file)]
     )
 

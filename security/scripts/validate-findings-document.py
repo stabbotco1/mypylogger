@@ -4,12 +4,12 @@
 This script validates that the generated security findings document meets
 CI/CD requirements and has the proper structure and content format.
 """
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
 import re
 import sys
-from typing import Dict, Optional
 
 
 class DocumentValidationError(Exception):
@@ -19,7 +19,7 @@ class DocumentValidationError(Exception):
 class FindingsDocumentValidator:
     """Validates the structure and content of SECURITY_FINDINGS.md."""
 
-    def __init__(self, document_path: Path | str | None = None):
+    def __init__(self, document_path: Path | str | None = None) -> None:
         """Initialize the validator.
 
         Args:
@@ -63,19 +63,22 @@ class FindingsDocumentValidator:
         except Exception as e:
             if isinstance(e, DocumentValidationError):
                 raise
-            raise DocumentValidationError(f"Validation failed with error: {e}") from e
+            msg = f"Validation failed with error: {e}"
+            raise DocumentValidationError(msg) from e
 
     def _load_document(self) -> None:
         """Load the document content."""
         if not self.document_path.exists():
-            raise DocumentValidationError(f"Document not found: {self.document_path}")
+            msg = f"Document not found: {self.document_path}"
+            raise DocumentValidationError(msg)
 
         try:
             with self.document_path.open("r", encoding="utf-8") as f:
                 self.content = f.read()
             self.lines = self.content.split("\n")
         except Exception as e:
-            raise DocumentValidationError(f"Failed to read document: {e}") from e
+            msg = f"Failed to read document: {e}"
+            raise DocumentValidationError(msg) from e
 
     def _validate_structure(self) -> None:
         """Validate the overall document structure."""
@@ -217,10 +220,7 @@ class FindingsDocumentValidator:
         remaining_content = self.content[start_idx:]
         next_section = re.search(r"\n## ", remaining_content[1:])
 
-        if next_section:
-            end_idx = next_section.start() + 1
-        else:
-            end_idx = len(remaining_content)
+        end_idx = next_section.start() + 1 if next_section else len(remaining_content)
 
         return remaining_content[:end_idx]
 
@@ -238,11 +238,11 @@ class FindingsDocumentValidator:
 
         # Check for proper link formatting
         links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", self.content)
-        for link_text, url in links:
+        for _link_text, url in links:
             if not url.startswith(("http://", "https://")):
                 self.validation_errors.append(f"Invalid URL format: {url}")
 
-    def get_validation_report(self) -> Dict[str, any]:
+    def get_validation_report(self) -> dict[str, any]:
         """Get a detailed validation report.
 
         Returns:
@@ -274,7 +274,7 @@ class FindingsDocumentValidator:
             },
         }
 
-    def _extract_statistic(self, pattern: str) -> Optional[str]:
+    def _extract_statistic(self, pattern: str) -> str | None:
         """Extract a statistic using regex pattern.
 
         Args:
@@ -287,7 +287,7 @@ class FindingsDocumentValidator:
         return match.group(1) if match else None
 
 
-def main():
+def main() -> int | None:
     """Main validation function."""
     print("🔍 Security Findings Document Validation")
     print("=" * 45)

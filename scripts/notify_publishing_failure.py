@@ -13,13 +13,13 @@ import json
 import os
 from pathlib import Path
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class PublishingFailureNotifier:
     """Handles notifications for PyPI publishing failures."""
 
-    def __init__(self, github_token: Optional[str] = None) -> None:
+    def __init__(self, github_token: str | None = None) -> None:
         """Initialize failure notifier.
 
         Args:
@@ -28,7 +28,7 @@ class PublishingFailureNotifier:
         self.github_token = github_token or os.environ.get("GITHUB_TOKEN")
         self.repository = os.environ.get("GITHUB_REPOSITORY", "unknown/unknown")
 
-    def format_error_for_github(self, error_report: Dict[str, Any]) -> str:
+    def format_error_for_github(self, error_report: dict[str, Any]) -> str:
         """Format error report for GitHub issue.
 
         Args:
@@ -51,9 +51,9 @@ class PublishingFailureNotifier:
 ## Summary
 {summary}
 
-Total Errors: {total_errors}  
-Most Severe: {most_severe.upper()}  
-Timestamp: {datetime.utcnow().isoformat()}Z  
+Total Errors: {total_errors}
+Most Severe: {most_severe.upper()}
+Timestamp: {datetime.utcnow().isoformat()}Z
 Repository: {self.repository}
 
 ## Error Details
@@ -146,7 +146,7 @@ Repository: {self.repository}
         self,
         title: str,
         body: str,
-        labels: Optional[List[str]] = None,
+        labels: list[str] | None = None,
     ) -> bool:
         """Create GitHub issue for publishing failure.
 
@@ -181,10 +181,7 @@ Repository: {self.repository}
             }
 
             request = urllib.request.Request(
-                url=url,
-                data=json.dumps(data).encode("utf-8"),
-                headers=headers,
-                method="POST"
+                url=url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST"
             )
 
             response = urllib.request.urlopen(request, timeout=30)
@@ -210,7 +207,7 @@ Repository: {self.repository}
             print(f"❌ Failed to create GitHub issue: {e}")
             return False
 
-    def send_console_notification(self, error_report: Dict[str, Any]) -> None:
+    def send_console_notification(self, error_report: dict[str, Any]) -> None:
         """Send console notification for publishing failure.
 
         Args:
@@ -259,9 +256,9 @@ Repository: {self.repository}
 
     def notify_failure(
         self,
-        error_report: Dict[str, Any],
+        error_report: dict[str, Any],
         create_issue: bool = False,
-        issue_title: Optional[str] = None,
+        issue_title: str | None = None,
     ) -> bool:
         """Send failure notifications.
 

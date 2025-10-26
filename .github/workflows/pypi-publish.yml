@@ -217,7 +217,15 @@ jobs:
     if: ${{ !inputs.dry_run }}
     environment: pypi-publishing
     
+    # Required for AWS OIDC authentication
+    permissions:
+      id-token: write
+      contents: read
+    
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -236,26 +244,92 @@ jobs:
           echo "Package metadata:"
           cat package-metadata.json
       
+      - name: Configure AWS OIDC authentication
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GitHubActions-PyPI-Publishing
+          role-duration-seconds: 900  # 15 minutes
+        env:
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: 3
+      
+      - name: Verify AWS authentication
+        run: |
+          echo "🔐 Verifying AWS OIDC authentication..."
+          
+          # Verify AWS credentials are working
+          aws sts get-caller-identity
+          
+          # Test access to secrets manager
+          aws secretsmanager describe-secret --secret-id ${{ secrets.AWS_SECRET_NAME }} --query 'Name' --output text
+          
+          echo "✅ AWS authentication successful"
+      
+      - name: Retrieve PyPI token from AWS Secrets Manager
+        id: get-pypi-token
+        run: |
+          echo "🔑 Retrieving PyPI token from AWS Secrets Manager..."
+          
+          # Retrieve the secret with error handling
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id ${{ secrets.AWS_SECRET_NAME }} \
+            --query 'SecretString' \
+            --output text)
+          
+          if [ -z "$SECRET_JSON" ]; then
+            echo "❌ Failed to retrieve secret from AWS Secrets Manager"
+            exit 1
+          fi
+          
+          # Parse the JSON and extract the token
+          PYPI_TOKEN=$(echo "$SECRET_JSON" | jq -r '.token')
+          
+          if [ -z "$PYPI_TOKEN" ] || [ "$PYPI_TOKEN" = "null" ]; then
+            echo "❌ PyPI token not found in secret"
+            exit 1
+          fi
+          
+          # Validate token format
+          if [[ ! "$PYPI_TOKEN" =~ ^pypi-.+ ]]; then
+            echo "❌ Invalid PyPI token format"
+            exit 1
+          fi
+          
+          # Set token as masked output
+          echo "::add-mask::$PYPI_TOKEN"
+          echo "pypi_token=$PYPI_TOKEN" >> $GITHUB_OUTPUT
+          
+          echo "✅ PyPI token retrieved successfully"
+      
       - name: Set up Python for publishing
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
-      - name: Install publishing tools
+      - name: Install UV and publishing tools
         run: |
-          python -m pip install --upgrade pip
-          pip install twine
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          source $HOME/.cargo/env
+          
+          export PATH="$HOME/.cargo/bin:$PATH"
+          uv sync
+          uv add --dev twine
       
-      - name: Publish to PyPI with error handling
+      - name: Publish to PyPI with OIDC authentication
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          echo "🚀 Publishing to PyPI with comprehensive error handling..."
+          echo "🚀 Publishing to PyPI with AWS OIDC authentication..."
           
-          # Run publishing script with error handling
+          # Run publishing script with OIDC authentication
           uv run python scripts/publish_with_error_handling.py \
             --package-dir . \
             --log-file publishing.log \
             --report-file publishing_report.json \
+            --pypi-token "${{ steps.get-pypi-token.outputs.pypi_token }}" \
+            --auth-method "oidc" \
             ${{ inputs.dry_run && '--dry-run' || '' }}
           
           # Display publishing report
@@ -269,6 +343,9 @@ jobs:
             echo "📋 Publishing Log (last 50 lines):"
             tail -50 publishing.log
           fi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ steps.get-pypi-token.outputs.pypi_token }}
       
       - name: Create release summary
         run: |

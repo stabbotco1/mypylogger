@@ -13,7 +13,6 @@ import os
 from pathlib import Path
 import sys
 import tempfile
-from typing import Dict, Optional
 
 from publishing_error_handler import (
     ErrorCategory,
@@ -30,7 +29,9 @@ class PyPIPublisher:
         self,
         package_dir: Path = Path(),
         dry_run: bool = False,
-        log_file: Optional[Path] = None,
+        log_file: Path | None = None,
+        pypi_token: str | None = None,
+        auth_method: str = "env",
     ) -> None:
         """Initialize PyPI publisher.
 
@@ -38,11 +39,15 @@ class PyPIPublisher:
             package_dir: Directory containing the package
             dry_run: Whether to perform dry run (build only, no publish)
             log_file: Optional log file path
+            pypi_token: PyPI API token (overrides environment)
+            auth_method: Authentication method ('env', 'oidc', 'token')
         """
         self.package_dir = package_dir
         self.dry_run = dry_run
         self.error_handler = PublishingErrorHandler(log_file)
-        self.build_dir: Optional[Path] = None
+        self.build_dir: Path | None = None
+        self.pypi_token = pypi_token
+        self.auth_method = auth_method
 
     def validate_environment(self) -> bool:
         """Validate publishing environment.
@@ -99,7 +104,7 @@ class PyPIPublisher:
         # Run master test script
         test_script = self.package_dir / "scripts" / "run_tests.sh"
         if test_script.exists():
-            success, error = self.error_handler.run_command_with_retry(
+            success, _error = self.error_handler.run_command_with_retry(
                 [str(test_script)], RetryConfig(max_retries=0), self.package_dir
             )
             if not success:
@@ -124,7 +129,7 @@ class PyPIPublisher:
         # Run package validation script
         validation_script = self.package_dir / "scripts" / "validate_package.py"
         if validation_script.exists():
-            success, error = self.error_handler.run_command_with_retry(
+            success, _error = self.error_handler.run_command_with_retry(
                 ["uv", "run", "python", str(validation_script)],
                 RetryConfig(max_retries=0),
                 self.package_dir,
@@ -243,6 +248,50 @@ class PyPIPublisher:
         self.error_handler.logger.info("✅ Package integrity validation passed")
         return True
 
+    def get_pypi_token(self) -> str | None:
+        """Get PyPI token based on authentication method.
+
+        Returns:
+            PyPI token if available, None otherwise
+        """
+        if self.pypi_token:
+            self.error_handler.logger.info(f"Using provided PyPI token ({self.auth_method} method)")
+            return self.pypi_token
+
+        # Try environment variable
+        env_token = os.environ.get("PYPI_API_TOKEN") or os.environ.get("TWINE_PASSWORD")
+        if env_token:
+            self.error_handler.logger.info("Using PyPI token from environment")
+            return env_token
+
+        self.error_handler.logger.warning("No PyPI token available")
+        return None
+
+    def validate_pypi_token(self, token: str) -> bool:
+        """Validate PyPI token format and basic structure.
+
+        Args:
+            token: PyPI API token
+
+        Returns:
+            True if token appears valid, False otherwise
+        """
+        if not token:
+            return False
+
+        # Basic format validation
+        if not token.startswith("pypi-"):
+            self.error_handler.logger.error("Invalid PyPI token format (must start with 'pypi-')")
+            return False
+
+        # Length check (PyPI tokens are typically quite long)
+        if len(token) < 50:
+            self.error_handler.logger.error("PyPI token appears too short")
+            return False
+
+        self.error_handler.logger.info("PyPI token format validation passed")
+        return True
+
     def publish_to_pypi(self) -> bool:
         """Publish package to PyPI.
 
@@ -263,7 +312,9 @@ class PyPIPublisher:
             self.error_handler.errors.append(error)
             return False
 
-        self.error_handler.logger.info("Publishing package to PyPI...")
+        self.error_handler.logger.info(
+            f"Publishing package to PyPI (auth method: {self.auth_method})..."
+        )
 
         # Get all distribution files
         dist_files = list(self.build_dir.glob("*.tar.gz")) + list(self.build_dir.glob("*.whl"))
@@ -278,23 +329,72 @@ class PyPIPublisher:
             self.error_handler.errors.append(error)
             return False
 
-        # Check for PyPI token
-        pypi_token = os.environ.get("PYPI_API_TOKEN")
+        # Get PyPI token
+        pypi_token = self.get_pypi_token()
         if not pypi_token:
-            self.error_handler.logger.warning("⚠️  No PYPI_API_TOKEN found - using placeholder")
+            if self.auth_method == "oidc":
+                error = PublishingError(
+                    category=ErrorCategory.AUTHENTICATION,
+                    severity=self.error_handler.determine_severity(ErrorCategory.AUTHENTICATION, 1),
+                    message="OIDC authentication failed - no PyPI token available",
+                    is_retryable=True,
+                )
+                self.error_handler.errors.append(error)
+                return False
+            self.error_handler.logger.warning("⚠️  No PyPI token found - simulating upload")
             self.error_handler.logger.info("🚀 Would publish to PyPI with twine upload")
             for dist_file in dist_files:
                 self.error_handler.logger.info(f"   - {dist_file.name}")
             return True
 
+        # Validate token
+        if not self.validate_pypi_token(pypi_token):
+            error = PublishingError(
+                category=ErrorCategory.AUTHENTICATION,
+                severity=self.error_handler.determine_severity(ErrorCategory.AUTHENTICATION, 1),
+                message="PyPI token validation failed",
+                is_retryable=False,
+            )
+            self.error_handler.errors.append(error)
+            return False
+
+        # Set up environment for twine
+        env = os.environ.copy()
+        env["TWINE_USERNAME"] = "__token__"
+        env["TWINE_PASSWORD"] = pypi_token
+
+        # Add additional twine configuration for better error handling
+        env["TWINE_REPOSITORY_URL"] = "https://upload.pypi.org/legacy/"
+        env["TWINE_NON_INTERACTIVE"] = "1"
+
         # Publish with twine (with retry for network issues)
         success, error = self.error_handler.run_command_with_retry(
-            ["uv", "run", "twine", "upload"] + [str(f) for f in dist_files],
+            ["uv", "run", "twine", "upload", "--verbose"] + [str(f) for f in dist_files],
             RetryConfig(max_retries=3, base_delay=2.0),
             self.package_dir,
+            env=env,
         )
         if not success:
             self.error_handler.logger.error("PyPI publishing failed")
+
+            # Add specific error handling for common PyPI issues
+            if error and "403" in str(error):
+                auth_error = PublishingError(
+                    category=ErrorCategory.AUTHENTICATION,
+                    severity=self.error_handler.determine_severity(ErrorCategory.AUTHENTICATION, 1),
+                    message="PyPI authentication failed (403 Forbidden) - check token permissions",
+                    is_retryable=False,
+                )
+                self.error_handler.errors.append(auth_error)
+            elif error and "409" in str(error):
+                conflict_error = PublishingError(
+                    category=ErrorCategory.UPLOAD,
+                    severity=self.error_handler.determine_severity(ErrorCategory.UPLOAD, 1),
+                    message="Package version already exists on PyPI (409 Conflict)",
+                    is_retryable=False,
+                )
+                self.error_handler.errors.append(conflict_error)
+
             return False
 
         self.error_handler.logger.info("✅ Package published to PyPI successfully")
@@ -311,7 +411,7 @@ class PyPIPublisher:
             except Exception as e:
                 self.error_handler.logger.warning(f"Failed to clean up build directory: {e}")
 
-    def generate_publishing_report(self) -> Dict[str, any]:
+    def generate_publishing_report(self) -> dict[str, any]:
         """Generate comprehensive publishing report.
 
         Returns:
@@ -322,6 +422,7 @@ class PyPIPublisher:
         report = {
             "publishing_status": "success" if error_report["status"] == "success" else "failed",
             "dry_run": self.dry_run,
+            "auth_method": self.auth_method,
             "package_dir": str(self.package_dir),
             "build_dir": str(self.build_dir) if self.build_dir else None,
             "error_report": error_report,
@@ -418,6 +519,16 @@ def main() -> None:
         default=Path("publishing_report.json"),
         help="Output file for publishing report",
     )
+    parser.add_argument(
+        "--pypi-token",
+        help="PyPI API token (overrides environment variables)",
+    )
+    parser.add_argument(
+        "--auth-method",
+        choices=["env", "oidc", "token"],
+        default="env",
+        help="Authentication method (default: env)",
+    )
 
     args = parser.parse_args()
 
@@ -426,6 +537,8 @@ def main() -> None:
         package_dir=args.package_dir,
         dry_run=args.dry_run,
         log_file=args.log_file,
+        pypi_token=args.pypi_token,
+        auth_method=args.auth_method,
     )
 
     # Run publishing workflow

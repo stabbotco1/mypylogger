@@ -7,22 +7,22 @@ This script validates that the security module:
 3. Behaves consistently across different project structures
 4. Can be deployed with example configurations
 """
+from __future__ import annotations
 
 import os
 from pathlib import Path
 import shutil
 import sys
 import tempfile
-from typing import List, Tuple
 
 
 class SecurityModuleValidator:
     """Validates security module independence and deployment requirements."""
 
-    def __init__(self, security_module_path: str):
+    def __init__(self, security_module_path: str) -> None:
         """Initialize validator with path to security module."""
         self.security_module_path = Path(security_module_path)
-        self.validation_results: List[Tuple[str, bool, str]] = []
+        self.validation_results: list[tuple[str, bool, str]] = []
 
     def log_result(self, test_name: str, passed: bool, message: str) -> None:
         """Log validation result."""
@@ -107,7 +107,7 @@ class SecurityModuleValidator:
             import security.remediation
             import security.synchronizer
 
-            finding = SecurityFinding(
+            SecurityFinding(
                 finding_id="TEST-001",
                 package="test-package",
                 version="1.0.0",
@@ -119,7 +119,7 @@ class SecurityModuleValidator:
                 fix_available=True,
             )
 
-            plan = RemediationPlan(
+            RemediationPlan(
                 finding_id="TEST-001",
                 status="new",
                 planned_action="Test action",
@@ -180,7 +180,7 @@ class SecurityModuleValidator:
             # Test configuration loading
             from security.remediation import RemediationDatastore
 
-            datastore = RemediationDatastore()
+            RemediationDatastore()
 
             # Clean up
             os.unlink(config_file)
@@ -441,7 +441,7 @@ class SecurityModuleValidator:
         return all_passed
 
 
-def main():
+def main() -> None:
     """Main validation function."""
     # Determine security module path
     script_dir = Path(__file__).parent

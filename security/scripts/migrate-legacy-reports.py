@@ -7,23 +7,26 @@ This script:
 3. Generates initial findings document from existing vulnerability data
 4. Creates initial remediation registry with current known vulnerabilities
 """
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
 import shutil
 import sys
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING
 
 # Add security module to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from security.generator import FindingsDocumentGenerator
-from security.models import SecurityFinding
 from security.parsers import parse_scanner_file
 from security.synchronizer import RemediationSynchronizer
 
+if TYPE_CHECKING:
+    from security.models import SecurityFinding
 
-def extract_date_from_filename(filename: str) -> Optional[str]:
+
+def extract_date_from_filename(filename: str) -> str | None:
     """Extract date from filename like 'bandit-20251024_142609.json'."""
     try:
         # Extract date part (YYYYMMDD)
@@ -39,7 +42,7 @@ def extract_date_from_filename(filename: str) -> Optional[str]:
     return None
 
 
-def organize_files_by_date(source_dir: Path) -> Dict[str, List[Path]]:
+def organize_files_by_date(source_dir: Path) -> dict[str, list[Path]]:
     """Organize files by extracted dates."""
     files_by_date = {}
 
@@ -60,7 +63,7 @@ def organize_files_by_date(source_dir: Path) -> Dict[str, List[Path]]:
     return files_by_date
 
 
-def get_latest_files(files_by_date: Dict[str, List[Path]]) -> Dict[str, Path]:
+def get_latest_files(files_by_date: dict[str, list[Path]]) -> dict[str, Path]:
     """Get the latest version of each file type."""
     if not files_by_date:
         return {}
@@ -84,7 +87,7 @@ def get_latest_files(files_by_date: Dict[str, List[Path]]) -> Dict[str, Path]:
     return latest_by_type
 
 
-def migrate_reports():
+def migrate_reports() -> bool:
     """Main migration function."""
     print("🔄 Starting security reports migration...")
 
@@ -177,7 +180,7 @@ def generate_initial_findings():
     return findings
 
 
-def create_initial_remediation_registry(findings: List[SecurityFinding]):
+def create_initial_remediation_registry(findings: list[SecurityFinding]) -> None:
     """Create initial remediation registry from findings."""
     print("🔧 Creating initial remediation registry...")
 
@@ -193,7 +196,7 @@ def create_initial_remediation_registry(findings: List[SecurityFinding]):
         print(f"⚠️ Error creating remediation registry: {e}")
 
 
-def main():
+def main() -> int | None:
     """Main migration process."""
     print("🚀 Security Infrastructure Migration")
     print("=" * 40)

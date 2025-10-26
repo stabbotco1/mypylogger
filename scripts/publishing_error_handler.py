@@ -15,7 +15,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable
 
 
 class ErrorCategory(Enum):
@@ -47,8 +47,8 @@ class PublishingError:
     severity: ErrorSeverity
     message: str
     details: str = ""
-    command: Optional[str] = None
-    exit_code: Optional[int] = None
+    command: str | None = None
+    exit_code: int | None = None
     stdout: str = ""
     stderr: str = ""
     timestamp: float = field(default_factory=time.time)
@@ -56,7 +56,7 @@ class PublishingError:
     max_retries: int = 3
     is_retryable: bool = True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary for JSON serialization."""
         return {
             "category": self.category.value,
@@ -123,13 +123,13 @@ class RetryConfig:
 class PublishingErrorHandler:
     """Comprehensive error handler for PyPI publishing workflow."""
 
-    def __init__(self, log_file: Optional[Path] = None) -> None:
+    def __init__(self, log_file: Path | None = None) -> None:
         """Initialize error handler.
 
         Args:
             log_file: Optional log file path for error logging
         """
-        self.errors: List[PublishingError] = []
+        self.errors: list[PublishingError] = []
         self.log_file = log_file
         self.logger = self._setup_logger()
 
@@ -254,9 +254,9 @@ class PublishingErrorHandler:
         """
         if category == ErrorCategory.AUTHENTICATION:
             return ErrorSeverity.CRITICAL
-        if category == ErrorCategory.VALIDATION or category == ErrorCategory.BUILD:
+        if category in (ErrorCategory.VALIDATION, ErrorCategory.BUILD):
             return ErrorSeverity.HIGH
-        if category == ErrorCategory.NETWORK or category == ErrorCategory.UPLOAD:
+        if category in (ErrorCategory.NETWORK, ErrorCategory.UPLOAD):
             return ErrorSeverity.MEDIUM
         if category == ErrorCategory.CONFIGURATION:
             return ErrorSeverity.HIGH
@@ -300,7 +300,7 @@ class PublishingErrorHandler:
 
     def handle_command_error(
         self,
-        command: Union[str, List[str]],
+        command: str | list[str],
         exit_code: int,
         stdout: str = "",
         stderr: str = "",
@@ -345,10 +345,10 @@ class PublishingErrorHandler:
 
     def execute_with_retry(
         self,
-        func: Callable[[], Tuple[int, str, str]],
-        retry_config: Optional[RetryConfig] = None,
+        func: Callable[[], tuple[int, str, str]],
+        retry_config: RetryConfig | None = None,
         operation_name: str = "operation",
-    ) -> Tuple[bool, Optional[PublishingError]]:
+    ) -> tuple[bool, PublishingError | None]:
         """Execute function with retry logic and exponential backoff.
 
         Args:
@@ -410,16 +410,18 @@ class PublishingErrorHandler:
 
     def run_command_with_retry(
         self,
-        command: Union[str, List[str]],
-        retry_config: Optional[RetryConfig] = None,
-        cwd: Optional[Path] = None,
-    ) -> Tuple[bool, Optional[PublishingError]]:
+        command: str | list[str],
+        retry_config: RetryConfig | None = None,
+        cwd: Path | None = None,
+        env: dict[str, str] | None = None,
+    ) -> tuple[bool, PublishingError | None]:
         """Run command with retry logic.
 
         Args:
             command: Command to run
             retry_config: Retry configuration
             cwd: Working directory
+            env: Environment variables
 
         Returns:
             Tuple of (success, error)
@@ -427,7 +429,7 @@ class PublishingErrorHandler:
         command_list = command if isinstance(command, list) else command.split()
         command_str = " ".join(command_list)
 
-        def run_command() -> Tuple[int, str, str]:
+        def run_command() -> tuple[int, str, str]:
             try:
                 result = subprocess.run(  # noqa: S603
                     command_list,
@@ -435,6 +437,7 @@ class PublishingErrorHandler:
                     capture_output=True,
                     text=True,
                     cwd=cwd,
+                    env=env,
                     timeout=300,  # 5 minute timeout
                 )
                 return result.returncode, result.stdout, result.stderr
@@ -445,7 +448,7 @@ class PublishingErrorHandler:
 
         return self.execute_with_retry(run_command, retry_config, command_str)
 
-    def generate_error_report(self) -> Dict[str, Any]:
+    def generate_error_report(self) -> dict[str, Any]:
         """Generate comprehensive error report.
 
         Returns:
@@ -556,7 +559,7 @@ def main() -> None:
 
     if args.test_command:
         print(f"Testing command: {args.test_command}")
-        success, error = handler.run_command_with_retry(args.test_command)
+        success, _error = handler.run_command_with_retry(args.test_command)
 
         if success:
             print("✅ Command succeeded")

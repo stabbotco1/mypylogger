@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-10-24 14:26:35 UTC",
+  "scan_type": "local_security_check",
+  "project": "mypylogger-v0.2.0",
+  "results": {
+    "total_issues": 4,
+    "dependency_issues": 2,
+    "code_issues": 0,
+    "secret_issues": 2
+  },
+  "reports": {
+    "pip_audit": "/Users/stephenabbot/projects/mypylogger/security-reports/pip-audit-20251024_142609.json",
+    "safety": "/Users/stephenabbot/projects/mypylogger/security-reports/safety-20251024_142609.json",
+    "bandit": "/Users/stephenabbot/projects/mypylogger/security-reports/bandit-20251024_142609.json",
+    "secret_scan": "/Users/stephenabbot/projects/mypylogger/security-reports/secret-scan-20251024_142609.json",
+    "dependency_tree": "/Users/stephenabbot/projects/mypylogger/security-reports/dependency-tree-20251024_142609.txt"
+  },
+  "zero_tolerance_policy": {
+    "enabled": true,
+    "policy_met": false
+  }
+}

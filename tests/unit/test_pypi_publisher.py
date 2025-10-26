@@ -297,7 +297,14 @@ class TestPyPIPublisher:
                 assert len(publisher.error_handler.errors) == 0
 
     @patch("subprocess.run")
-    @patch.dict("os.environ", {"PYPI_API_TOKEN": "test-token"})
+    @patch.dict(
+        "os.environ",
+        {
+            "PYPI_API_TOKEN": (
+                "pypi-AgEIcHlwaS5vcmcCJRVOaXMxLjAyAAABhGlkAAABhGh0dHBzOi8vcHlwaS5vcmcvbGVnYWN5Lw"
+            )
+        },
+    )
     def test_publish_to_pypi_with_token_success(self, mock_run: Mock) -> None:
         """Test successful PyPI publishing with API token."""
         with tempfile.TemporaryDirectory() as temp_dir:

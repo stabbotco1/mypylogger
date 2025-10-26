@@ -14,7 +14,7 @@ except ImportError:
     sys.exit(1)
 
 
-def fix_timeline():
+def fix_timeline() -> None:
     """Fix the corrupted timeline file."""
     timeline_path = Path("security/findings/history/remediation-timeline.yml")
 
