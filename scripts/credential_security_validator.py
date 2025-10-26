@@ -213,7 +213,14 @@ class CredentialSecurityValidator:
             return True
 
         # "demo" - only consider safe if it's clearly a demo placeholder
-        return bool("demo" in credential_lower and (credential_lower.startswith("demo-") or credential_lower.endswith("-demo") or credential_lower == "demo"))
+        return bool(
+            "demo" in credential_lower
+            and (
+                credential_lower.startswith("demo-")
+                or credential_lower.endswith("-demo")
+                or credential_lower == "demo"
+            )
+        )
 
     def _determine_severity(self, pattern: str, matched_text: str) -> str:
         """Determine the severity of a credential exposure.

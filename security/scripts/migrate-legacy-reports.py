@@ -7,6 +7,7 @@ This script:
 3. Generates initial findings document from existing vulnerability data
 4. Creates initial remediation registry with current known vulnerabilities
 """
+
 from __future__ import annotations
 
 from datetime import datetime

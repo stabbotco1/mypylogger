@@ -4,6 +4,7 @@
 This script handles secure credential retrieval and validation for PyPI publishing
 using AWS OIDC authentication with GitHub Actions.
 """
+
 from __future__ import annotations
 
 import json

@@ -4,6 +4,7 @@
 This script validates that the generated security findings document meets
 CI/CD requirements and has the proper structure and content format.
 """
+
 from __future__ import annotations
 
 from datetime import datetime

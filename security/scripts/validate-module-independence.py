@@ -7,6 +7,7 @@ This script validates that the security module:
 3. Behaves consistently across different project structures
 4. Can be deployed with example configurations
 """
+
 from __future__ import annotations
 
 import os

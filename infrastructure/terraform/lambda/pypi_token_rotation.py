@@ -3,6 +3,7 @@
 This function handles automatic rotation of PyPI API tokens stored in AWS Secrets Manager.
 It's triggered by Secrets Manager rotation schedule.
 """
+
 from __future__ import annotations
 
 import json
