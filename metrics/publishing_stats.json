@@ -2,7 +2,7 @@
   "total_attempts": 1,
   "successful_publishes": 0,
   "failed_publishes": 0,
-  "security_driven_releases": 0,
+  "security_driven_releases": 1,
   "manual_releases": 0,
   "success_rate_percent": 0.0,
   "last_successful_publish": null,
