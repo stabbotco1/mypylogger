@@ -53,7 +53,3 @@ uv run ruff check .
 ## License
 
 MIT License
-
-test
-
-t

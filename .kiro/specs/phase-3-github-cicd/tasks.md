@@ -62,7 +62,7 @@
   - Add publishing success confirmation
   - _Requirements: 4.2, 4.4, 4.5_
 
-- [-] 4.3 Fix AWS OIDC configuration for PyPI publishing
+- [x] 4.3 Fix AWS OIDC configuration for PyPI publishing
   - Update PyPI publishing workflow to include required `aws-region` parameter
   - Set default region to `us-east-1` with fallback to secrets
   - Add comprehensive AWS configuration validation and error handling
@@ -89,7 +89,7 @@
   - Add AWS connectivity and permission validation steps
   - _Requirements: 15.1, 15.2, 15.5_
 
-- [-] 4.3.4 Test and validate AWS OIDC workflow
+- [x] 4.3.4 Test and validate AWS OIDC workflow
   - Execute end-to-end test of PyPI publishing workflow with AWS authentication
   - Test both default region (us-east-1) and custom region scenarios
   - Verify retry logic works correctly for transient AWS failures
