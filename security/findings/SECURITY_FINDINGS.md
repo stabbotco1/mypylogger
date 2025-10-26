@@ -1,6 +1,6 @@
 # Security Findings Summary
 
-**Last Updated**: 2025-10-26 22:40:03 UTC
+**Last Updated**: 2025-10-26 22:59:48 UTC
 **Total Active Findings**: 3
 **Days Since Last Scan**: 0
 
@@ -32,8 +32,6 @@
 - **Impact**: Vulnerability in py package
 - **Reference**: https://osv.dev/vulnerability/PYSEC-2022-42969
 - **Fix Available**: No
-- **Remediation**: Under evaluation
-- **Assigned To**: security-team
 
 #### PYSEC-2025-49 - setuptools is a package that allows users to download, bu...
 - **Package**: setuptools 75.3.2
@@ -43,16 +41,12 @@
 - **Impact**: Vulnerability in setuptools package
 - **Reference**: https://osv.dev/vulnerability/PYSEC-2025-49
 - **Fix Available**: Yes (78.1.1)
-- **Remediation**: Under evaluation
-- **Assigned To**: security-team
 
 ## Remediation Summary
 
-**Total Plans**: 3  
-**New**: 2  
+**Total Plans**: 1  
 **Completed**: 1  
 
 **Priority Breakdown**:  
 **High**: 1  
-**Medium**: 2  
 
