@@ -184,3 +184,19 @@ uv.cache/
 *.log
 temp/
 .DS_Store
+
+# Project-specific exclusions
+# Workflow metrics and execution results
+metrics/
+scripts/results/
+*-results.json
+*-report.json
+*-report.md
+monitoring_dashboard.html
+deployment_validation_*.json
+publishing_report.json
+workflow-*.json
+
+# Security scan results (legacy compatibility files)
+bandit-ci-results.json
+pip-audit-ci-results.json
