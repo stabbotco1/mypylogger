@@ -1,0 +1,18 @@
+{
+  "workflow_name": "security-driven-release",
+  "execution_id": "security-driven-release-20251026-135754",
+  "start_time": "2025-10-26T13:57:54.206888+00:00",
+  "end_time": "2025-10-26T13:58:06.496138+00:00",
+  "status": "success",
+  "duration_seconds": 12.28925,
+  "release_triggered": true,
+  "release_type": "security_auto",
+  "security_changes_count": 2,
+  "quality_gates_passed": true,
+  "publishing_success": false,
+  "error_message": null,
+  "error_stage": null,
+  "security_scan_duration": null,
+  "build_duration": null,
+  "publish_duration": null
+}

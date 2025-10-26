@@ -78,6 +78,26 @@ class ReleaseDecision:
             msg = "trigger_type must be a ReleaseType enum"
             raise ValueError(msg)
 
+    def to_dict(self) -> dict[str, Any]:
+        """Convert release decision to dictionary for JSON serialization."""
+        return {
+            "should_release": self.should_release,
+            "trigger_type": self.trigger_type.value,
+            "justification": self.justification,
+            "release_notes": self.release_notes,
+            "security_changes_count": len(self.security_changes),
+            "security_changes": [
+                {
+                    "change_type": change.change_type.value,
+                    "finding_id": change.finding_id,
+                    "old_state": change.old_state,
+                    "new_state": change.new_state,
+                    "impact_level": change.impact_level,
+                }
+                for change in self.security_changes
+            ],
+        }
+
 
 class ReleaseDecisionMatrix:
     """Decision matrix for determining when releases should be triggered."""

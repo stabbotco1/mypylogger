@@ -84,99 +84,52 @@ jobs:
           
           echo "✅ Security findings updated"
       
-      - name: Analyze security changes and make release decision
+      - name: Execute integrated security-driven workflow
         id: release_decision
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          echo "🤔 Analyzing security changes for release decision..."
+          echo "🤔 Executing integrated security-driven workflow..."
           
-          # Create release decision script
-          cat > analyze_release_decision.py << 'EOF'
-          import json
-          import os
-          import sys
-          from pathlib import Path
+          # Prepare command arguments
+          WORKFLOW_ARGS="security-workflow"
           
-          # Add scripts to path
-          sys.path.insert(0, 'scripts')
+          if [ "${{ github.event.inputs.force_release }}" = "true" ]; then
+            WORKFLOW_ARGS="$WORKFLOW_ARGS --force"
+          fi
           
-          from security_change_detector import SecurityChangeDetector
-          from release_automation_engine import ReleaseAutomationEngine
+          if [ -n "${{ github.event.inputs.custom_notes }}" ]; then
+            WORKFLOW_ARGS="$WORKFLOW_ARGS --notes='${{ github.event.inputs.custom_notes }}'"
+          fi
           
-          def main():
-              try:
-                  # Initialize components
-                  detector = SecurityChangeDetector()
-                  engine = ReleaseAutomationEngine()
-                  
-                  # Detect changes from current scan
-                  changes = detector.detect_changes_from_current_scan(days_back=7)
-                  
-                  # Check for manual trigger
-                  force_release = os.getenv('FORCE_RELEASE', 'false').lower() == 'true'
-                  custom_notes = os.getenv('CUSTOM_NOTES', '')
-                  
-                  # Make release decision
-                  decision = engine.make_release_decision(
-                      changes, 
-                      manual_trigger=force_release,
-                      custom_notes=custom_notes if custom_notes else None
-                  )
-                  
-                  # Output results
-                  print(f"Should release: {decision.should_release}")
-                  print(f"Release type: {decision.trigger_type.value}")
-                  print(f"Justification: {decision.justification}")
-                  print(f"Changes detected: {len(changes)}")
-                  
-                  # Set GitHub outputs
-                  with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                      f.write(f"should_release={str(decision.should_release).lower()}\n")
-                      f.write(f"release_type={decision.trigger_type.value}\n")
-                      f.write(f"justification={decision.justification}\n")
-                      f.write(f"changes_detected={len(changes)}\n")
-                  
-                  # Save release notes to file (escape newlines for GitHub)
-                  release_notes_escaped = decision.release_notes.replace('\n', '\\n').replace('\r', '\\r')
-                  with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                      f.write(f"release_notes={release_notes_escaped}\n")
-                  
-                  # Create detailed analysis file
-                  analysis = {
-                      "should_release": decision.should_release,
-                      "release_type": decision.trigger_type.value,
-                      "justification": decision.justification,
-                      "release_notes": decision.release_notes,
-                      "changes_count": len(changes),
-                      "changes": [
-                          {
-                              "type": change.change_type.value,
-                              "finding_id": change.finding_id,
-                              "impact_level": change.impact_level,
-                              "old_state": change.old_state,
-                              "new_state": change.new_state,
-                          }
-                          for change in changes
-                      ]
-                  }
-                  
-                  with open('release_analysis.json', 'w') as f:
-                      json.dump(analysis, f, indent=2)
-                  
-                  print("✅ Release decision analysis completed")
-                  
-              except Exception as e:
-                  print(f"❌ Error in release decision analysis: {e}")
-                  import traceback
-                  traceback.print_exc()
-                  sys.exit(1)
+          # Execute integrated workflow
+          echo "Running: uv run python scripts/integration_orchestrator.py $WORKFLOW_ARGS"
+          WORKFLOW_RESULT=$(uv run python scripts/integration_orchestrator.py $WORKFLOW_ARGS)
           
-          if __name__ == "__main__":
-              main()
-          EOF
+          echo "Workflow result:"
+          echo "$WORKFLOW_RESULT"
           
-          # Run the analysis
-          uv run python analyze_release_decision.py
+          # Parse JSON result and set GitHub outputs
+          echo "$WORKFLOW_RESULT" > workflow_result.json
+          
+          # Extract workflow outputs from the result
+          SHOULD_RELEASE=$(echo "$WORKFLOW_RESULT" | jq -r '.workflow_outputs.should_release // "false"')
+          RELEASE_TYPE=$(echo "$WORKFLOW_RESULT" | jq -r '.workflow_outputs.release_type // "none"')
+          RELEASE_NOTES=$(echo "$WORKFLOW_RESULT" | jq -r '.workflow_outputs.release_notes // ""')
+          JUSTIFICATION=$(echo "$WORKFLOW_RESULT" | jq -r '.workflow_outputs.justification // ""')
+          CHANGES_DETECTED=$(echo "$WORKFLOW_RESULT" | jq -r '.workflow_outputs.changes_detected // "false"')
+          
+          # Set GitHub outputs
+          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "justification=$JUSTIFICATION" >> $GITHUB_OUTPUT
+          echo "changes_detected=$CHANGES_DETECTED" >> $GITHUB_OUTPUT
+          
+          # Handle multi-line release notes
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "✅ Integrated workflow completed successfully"
         env:
           FORCE_RELEASE: ${{ github.event.inputs.force_release }}
           CUSTOM_NOTES: ${{ github.event.inputs.custom_notes }}

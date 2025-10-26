@@ -347,6 +347,17 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.get-pypi-token.outputs.pypi_token }}
       
+      - name: Update live security status after publishing
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          echo "📊 Updating live security status after successful publishing..."
+          
+          # Execute manual workflow to update status
+          uv run python scripts/integration_orchestrator.py manual-workflow \
+            --notes="Published ${{ needs.package-validation.outputs.package-name }} v${{ needs.package-validation.outputs.package-version }} to PyPI"
+          
+          echo "✅ Live security status updated"
+      
       - name: Create release summary
         run: |
           cat > release-summary.md << EOF
@@ -369,6 +380,10 @@ jobs:
           
           ## Distribution Files
           $(ls -la dist/)
+          
+          ## Live Status
+          - ✅ Security status updated
+          - 📊 Status available at GitHub Pages
           
           ## Next Steps
           - Package is available on PyPI

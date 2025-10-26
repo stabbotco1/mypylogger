@@ -1,0 +1,18 @@
+{
+  "workflow_name": "manual-release",
+  "execution_id": "manual-release-20251026-132741",
+  "start_time": "2025-10-26T13:27:41.786348+00:00",
+  "end_time": "2025-10-26T13:27:41.786682+00:00",
+  "status": "success",
+  "duration_seconds": 0.000334,
+  "release_triggered": true,
+  "release_type": "manual",
+  "security_changes_count": 0,
+  "quality_gates_passed": true,
+  "publishing_success": false,
+  "error_message": null,
+  "error_stage": null,
+  "security_scan_duration": null,
+  "build_duration": null,
+  "publish_duration": null
+}
