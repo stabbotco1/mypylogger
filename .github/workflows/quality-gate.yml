@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read          # Required for repository checkout and access
+
 jobs:
   quality-gate:
     name: Quality Gate

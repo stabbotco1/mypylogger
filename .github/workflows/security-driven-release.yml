@@ -16,6 +16,11 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read           # Required for repository access and checkout
+  actions: write          # Required for triggering other workflows
+  security-events: write  # Required for security report uploads and processing
+
 env:
   PYTHON_VERSION: '3.12'
 

@@ -21,6 +21,11 @@ on:
         default: false
         type: boolean
 
+permissions:
+  contents: read           # Required for repository checkout and access
+  security-events: write  # Required for security report uploads
+  actions: read           # Required for workflow status checks
+
 env:
   PYTHON_VERSION: '3.12'
 

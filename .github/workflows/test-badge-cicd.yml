@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read          # Required for repository checkout and access
+
 jobs:
   test-badge-system:
     runs-on: ubuntu-latest

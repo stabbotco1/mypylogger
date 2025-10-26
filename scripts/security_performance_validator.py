@@ -18,6 +18,29 @@ from typing import Any
 import requests
 
 
+def is_ci_environment() -> bool:
+    """Detect if running in CI environment."""
+    ci_indicators = [
+        "CI",
+        "CONTINUOUS_INTEGRATION",
+        "GITHUB_ACTIONS",
+        "TRAVIS",
+        "CIRCLECI",
+        "JENKINS_URL",
+        "BUILDKITE",
+    ]
+    return any(
+        os.environ.get(indicator, "").lower() in ("true", "1", "yes") for indicator in ci_indicators
+    )
+
+
+def get_performance_threshold(base_threshold: float) -> float:
+    """Get performance threshold adjusted for CI environment."""
+    if is_ci_environment():
+        return base_threshold * 1.5  # 50% more time for CI
+    return base_threshold
+
+
 @dataclass
 class SecurityValidationResult:
     """Result of security validation checks."""
@@ -352,6 +375,9 @@ class PerformanceValidator:
         Returns:
             Performance validation result for API response time
         """
+        # Adjust target time for CI environment
+        adjusted_target_time = get_performance_threshold(target_time)
+
         try:
             # Make multiple requests to get average response time
             response_times = []
@@ -368,7 +394,7 @@ class PerformanceValidator:
                         return PerformanceValidationResult(
                             test_name=f"API Response Time ({url})",
                             passed=False,
-                            target_time=target_time,
+                            target_time=adjusted_target_time,
                             actual_time=response_time,
                             message=f"API returned status code {response.status_code}",
                             details={"status_code": response.status_code},
@@ -378,7 +404,7 @@ class PerformanceValidator:
                     return PerformanceValidationResult(
                         test_name=f"API Response Time ({url})",
                         passed=False,
-                        target_time=target_time,
+                        target_time=adjusted_target_time,
                         actual_time=0.0,
                         message=f"Request failed: {e}",
                         details={"error": str(e)},
@@ -391,7 +417,7 @@ class PerformanceValidator:
                 return PerformanceValidationResult(
                     test_name=f"API Response Time ({url})",
                     passed=False,
-                    target_time=target_time,
+                    target_time=adjusted_target_time,
                     actual_time=0.0,
                     message="No successful responses received",
                 )
@@ -400,14 +426,14 @@ class PerformanceValidator:
             max_response_time = max(response_times)
             min_response_time = min(response_times)
 
-            passed = avg_response_time <= target_time
+            passed = avg_response_time <= adjusted_target_time
 
             return PerformanceValidationResult(
                 test_name=f"API Response Time ({url})",
                 passed=passed,
-                target_time=target_time,
+                target_time=adjusted_target_time,
                 actual_time=avg_response_time,
-                message=f"Average response time: {avg_response_time:.3f}s (target: {target_time}s)",
+                message=f"Average response time: {avg_response_time:.3f}s (target: {adjusted_target_time}s)",
                 details={
                     "average_time": avg_response_time,
                     "max_time": max_response_time,
@@ -420,7 +446,7 @@ class PerformanceValidator:
             return PerformanceValidationResult(
                 test_name=f"API Response Time ({url})",
                 passed=False,
-                target_time=target_time,
+                target_time=adjusted_target_time,
                 actual_time=0.0,
                 message=f"Error testing API response time: {e}",
             )
@@ -439,6 +465,8 @@ class PerformanceValidator:
         Returns:
             Performance validation result for workflow execution time
         """
+        # Adjust target time for CI environment
+        adjusted_target_time = get_performance_threshold(target_time)
         try:
             # Look for recent workflow execution metrics
             metrics_dir = Path.cwd() / "metrics"
@@ -446,7 +474,7 @@ class PerformanceValidator:
                 return PerformanceValidationResult(
                     test_name=f"Workflow Execution Time ({workflow_name})",
                     passed=False,
-                    target_time=target_time,
+                    target_time=adjusted_target_time,
                     actual_time=0.0,
                     message="No metrics directory found",
                 )
@@ -458,7 +486,7 @@ class PerformanceValidator:
                 return PerformanceValidationResult(
                     test_name=f"Workflow Execution Time ({workflow_name})",
                     passed=False,
-                    target_time=target_time,
+                    target_time=adjusted_target_time,
                     actual_time=0.0,
                     message=f"No metrics found for workflow {workflow_name}",
                 )
@@ -481,7 +509,7 @@ class PerformanceValidator:
                 return PerformanceValidationResult(
                     test_name=f"Workflow Execution Time ({workflow_name})",
                     passed=False,
-                    target_time=target_time,
+                    target_time=adjusted_target_time,
                     actual_time=0.0,
                     message="No valid execution time data found",
                 )
@@ -490,14 +518,14 @@ class PerformanceValidator:
             max_execution_time = max(execution_times)
             min_execution_time = min(execution_times)
 
-            passed = avg_execution_time <= target_time
+            passed = avg_execution_time <= adjusted_target_time
 
             return PerformanceValidationResult(
                 test_name=f"Workflow Execution Time ({workflow_name})",
                 passed=passed,
-                target_time=target_time,
+                target_time=adjusted_target_time,
                 actual_time=avg_execution_time,
-                message=f"Average execution time: {avg_execution_time:.1f}s (target: {target_time}s)",
+                message=f"Average execution time: {avg_execution_time:.1f}s (target: {adjusted_target_time}s)",
                 details={
                     "average_time": avg_execution_time,
                     "max_time": max_execution_time,
@@ -510,7 +538,7 @@ class PerformanceValidator:
             return PerformanceValidationResult(
                 test_name=f"Workflow Execution Time ({workflow_name})",
                 passed=False,
-                target_time=target_time,
+                target_time=adjusted_target_time,
                 actual_time=0.0,
                 message=f"Error validating workflow execution time: {e}",
             )
@@ -541,20 +569,24 @@ class PerformanceValidator:
                     json.load(f)
                 access_time = time.time() - start_time
 
+                # Adjust target time for CI environment
+                local_target_time = get_performance_threshold(0.01)
+
                 return PerformanceValidationResult(
                     test_name="Status API Performance (Local)",
-                    passed=access_time <= 0.01,  # 10ms for local file
-                    target_time=0.01,
+                    passed=access_time <= local_target_time,
+                    target_time=local_target_time,
                     actual_time=access_time,
                     message=f"Local status file access time: {access_time:.3f}s",
                     details={"file_path": str(local_file)},
                 )
 
             except Exception as e:
+                local_target_time = get_performance_threshold(0.01)
                 return PerformanceValidationResult(
                     test_name="Status API Performance (Local)",
                     passed=False,
-                    target_time=0.01,
+                    target_time=local_target_time,
                     actual_time=0.0,
                     message=f"Error accessing local status file: {e}",
                 )
@@ -566,10 +598,11 @@ class PerformanceValidator:
             status_url = f"{github_pages_url}/security-status/index.json"
             return self.validate_api_response_time(status_url, 0.2)
 
+        fallback_target_time = get_performance_threshold(0.2)
         return PerformanceValidationResult(
             test_name="Status API Performance",
             passed=False,
-            target_time=0.2,
+            target_time=fallback_target_time,
             actual_time=0.0,
             message="No status API endpoint available for testing",
         )

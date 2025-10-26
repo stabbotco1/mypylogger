@@ -216,7 +216,9 @@ class DeploymentValidator:
         # Check UV installation
         uv_available = False
         try:
-            result = subprocess.run(["uv", "--version"], check=False, capture_output=True, text=True)
+            result = subprocess.run(
+                ["uv", "--version"], check=False, capture_output=True, text=True
+            )
             uv_available = result.returncode == 0
         except FileNotFoundError:
             pass
@@ -308,7 +310,8 @@ class DeploymentValidator:
                     "-v",
                     "--tb=short",
                 ],
-                check=False, capture_output=True,
+                check=False,
+                capture_output=True,
                 text=True,
                 timeout=60,
             )
