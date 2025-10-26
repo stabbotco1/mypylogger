@@ -161,8 +161,12 @@ class TestPerformanceValidator:
         self.validator = PerformanceValidator()
 
     @patch("requests.get")
-    def test_validate_api_response_time_success(self, mock_get: Mock) -> None:
+    @patch("scripts.security_performance_validator.is_ci_environment")
+    def test_validate_api_response_time_success(self, mock_is_ci: Mock, mock_get: Mock) -> None:
         """Test successful API response time validation."""
+        # Mock non-CI environment to get original target time
+        mock_is_ci.return_value = False
+
         # Mock successful response
         mock_response = Mock()
         mock_response.status_code = 200
@@ -201,8 +205,12 @@ class TestPerformanceValidator:
             or "No such file or directory" in result.message
         )
 
-    def test_validate_workflow_execution_time_with_metrics(self) -> None:
+    @patch("scripts.security_performance_validator.is_ci_environment")
+    def test_validate_workflow_execution_time_with_metrics(self, mock_is_ci: Mock) -> None:
         """Test workflow execution time validation with sample metrics."""
+        # Mock non-CI environment to get original target time
+        mock_is_ci.return_value = False
+
         # Create temporary metrics directory
         temp_dir = Path(tempfile.mkdtemp())
         metrics_dir = temp_dir / "metrics"
@@ -233,8 +241,12 @@ class TestPerformanceValidator:
 
         shutil.rmtree(temp_dir)
 
-    def test_validate_status_api_performance_local_file(self) -> None:
+    @patch("scripts.security_performance_validator.is_ci_environment")
+    def test_validate_status_api_performance_local_file(self, mock_is_ci: Mock) -> None:
         """Test status API performance validation with local file."""
+        # Mock non-CI environment to get original target time
+        mock_is_ci.return_value = False
+
         # Create temporary status file
         temp_dir = Path(tempfile.mkdtemp())
         status_dir = temp_dir / "docs" / "security-status"

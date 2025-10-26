@@ -1,13 +1,26 @@
 # Security Findings Summary
 
-**Last Updated**: 2025-10-26 16:28:01 UTC
-**Total Active Findings**: 3
+**Last Updated**: 2025-10-26 16:52:00 UTC
+**Total Active Findings**: 4
 **Days Since Last Scan**: 0
 
 **Severity Breakdown**:  
+- **High**: 1  
 - **Medium**: 3  
 
 ## Current Findings
+
+### High Severity
+
+#### SECRET-unknown-unknown-0 - Potential unknown secret detected:
+- **Package**: unknown local
+- **Source**: secrets
+- **Discovered**: 2025-10-26 (0 days active)
+- **Description**: Potential unknown secret detected: 
+- **Impact**: Exposed secret in unknown at line 0
+- **Fix Available**: No
+- **Remediation**: Under evaluation
+- **Assigned To**: security-team
 
 ### Medium Severity
 
@@ -32,6 +45,8 @@
 - **Impact**: Vulnerability in py package
 - **Reference**: https://osv.dev/vulnerability/PYSEC-2022-42969
 - **Fix Available**: No
+- **Remediation**: Under evaluation
+- **Assigned To**: security-team
 
 #### PYSEC-2025-49 - setuptools is a package that allows users to download, bu...
 - **Package**: setuptools 75.3.2
@@ -41,12 +56,16 @@
 - **Impact**: Vulnerability in setuptools package
 - **Reference**: https://osv.dev/vulnerability/PYSEC-2025-49
 - **Fix Available**: Yes (78.1.1)
+- **Remediation**: Under evaluation
+- **Assigned To**: security-team
 
 ## Remediation Summary
 
-**Total Plans**: 1  
+**Total Plans**: 4  
+**New**: 3  
 **Completed**: 1  
 
 **Priority Breakdown**:  
 **High**: 1  
+**Medium**: 3  
 
