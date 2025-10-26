@@ -27407,3 +27407,35 @@ Each entry represents a significant event in the security findings management pr
 **Package**: core.py local  
 **Scanner**: bandit  
 
+
+## 2025-10-26 20:06:33 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-26 20:06:39 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-26 20:06:45 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-26 20:06:48 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
