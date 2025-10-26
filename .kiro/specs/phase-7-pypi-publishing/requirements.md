@@ -9,7 +9,7 @@ Phase 7 establishes PyPI publishing infrastructure with security-driven automati
 - **PyPI_Publishing_System**: The automated workflow system that publishes mypylogger packages to the Python Package Index
 - **Security_Driven_Release**: An automated release triggered by changes in security findings or vulnerability status
 - **Live_Security_Status**: A dynamic reporting system that shows current security posture without requiring package releases
-- **OIDC_Authentication**: OpenID Connect authentication system for secure PyPI publishing via AWS identity federation
+- **Trusted_Publishing**: PyPI's built-in OIDC authentication system for secure publishing directly from GitHub Actions
 - **Release_Automation_Engine**: The GitHub Actions workflow system that determines when releases should be triggered
 - **Security_Findings_Monitor**: The weekly scanning system that detects changes in vulnerability status
 
@@ -41,15 +41,15 @@ Phase 7 establishes PyPI publishing infrastructure with security-driven automati
 
 ### Requirement 3
 
-**User Story:** As a DevOps engineer, I want secure PyPI authentication via AWS OIDC, so that publishing credentials are managed securely without storing secrets in GitHub.
+**User Story:** As a DevOps engineer, I want secure PyPI authentication via trusted publishing, so that publishing credentials are managed securely without storing secrets in GitHub.
 
 #### Acceptance Criteria
 
-1. THE OIDC_Authentication SHALL use AWS identity federation for PyPI publishing
-2. THE OIDC_Authentication SHALL NOT require stored secrets in GitHub repository
-3. WHEN publishing to PyPI, THE OIDC_Authentication SHALL provide temporary credentials
-4. THE OIDC_Authentication SHALL integrate with existing GitHub Actions workflows
-5. IF OIDC_Authentication fails, THEN THE PyPI_Publishing_System SHALL provide clear error messages
+1. THE Trusted_Publishing SHALL use PyPI's built-in OIDC authentication for publishing
+2. THE Trusted_Publishing SHALL NOT require stored secrets in GitHub repository
+3. WHEN publishing to PyPI, THE Trusted_Publishing SHALL authenticate directly via GitHub OIDC
+4. THE Trusted_Publishing SHALL integrate seamlessly with GitHub Actions workflows
+5. IF Trusted_Publishing fails, THEN THE PyPI_Publishing_System SHALL provide clear error messages
 
 ### Requirement 4
 

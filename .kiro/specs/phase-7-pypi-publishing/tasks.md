@@ -40,34 +40,34 @@
   - Add integration tests for workflow validation
   - _Requirements: 6.1, 6.2, 6.6_
 
-- [x] 2. Phase 7B: AWS OIDC Authentication Setup
+- [x] 2. Phase 7B: Trusted Publishing Setup
   - **BEFORE STARTING**: Run `./scripts/run_tests.sh` to verify current state - fix any errors before proceeding
-  - Configure AWS infrastructure for GitHub Actions OIDC authentication
-  - Implement secure PyPI token management using AWS Secrets Manager
-  - Integrate OIDC authentication into GitHub Actions publishing workflow
+  - Configure PyPI trusted publisher for GitHub repository
+  - Implement secure publishing using PyPI's built-in OIDC authentication
+  - Integrate trusted publishing into GitHub Actions publishing workflow
   - **BEFORE COMPLETION**: Run `./scripts/run_tests.sh` to verify all changes - fix any errors/warnings before marking complete
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [x] 2.1 Create AWS OIDC infrastructure configuration
-  - Write AWS CloudFormation/Terraform templates for IAM role creation
-  - Configure OIDC identity provider for GitHub Actions integration
-  - Set up PyPI token storage in AWS Secrets Manager
+- [x] 2.1 Configure PyPI trusted publisher
+  - Set up trusted publisher configuration on PyPI for GitHub repository
+  - Configure repository, workflow, and environment settings
+  - Validate trusted publisher permissions and scope
   - _Requirements: 3.1, 3.2_
 
-- [x] 2.2 Implement OIDC authentication in GitHub Actions workflow
-  - Add AWS OIDC authentication steps to publishing workflow
-  - Implement temporary credential retrieval and management
-  - Add authentication error handling and diagnostics
+- [x] 2.2 Implement trusted publishing in GitHub Actions workflow
+  - Add PyPI trusted publishing steps to publishing workflow
+  - Configure OIDC permissions and environment protection
+  - Add publishing error handling and diagnostics
   - _Requirements: 3.3, 3.4, 3.5_
 
-- [x] 2.3 Create secure credential management system
-  - Implement PyPI token retrieval from AWS Secrets Manager
-  - Add credential validation and security checks
-  - Ensure no credential exposure in logs or artifacts
+- [x] 2.3 Validate trusted publishing security
+  - Verify no credentials are stored in GitHub repository
+  - Add publishing authorization validation
+  - Ensure secure OIDC token handling
   - _Requirements: 3.1, 3.2, 3.5_
 
-- [x] 2.4 Add security tests for OIDC authentication
-  - Write tests for OIDC token handling and security measures
+- [x] 2.4 Add security tests for trusted publishing
+  - Write tests for trusted publishing authentication
   - Create tests for credential exposure prevention
   - Add tests for publishing authorization and scope limitations
   - _Requirements: 3.1, 3.2, 3.3_

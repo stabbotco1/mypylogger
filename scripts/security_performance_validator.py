@@ -71,75 +71,84 @@ class SecurityValidator:
         """Initialize security validator."""
         self.results: list[SecurityValidationResult] = []
 
-    def validate_oidc_configuration(self) -> SecurityValidationResult:
-        """Validate OIDC configuration and environment setup.
+    def validate_trusted_publishing_configuration(self) -> SecurityValidationResult:
+        """Validate trusted publishing configuration and environment setup.
 
         Returns:
-            Security validation result for OIDC configuration
+            Security validation result for trusted publishing configuration
         """
         start_time = time.time()
 
         try:
-            # Check required environment variables
-            required_vars = [
-                "AWS_ROLE_ARN",
-                "AWS_REGION",
-                "AWS_SECRET_NAME",
-            ]
-
-            missing_vars = []
-            for var in required_vars:
-                if not os.getenv(var):
-                    missing_vars.append(var)
-
-            if missing_vars:
+            # Check for PyPI publishing workflow configuration
+            workflow_path = Path(".github/workflows/pypi-publish.yml")
+            if not workflow_path.exists():
                 return SecurityValidationResult(
-                    test_name="OIDC Configuration",
+                    test_name="Trusted Publishing Configuration",
                     passed=False,
-                    message=f"Missing required environment variables: {', '.join(missing_vars)}",
-                    details={"missing_variables": missing_vars},
+                    message="PyPI publishing workflow not found",
+                    details={"workflow_path": str(workflow_path)},
                     execution_time=time.time() - start_time,
                 )
 
-            # Validate AWS role ARN format
-            role_arn = os.getenv("AWS_ROLE_ARN", "")
-            if not role_arn.startswith("arn:aws:iam::"):
+            # Read and validate workflow configuration
+            import yaml
+
+            with open(workflow_path) as f:
+                workflow = yaml.safe_load(f)
+
+            # Check for proper OIDC permissions
+            publish_job = workflow.get("jobs", {}).get("publish-to-pypi", {})
+            permissions = publish_job.get("permissions", {})
+
+            required_permissions = {"id-token": "write", "contents": "read"}
+            missing_permissions = []
+
+            for perm, level in required_permissions.items():
+                if permissions.get(perm) != level:
+                    missing_permissions.append(f"{perm}: {level}")
+
+            if missing_permissions:
                 return SecurityValidationResult(
-                    test_name="OIDC Configuration",
+                    test_name="Trusted Publishing Configuration",
                     passed=False,
-                    message="Invalid AWS_ROLE_ARN format",
-                    details={"role_arn": role_arn},
+                    message=f"Missing required OIDC permissions: {missing_permissions}",
+                    details={"missing_permissions": missing_permissions},
                     execution_time=time.time() - start_time,
                 )
 
-            # Validate AWS region
-            region = os.getenv("AWS_REGION", "")
-            if not region or len(region) < 3:
+            # Check for pypa/gh-action-pypi-publish usage
+            steps = publish_job.get("steps", [])
+            has_trusted_publishing = any(
+                step.get("uses", "").startswith("pypa/gh-action-pypi-publish") for step in steps
+            )
+
+            if not has_trusted_publishing:
                 return SecurityValidationResult(
-                    test_name="OIDC Configuration",
+                    test_name="Trusted Publishing Configuration",
                     passed=False,
-                    message="Invalid AWS_REGION",
-                    details={"region": region},
+                    message="Workflow does not use pypa/gh-action-pypi-publish for trusted publishing",
+                    details={"steps": [step.get("uses") for step in steps if "uses" in step]},
                     execution_time=time.time() - start_time,
                 )
 
             return SecurityValidationResult(
-                test_name="OIDC Configuration",
+                test_name="Trusted Publishing Configuration",
                 passed=True,
-                message="OIDC configuration is valid",
+                message="Trusted publishing configuration is valid",
                 details={
-                    "role_arn": role_arn,
-                    "region": region,
-                    "secret_name": os.getenv("AWS_SECRET_NAME"),
+                    "permissions": permissions,
+                    "uses_trusted_publishing": has_trusted_publishing,
                 },
                 execution_time=time.time() - start_time,
             )
 
         except Exception as e:
             return SecurityValidationResult(
-                test_name="OIDC Configuration",
+                test_name="Trusted Publishing Configuration",
                 passed=False,
-                message=f"Error validating OIDC configuration: {e}",
+                message=f"Trusted publishing configuration validation failed: {e}",
+                details={"error": str(e)},
                 execution_time=time.time() - start_time,
             )
 
@@ -290,21 +299,21 @@ class SecurityValidator:
                             }
                         )
 
-                    # Check for environment restrictions
-                    if "environment:" in content:
+                    # Check for trusted publishing action usage
+                    if "pypa/gh-action-pypi-publish" in content:
                         authorization_checks.append(
                             {
-                                "check": f"Environment protection in {workflow_file.name}",
+                                "check": f"Trusted publishing in {workflow_file.name}",
                                 "passed": True,
-                                "message": "Environment protection configured",
+                                "message": "Uses PyPI trusted publishing action",
                             }
                         )
                     else:
                         authorization_checks.append(
                             {
-                                "check": f"Environment protection in {workflow_file.name}",
+                                "check": f"Trusted publishing in {workflow_file.name}",
                                 "passed": False,
-                                "message": "No environment protection configured",
+                                "message": "Does not use PyPI trusted publishing action",
                             }
                         )
 
@@ -346,7 +355,7 @@ class SecurityValidator:
             List of all security validation results
         """
         self.results = [
-            self.validate_oidc_configuration(),
+            self.validate_trusted_publishing_configuration(),
             self.validate_credential_security(),
             self.validate_publishing_authorization(),
         ]

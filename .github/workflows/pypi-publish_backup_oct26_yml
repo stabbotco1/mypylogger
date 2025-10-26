@@ -22,8 +22,9 @@ on:
         type: boolean
 
 permissions:
-  contents: read
-  id-token: write  # Required for PyPI trusted publishing
+  contents: read           # Required for repository checkout and access
+  security-events: write  # Required for security report uploads
+  actions: read           # Required for workflow status checks
 
 env:
   PYTHON_VERSION: '3.12'
@@ -219,23 +220,221 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quality-gates, package-validation]
     if: ${{ !inputs.dry_run }}
+    environment: pypi-publishing
     
+    # Required for AWS OIDC authentication
     permissions:
-      id-token: write  # IMPORTANT: Required for PyPI trusted publishing
+      id-token: write
       contents: read
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
       
-      - name: Publish to PyPI using Trusted Publishing
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Validate AWS OIDC configuration
+        run: |
+          echo "🔍 Validating AWS OIDC configuration before authentication..."
+          python scripts/validate_aws_config.py
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
+      
+      - name: Display package information
+        run: |
+          echo "📦 Publishing package to PyPI..."
+          echo "Package: ${{ needs.package-validation.outputs.package-name }} v${{ needs.package-validation.outputs.package-version }}"
+          echo "Release Type: ${{ github.event.inputs.release_type }}"
+          echo "Release Notes: ${{ github.event.inputs.release_notes }}"
+          
+          echo "Built distributions:"
+          ls -la dist/
+          
+          echo "Package metadata:"
+          cat package-metadata.json
+      
+      - name: Configure AWS OIDC authentication (Attempt 1)
+        id: aws-auth-1
+        uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
         with:
-          # No password needed! PyPI authenticates via GitHub OIDC
-          verbose: true
-          print-hash: true
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: GitHubActions-PyPI-Publishing
+          role-duration-seconds: 900  # 15 minutes
+        env:
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: 3
+      
+      - name: Wait and retry AWS authentication (Attempt 2)
+        if: steps.aws-auth-1.outcome == 'failure'
+        run: |
+          echo "⏳ First AWS authentication attempt failed, waiting 2 seconds before retry..."
+          sleep 2
+      
+      - name: Configure AWS OIDC authentication (Attempt 2)
+        id: aws-auth-2
+        if: steps.aws-auth-1.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: GitHubActions-PyPI-Publishing
+          role-duration-seconds: 900  # 15 minutes
+        env:
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: 3
+      
+      - name: Wait and retry AWS authentication (Attempt 3)
+        if: steps.aws-auth-1.outcome == 'failure' && steps.aws-auth-2.outcome == 'failure'
+        run: |
+          echo "⏳ Second AWS authentication attempt failed, waiting 4 seconds before final retry..."
+          sleep 4
+      
+      - name: Configure AWS OIDC authentication (Attempt 3 - Final)
+        id: aws-auth-3
+        if: steps.aws-auth-1.outcome == 'failure' && steps.aws-auth-2.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: GitHubActions-PyPI-Publishing
+          role-duration-seconds: 900  # 15 minutes
+        env:
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: 3
+      
+      - name: AWS authentication summary
+        run: |
+          echo "📊 AWS Authentication Summary:"
+          if [ "${{ steps.aws-auth-1.outcome }}" = "success" ]; then
+            echo "  ✅ Succeeded on attempt 1"
+          elif [ "${{ steps.aws-auth-2.outcome }}" = "success" ]; then
+            echo "  ✅ Succeeded on attempt 2 (after 2s backoff)"
+          elif [ "${{ steps.aws-auth-3.outcome }}" = "success" ]; then
+            echo "  ✅ Succeeded on attempt 3 (after 4s backoff)"
+          else
+            echo "  ❌ Failed after 3 attempts with exponential backoff"
+            exit 1
+          fi
+      
+      - name: Log AWS authentication details
+        run: |
+          echo "📋 AWS Authentication Details:"
+          echo "  Region: ${{ secrets.AWS_REGION || 'us-east-1' }}"
+          echo "  Session: GitHubActions-PyPI-Publishing"
+          echo "  Duration: 900 seconds (15 minutes)"
+          echo "  Retry Mode: adaptive"
+          echo "  Max Attempts: 3"
+      
+      - name: Verify AWS authentication and connectivity
+        run: |
+          echo "🔐 Verifying AWS OIDC authentication..."
+          
+          # Verify AWS credentials are working
+          aws sts get-caller-identity
+          
+          # Test access to secrets manager
+          aws secretsmanager describe-secret --secret-id ${{ secrets.AWS_SECRET_NAME }} --query 'Name' --output text
+          
+          echo "✅ AWS authentication successful"
+      
+      - name: Retrieve PyPI token from AWS Secrets Manager
+        id: get-pypi-token
+        run: |
+          echo "🔑 Retrieving PyPI token from AWS Secrets Manager..."
+          
+          # Retrieve the secret with error handling
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id ${{ secrets.AWS_SECRET_NAME }} \
+            --query 'SecretString' \
+            --output text)
+          
+          if [ -z "$SECRET_JSON" ]; then
+            echo "❌ Failed to retrieve secret from AWS Secrets Manager"
+            exit 1
+          fi
+          
+          # Parse the JSON and extract the token
+          PYPI_TOKEN=$(echo "$SECRET_JSON" | jq -r '.token')
+          
+          if [ -z "$PYPI_TOKEN" ] || [ "$PYPI_TOKEN" = "null" ]; then
+            echo "❌ PyPI token not found in secret"
+            exit 1
+          fi
+          
+          # Validate token format
+          if [[ ! "$PYPI_TOKEN" =~ ^pypi-.+ ]]; then
+            echo "❌ Invalid PyPI token format"
+            exit 1
+          fi
+          
+          # Set token as masked output
+          echo "::add-mask::$PYPI_TOKEN"
+          echo "pypi_token=$PYPI_TOKEN" >> $GITHUB_OUTPUT
+          
+          echo "✅ PyPI token retrieved successfully"
+      
+      - name: Set up Python for publishing
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install UV and publishing tools
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          source $HOME/.cargo/env
+          
+          export PATH="$HOME/.cargo/bin:$PATH"
+          uv sync
+          uv add --dev twine
+      
+      - name: Publish to PyPI with OIDC authentication
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          echo "🚀 Publishing to PyPI with AWS OIDC authentication..."
+          
+          # Run publishing script with OIDC authentication
+          uv run python scripts/publish_with_error_handling.py \
+            --package-dir . \
+            --log-file publishing.log \
+            --report-file publishing_report.json \
+            --pypi-token "${{ steps.get-pypi-token.outputs.pypi_token }}" \
+            --auth-method "oidc" \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
+          
+          # Display publishing report
+          if [ -f "publishing_report.json" ]; then
+            echo "📊 Publishing Report:"
+            cat publishing_report.json | jq '.'
+          fi
+          
+          # Display log file if it exists
+          if [ -f "publishing.log" ]; then
+            echo "📋 Publishing Log (last 50 lines):"
+            tail -50 publishing.log
+          fi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ steps.get-pypi-token.outputs.pypi_token }}
+      
+      - name: Update live security status after publishing
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          echo "📊 Updating live security status after successful publishing..."
+          
+          # Execute manual workflow to update status
+          uv run python scripts/integration_orchestrator.py manual-workflow \
+            --notes="Published ${{ needs.package-validation.outputs.package-name }} v${{ needs.package-validation.outputs.package-version }} to PyPI"
+          
+          echo "✅ Live security status updated"
       
       - name: Create release summary
         run: |
@@ -260,6 +459,10 @@ jobs:
           ## Distribution Files
           $(ls -la dist/)
           
+          ## Live Status
+          - ✅ Security status updated
+          - 📊 Status available at GitHub Pages
+          
           ## Next Steps
           - Package is available on PyPI
           - Update documentation if needed
@@ -269,6 +472,23 @@ jobs:
           echo "Release summary:"
           cat release-summary.md
       
+      - name: Handle publishing failure
+        if: failure()
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          echo "🚨 Publishing failed - sending failure notifications..."
+          
+          # Send failure notifications
+          if [ -f "publishing_report.json" ]; then
+            uv run python scripts/notify_publishing_failure.py \
+              --error-report publishing_report.json \
+              --create-issue
+          else
+            echo "⚠️  No publishing report found - cannot send detailed notifications"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -276,6 +496,8 @@ jobs:
           name: release-artifacts
           path: |
             release-summary.md
+            publishing_report.json
+            publishing.log
           if-no-files-found: ignore
 
   dry-run-summary:

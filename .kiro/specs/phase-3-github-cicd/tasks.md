@@ -62,39 +62,12 @@
   - Add publishing success confirmation
   - _Requirements: 4.2, 4.4, 4.5_
 
-- [x] 4.3 Fix AWS OIDC configuration for PyPI publishing
-  - Update PyPI publishing workflow to include required `aws-region` parameter
-  - Set default region to `us-east-1` with fallback to secrets
-  - Add comprehensive AWS configuration validation and error handling
-  - Implement retry logic for transient AWS authentication failures
-  - _Requirements: 13.1, 13.2, 13.3, 14.1, 15.1_
-
-- [x] 4.3.1 Update aws-actions/configure-aws-credentials step in pypi-publish.yml
-  - Add missing `aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}` parameter
-  - Ensure all required OIDC parameters are present and properly formatted
-  - Validate workflow YAML syntax after changes
-  - _Requirements: 13.1, 13.4_
-
-- [x] 4.3.2 Add AWS configuration validation and error handling
-  - Create validation script to check AWS_REGION format and AWS_ROLE_ARN presence
-  - Implement region format validation using regex pattern for AWS regions
-  - Add specific error messages for missing aws-region configuration
-  - Implement fail-fast behavior with clear error descriptions
-  - _Requirements: 13.5, 14.3, 14.4_
-
-- [x] 4.3.3 Implement AWS authentication retry logic and logging
-  - Add retry wrapper around aws-actions/configure-aws-credentials step
-  - Configure maximum 3 attempts with exponential backoff (2s, 4s, 8s)
-  - Implement structured logging for AWS authentication steps
-  - Add AWS connectivity and permission validation steps
-  - _Requirements: 15.1, 15.2, 15.5_
-
-- [x] 4.3.4 Test and validate AWS OIDC workflow
-  - Execute end-to-end test of PyPI publishing workflow with AWS authentication
-  - Test both default region (us-east-1) and custom region scenarios
-  - Verify retry logic works correctly for transient AWS failures
-  - Test error messages and troubleshooting guidance
-  - _Requirements: 13.3, 15.3, 15.4_
+- [x] 4.3 Configure trusted publishing for PyPI
+  - Update PyPI publishing workflow to use trusted publishing
+  - Configure proper OIDC permissions and environment protection
+  - Add comprehensive publishing validation and error handling
+  - Implement retry logic for transient publishing failures
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
 
 - [x] 5. Configure Branch Protection Rules
 - [x] 5.1 Set up branch protection configuration

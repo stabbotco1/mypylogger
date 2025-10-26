@@ -183,26 +183,18 @@ class TestPyPIPublishingIntegration:
         result = self.orchestrator.execute_security_driven_workflow()
         assert result["success"] is True
 
-        # Test security validation
-        with patch.dict(
-            os.environ,
-            {
-                "AWS_ROLE_ARN": "arn:aws:iam::123456789012:role/GitHubActionsRole",
-                "AWS_REGION": "us-east-1",
-                "AWS_SECRET_NAME": "pypi-token-secret",
-            },
-        ):
-            validation_results = self.validator.run_complete_validation()
+        # Test security validation (no AWS environment variables needed for trusted publishing)
+        validation_results = self.validator.run_complete_validation()
 
-            assert "overall_passed" in validation_results
-            assert "security" in validation_results
-            assert "performance" in validation_results
+        assert "overall_passed" in validation_results
+        assert "security" in validation_results
+        assert "performance" in validation_results
 
-            # Security validation should pass with proper environment
-            assert validation_results["security"]["passed"] is True
+        # Security validation should pass with trusted publishing configuration
+        assert validation_results["security"]["passed"] is True
 
-            # Performance validation may pass or fail depending on file availability
-            assert "passed" in validation_results["performance"]
+        # Performance validation may pass or fail depending on file availability
+        assert "passed" in validation_results["performance"]
 
     def test_workflow_monitoring_and_metrics_collection(self) -> None:
         """Test comprehensive workflow monitoring and metrics collection."""
@@ -491,58 +483,19 @@ class TestSecurityValidationIntegration:
         """Set up test environment."""
         self.validator = SecurityPerformanceValidator()
 
-    def test_oidc_security_validation_scenarios(self) -> None:
-        """Test various OIDC security validation scenarios."""
-        test_scenarios = [
-            {
-                "name": "Valid OIDC configuration",
-                "env_vars": {
-                    "AWS_ROLE_ARN": "arn:aws:iam::123456789012:role/GitHubActionsRole",
-                    "AWS_REGION": "us-east-1",
-                    "AWS_SECRET_NAME": "pypi-token-secret",
-                },
-                "expected_pass": True,
-            },
-            {
-                "name": "Missing AWS_ROLE_ARN",
-                "env_vars": {
-                    "AWS_REGION": "us-east-1",
-                    "AWS_SECRET_NAME": "pypi-token-secret",
-                },
-                "expected_pass": False,
-            },
-            {
-                "name": "Invalid AWS_ROLE_ARN format",
-                "env_vars": {
-                    "AWS_ROLE_ARN": "invalid-arn-format",
-                    "AWS_REGION": "us-east-1",
-                    "AWS_SECRET_NAME": "pypi-token-secret",
-                },
-                "expected_pass": False,
-            },
-            {
-                "name": "Invalid AWS_REGION",
-                "env_vars": {
-                    "AWS_ROLE_ARN": "arn:aws:iam::123456789012:role/GitHubActionsRole",
-                    "AWS_REGION": "x",
-                    "AWS_SECRET_NAME": "pypi-token-secret",
-                },
-                "expected_pass": False,
-            },
-        ]
+    def test_trusted_publishing_security_validation_scenarios(self) -> None:
+        """Test various trusted publishing security validation scenarios."""
+        # Test with existing workflow configuration
+        results = self.validator.security_validator.run_all_security_validations()
 
-        for scenario in test_scenarios:
-            # Use pytest.param for parameterized testing instead of subTest
-            with patch.dict(os.environ, scenario["env_vars"], clear=True):
-                results = self.validator.security_validator.run_all_security_validations()
+        # Find trusted publishing configuration result
+        trusted_publishing_result = next(
+            (r for r in results if r.test_name == "Trusted Publishing Configuration"), None
+        )
 
-                # Find OIDC configuration result
-                oidc_result = next(
-                    (r for r in results if r.test_name == "OIDC Configuration"), None
-                )
-
-                assert oidc_result is not None
-                assert oidc_result.passed == scenario["expected_pass"]
+        assert trusted_publishing_result is not None
+        # Should pass since we have a valid pypi-publish.yml workflow
+        assert trusted_publishing_result.passed is True
 
     def test_credential_security_validation_scenarios(self) -> None:
         """Test credential security validation scenarios."""

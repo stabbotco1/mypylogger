@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
@@ -24,47 +24,75 @@ class TestSecurityValidator:
         """Set up test environment."""
         self.validator = SecurityValidator()
 
-    def test_validate_oidc_configuration_success(self) -> None:
-        """Test successful OIDC configuration validation."""
-        with patch.dict(
-            os.environ,
-            {
-                "AWS_ROLE_ARN": "arn:aws:iam::123456789012:role/GitHubActionsRole",
-                "AWS_REGION": "us-east-1",
-                "AWS_SECRET_NAME": "pypi-token-secret",
-            },
-        ):
-            result = self.validator.validate_oidc_configuration()
+    def test_validate_trusted_publishing_configuration_success(self) -> None:
+        """Test successful trusted publishing configuration validation."""
+        # The test should pass with the existing pypi-publish.yml workflow
+        from pathlib import Path
 
-            assert result.passed is True
-            assert result.test_name == "OIDC Configuration"
-            assert "valid" in result.message
-            assert result.details is not None
-            assert result.execution_time is not None
+        # Find the project root directory (where pyproject.toml is located)
+        project_root = Path(__file__).parent.parent.parent
+        workflow_path = project_root / ".github/workflows/pypi-publish.yml"
 
-    def test_validate_oidc_configuration_missing_vars(self) -> None:
-        """Test OIDC configuration validation with missing variables."""
-        with patch.dict(os.environ, {}, clear=True):
-            result = self.validator.validate_oidc_configuration()
+        # Ensure the workflow file exists
+        assert workflow_path.exists(), f"Workflow file not found at: {workflow_path}"
+
+        # Temporarily change to project root for the test
+        import os
+
+        original_cwd = None
+        try:
+            original_cwd = Path.cwd()
+        except (OSError, FileNotFoundError):
+            # If we can't get the current directory, that's fine
+            pass
+
+        try:
+            os.chdir(project_root)
+            result = self.validator.validate_trusted_publishing_configuration()
+        finally:
+            # Restore original directory if we had one
+            if original_cwd and original_cwd.exists():
+                try:
+                    os.chdir(original_cwd)
+                except (OSError, FileNotFoundError):
+                    # If we can't restore, that's fine
+                    pass
+
+        assert result.passed is True, f"Test failed: {result.message}. Details: {result.details}"
+        assert result.test_name == "Trusted Publishing Configuration"
+        assert "valid" in result.message
+        assert result.details is not None
+        assert result.execution_time is not None
+
+    def test_validate_trusted_publishing_configuration_missing_workflow(self) -> None:
+        """Test trusted publishing configuration validation with missing workflow."""
+        # Mock Path.exists to return False for workflow file
+        with patch("pathlib.Path.exists", return_value=False):
+            result = self.validator.validate_trusted_publishing_configuration()
 
             assert result.passed is False
-            assert "Missing required environment variables" in result.message
-            assert "AWS_ROLE_ARN" in result.details["missing_variables"]
+            assert "PyPI publishing workflow not found" in result.message
 
-    def test_validate_oidc_configuration_invalid_arn(self) -> None:
-        """Test OIDC configuration validation with invalid ARN."""
-        with patch.dict(
-            os.environ,
-            {
-                "AWS_ROLE_ARN": "invalid-arn",
-                "AWS_REGION": "us-east-1",
-                "AWS_SECRET_NAME": "pypi-token-secret",
-            },
-        ):
-            result = self.validator.validate_oidc_configuration()
+    def test_validate_trusted_publishing_configuration_invalid_permissions(self) -> None:
+        """Test trusted publishing configuration validation with invalid permissions."""
+        # Create a temporary workflow with invalid permissions
+        temp_workflow = """
+name: Test Workflow
+jobs:
+  publish-to-pypi:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: pypa/gh-action-pypi-publish@release/v1
+"""
 
-            assert result.passed is False
-            assert "Invalid AWS_ROLE_ARN format" in result.message
+        with patch("builtins.open", mock_open(read_data=temp_workflow)):
+            with patch("pathlib.Path.exists", return_value=True):
+                result = self.validator.validate_trusted_publishing_configuration()
+
+                assert result.passed is False
+                assert "Missing required OIDC permissions" in result.message
 
     def test_validate_credential_security_success(self) -> None:
         """Test successful credential security validation."""
@@ -112,13 +140,12 @@ on: workflow_dispatch
 permissions:
   id-token: write
   contents: read
-environment: pypi-publishing
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Publish
-        run: echo "Publishing"
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 """
 
         (workflows_dir / "pypi-publish.yml").write_text(workflow_content)

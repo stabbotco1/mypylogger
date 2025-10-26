@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 7 implements a sophisticated PyPI publishing system that combines automated security-driven releases with live security status reporting. The system minimizes unnecessary releases while ensuring users always have access to current security information through dynamic status endpoints. The architecture integrates AWS OIDC authentication for secure credential management and builds upon existing CI/CD infrastructure from Phase 3 and security monitoring from Phase 6.
+Phase 7 implements a sophisticated PyPI publishing system that combines automated security-driven releases with live security status reporting. The system minimizes unnecessary releases while ensuring users always have access to current security information through dynamic status endpoints. The architecture integrates PyPI trusted publishing for secure credential management and builds upon existing CI/CD infrastructure from Phase 3 and security monitoring from Phase 6.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ graph TB
     
     subgraph "Publishing Infrastructure"
         GHA[GitHub_Actions_Workflows]
-        OIDC[AWS_OIDC_Authentication]
+        TP[Trusted_Publishing]
         PPS[PyPI_Publishing_System]
     end
     
@@ -52,7 +52,7 @@ graph TB
 1. **Weekly Security Scans** → Update Live_Security_Status
 2. **Security Changes Detected** → Trigger Release_Automation_Engine
 3. **Release Decision Made** → Execute PyPI_Publishing_System
-4. **Authentication Required** → Use AWS_OIDC_Authentication
+4. **Authentication Required** → Use Trusted_Publishing
 5. **Status Updates** → Reflect in Live_Security_Status_API
 6. **User Visibility** → README badges show current status
 
@@ -133,28 +133,31 @@ StatusBadges:
 }
 ```
 
-### 3. AWS OIDC Authentication System
+### 3. Trusted Publishing System
 
 **Purpose**: Secure PyPI publishing without stored secrets in GitHub.
 
 **Configuration**:
 ```yaml
-OIDC_Provider:
-  aws_role_arn: "arn:aws:iam::ACCOUNT:role/GitHubActionsRole"
-  audience: "sts.amazonaws.com"
+Trusted_Publishing:
+  pypi_environment: "pypi-publishing"
+  required_permissions:
+    id-token: write
+    contents: read
   
-PyPI_Token_Management:
-  storage: AWS_Secrets_Manager
-  rotation: automatic
-  scope: project_specific
+PyPI_Configuration:
+  publisher: "GitHub Actions"
+  repository: "stabbotco1/mypylogger"
+  workflow: "pypi-publish.yml"
+  environment: "pypi-publishing"
 ```
 
 **Authentication Flow**:
-1. GitHub Actions requests OIDC token
-2. AWS STS validates GitHub identity
-3. Temporary credentials issued for PyPI access
-4. PyPI publishing executed with temporary token
-5. Credentials automatically expire
+1. GitHub Actions generates OIDC token
+2. PyPI validates GitHub repository identity
+3. Direct publishing authorization granted
+4. Package uploaded using pypa/gh-action-pypi-publish
+5. No credential management required
 
 ### 4. PyPI Publishing System
 
@@ -253,17 +256,17 @@ class PublishingConfig:
 ### Authentication Failures
 
 ```python
-class OIDCAuthenticationError(Exception):
-    """Raised when AWS OIDC authentication fails."""
+class TrustedPublishingError(Exception):
+    """Raised when PyPI trusted publishing fails."""
     
-def handle_auth_failure(error: OIDCAuthenticationError) -> None:
+def handle_publishing_failure(error: TrustedPublishingError) -> None:
     """
-    Handle OIDC authentication failures with detailed diagnostics.
+    Handle trusted publishing failures with detailed diagnostics.
     
     Actions:
     1. Log detailed error information
-    2. Check AWS role configuration
-    3. Verify GitHub OIDC trust relationship
+    2. Check PyPI trusted publisher configuration
+    3. Verify GitHub repository permissions
     4. Provide actionable remediation steps
     5. Fail workflow with clear error message
     """
@@ -342,8 +345,8 @@ def test_release_justification_generation():
 def test_complete_publishing_workflow():
     """Test complete workflow from security change to PyPI publication."""
     
-def test_oidc_authentication_integration():
-    """Test AWS OIDC authentication in GitHub Actions environment."""
+def test_trusted_publishing_integration():
+    """Test PyPI trusted publishing in GitHub Actions environment."""
     
 def test_security_status_live_updates():
     """Test live security status updates and API availability."""
@@ -396,11 +399,11 @@ def test_publishing_authorization():
 
 ### Credential Management
 
-**AWS OIDC Security**:
-- No long-lived credentials stored in GitHub
-- Temporary tokens with minimal required permissions
-- Role-based access with specific PyPI publishing scope
-- Automatic token expiration and rotation
+**Trusted Publishing Security**:
+- No credentials stored in GitHub
+- Direct OIDC authentication with PyPI
+- Repository-specific publishing permissions
+- Automatic authentication via GitHub identity
 
 ### Publishing Security
 
@@ -432,17 +435,17 @@ def test_publishing_authorization():
    - Metadata validation
    - Pre-publish quality checks
 
-### Phase 7B: AWS OIDC Authentication Setup
+### Phase 7B: Trusted Publishing Setup
 
-1. **AWS Infrastructure Configuration**
-   - IAM role creation for GitHub Actions
-   - OIDC identity provider setup
-   - PyPI token management in AWS Secrets Manager
+1. **PyPI Configuration**
+   - Trusted publisher setup for GitHub repository
+   - Workflow and environment configuration
+   - Repository permissions validation
 
 2. **GitHub Actions Integration**
-   - OIDC authentication workflow integration
-   - Credential management and security validation
-   - Error handling for authentication failures
+   - Trusted publishing workflow integration
+   - OIDC permissions configuration
+   - Error handling for publishing failures
 
 ### Phase 7C: Security-Driven Automation
 

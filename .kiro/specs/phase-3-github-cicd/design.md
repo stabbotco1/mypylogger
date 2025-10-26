@@ -119,28 +119,26 @@ graph TB
 1. Run complete quality gate checks
 2. Verify security scans pass
 3. Build package using standard tools
-4. Authenticate with AWS using OIDC (us-east-1 region)
-5. Retrieve PyPI token from AWS Secrets Manager
-6. Authenticate with PyPI using retrieved token
-7. Upload to PyPI with verification
+4. Authenticate with PyPI using trusted publishing
+5. Upload to PyPI with verification
 
-### 4. AWS OIDC Configuration Component
+### 4. Trusted Publishing Configuration
 
-**Purpose**: Secure AWS authentication for PyPI token retrieval
+**Purpose**: Secure PyPI publishing without credential management
 
 **Configuration Parameters**:
 ```yaml
-aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
-role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-role-session-name: GitHubActions-PyPI-Publishing
-role-duration-seconds: 900
+permissions:
+  id-token: write
+  contents: read
+environment: pypi-publishing
 ```
 
 **Key Features**:
-- Default region fallback to `us-east-1`
-- Configurable via GitHub secrets
-- Retry logic for transient failures
-- Comprehensive error handling and validation
+- No stored credentials required
+- Direct OIDC authentication with PyPI
+- Repository-specific publishing permissions
+- Automatic authentication via GitHub identity
 
 ## Data Models
 
@@ -179,15 +177,9 @@ COVERAGE_THRESHOLD: "95"
 CODEQL_LANGUAGES: "python"
 DEPENDABOT_SCHEDULE: "daily"
 
-# AWS OIDC Configuration
-AWS_DEFAULT_REGION: "us-east-1"
-AWS_RETRY_MODE: "adaptive"
-AWS_MAX_ATTEMPTS: 3
-
-# Publishing (secrets)
-AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-AWS_REGION: ${{ secrets.AWS_REGION }}
-AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
+# Trusted Publishing Configuration
+PYPI_ENVIRONMENT: "pypi-publishing"
+OIDC_PERMISSIONS: "id-token:write,contents:read"
 ```
 
 ### Caching Strategy
@@ -272,18 +264,17 @@ AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
 
 ## Security Considerations
 
-### OIDC Authentication
+### Trusted Publishing
 
 ```yaml
-# PyPI publishing with OIDC
+# PyPI publishing with trusted publishing
 permissions:
   id-token: write
   contents: read
 
 - name: Publish to PyPI
   uses: pypa/gh-action-pypi-publish@release/v1
-  with:
-    repository-url: https://upload.pypi.org/legacy/
+  # No credentials needed - uses trusted publishing
 ```
 
 ### Secret Management
