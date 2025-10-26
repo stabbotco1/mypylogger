@@ -1,26 +1,13 @@
 # Security Findings Summary
 
-**Last Updated**: 2025-10-26 16:52:00 UTC
-**Total Active Findings**: 4
+**Last Updated**: 2025-10-26 17:43:47 UTC
+**Total Active Findings**: 3
 **Days Since Last Scan**: 0
 
 **Severity Breakdown**:  
-- **High**: 1  
 - **Medium**: 3  
 
 ## Current Findings
-
-### High Severity
-
-#### SECRET-unknown-unknown-0 - Potential unknown secret detected:
-- **Package**: unknown local
-- **Source**: secrets
-- **Discovered**: 2025-10-26 (0 days active)
-- **Description**: Potential unknown secret detected: 
-- **Impact**: Exposed secret in unknown at line 0
-- **Fix Available**: No
-- **Remediation**: Under evaluation
-- **Assigned To**: security-team
 
 ### Medium Severity
 
@@ -61,11 +48,11 @@
 
 ## Remediation Summary
 
-**Total Plans**: 4  
-**New**: 3  
+**Total Plans**: 3  
+**New**: 2  
 **Completed**: 1  
 
 **Priority Breakdown**:  
 **High**: 1  
-**Medium**: 3  
+**Medium**: 2  
 

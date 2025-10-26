@@ -1,4 +1,4 @@
-last_updated: '2025-10-26T16:51:59.621916+00:00'
+last_updated: '2025-10-26T17:43:46.364425+00:00'
 findings:
   PYSEC-2025-49:
     first_discovered: '2025-10-25T01:18:57.882345+00:00'
@@ -21068,6 +21068,13 @@ findings:
         reference_url: null
       source: scanner
       notes: New high severity finding discovered by secrets
+    - timestamp: '2025-10-26T17:43:44.460538+00:00'
+      finding_id: SECRET-unknown-unknown-0
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
 remediation:
   PYSEC-2025-49:
     created: '2025-10-25T01:18:57.885678+00:00'

@@ -25383,3 +25383,11 @@ Each entry represents a significant event in the security findings management pr
 **Package**: setuptools 75.3.2  
 **Scanner**: pip-audit  
 
+
+## 2025-10-26 17:43:44 UTC
+
+**Finding ID**: SECRET-unknown-unknown-0  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
