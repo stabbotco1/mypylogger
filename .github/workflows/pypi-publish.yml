@@ -236,6 +236,15 @@ jobs:
         with:
           name: python-package-distributions
       
+      - name: Validate AWS OIDC configuration
+        run: |
+          echo "🔍 Validating AWS OIDC configuration before authentication..."
+          python scripts/validate_aws_config.py
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
+      
       - name: Display package information
         run: |
           echo "📦 Publishing package to PyPI..."
@@ -249,18 +258,82 @@ jobs:
           echo "Package metadata:"
           cat package-metadata.json
       
-      - name: Configure AWS OIDC authentication
+      - name: Configure AWS OIDC authentication (Attempt 1)
+        id: aws-auth-1
         uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
           role-session-name: GitHubActions-PyPI-Publishing
           role-duration-seconds: 900  # 15 minutes
         env:
           AWS_RETRY_MODE: adaptive
           AWS_MAX_ATTEMPTS: 3
       
-      - name: Verify AWS authentication
+      - name: Wait and retry AWS authentication (Attempt 2)
+        if: steps.aws-auth-1.outcome == 'failure'
+        run: |
+          echo "⏳ First AWS authentication attempt failed, waiting 2 seconds before retry..."
+          sleep 2
+      
+      - name: Configure AWS OIDC authentication (Attempt 2)
+        id: aws-auth-2
+        if: steps.aws-auth-1.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: GitHubActions-PyPI-Publishing
+          role-duration-seconds: 900  # 15 minutes
+        env:
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: 3
+      
+      - name: Wait and retry AWS authentication (Attempt 3)
+        if: steps.aws-auth-1.outcome == 'failure' && steps.aws-auth-2.outcome == 'failure'
+        run: |
+          echo "⏳ Second AWS authentication attempt failed, waiting 4 seconds before final retry..."
+          sleep 4
+      
+      - name: Configure AWS OIDC authentication (Attempt 3 - Final)
+        id: aws-auth-3
+        if: steps.aws-auth-1.outcome == 'failure' && steps.aws-auth-2.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: GitHubActions-PyPI-Publishing
+          role-duration-seconds: 900  # 15 minutes
+        env:
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: 3
+      
+      - name: AWS authentication summary
+        run: |
+          echo "📊 AWS Authentication Summary:"
+          if [ "${{ steps.aws-auth-1.outcome }}" = "success" ]; then
+            echo "  ✅ Succeeded on attempt 1"
+          elif [ "${{ steps.aws-auth-2.outcome }}" = "success" ]; then
+            echo "  ✅ Succeeded on attempt 2 (after 2s backoff)"
+          elif [ "${{ steps.aws-auth-3.outcome }}" = "success" ]; then
+            echo "  ✅ Succeeded on attempt 3 (after 4s backoff)"
+          else
+            echo "  ❌ Failed after 3 attempts with exponential backoff"
+            exit 1
+          fi
+      
+      - name: Log AWS authentication details
+        run: |
+          echo "📋 AWS Authentication Details:"
+          echo "  Region: ${{ secrets.AWS_REGION || 'us-east-1' }}"
+          echo "  Session: GitHubActions-PyPI-Publishing"
+          echo "  Duration: 900 seconds (15 minutes)"
+          echo "  Retry Mode: adaptive"
+          echo "  Max Attempts: 3"
+      
+      - name: Verify AWS authentication and connectivity
         run: |
           echo "🔐 Verifying AWS OIDC authentication..."
           

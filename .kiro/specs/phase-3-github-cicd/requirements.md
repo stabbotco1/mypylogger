@@ -15,6 +15,9 @@ Phase 3 of mypylogger v0.2.0 focuses on implementing automated quality and deplo
 - **PyPI_Publishing**: Process of uploading Python packages to the Python Package Index
 - **Test_Matrix**: Configuration to run tests across multiple Python versions or environments
 - **Artifact**: Files produced by workflow jobs that can be shared between jobs or downloaded
+- **AWS_OIDC**: OpenID Connect authentication mechanism for GitHub Actions to securely access AWS services
+- **AWS_Secrets_Manager**: AWS service for securely storing and retrieving sensitive information like PyPI tokens
+- **AWS_Region**: Geographic region where AWS resources are deployed and accessed (default: us-east-1)
 - ~~**Status_Badge**: Dynamic image that displays real-time status of CI/CD workflows in project documentation~~ (Badge system removed)
 - ~~**Coverage_Badge**: Dynamic badge showing current test coverage percentage from CI pipeline~~ (Badge system removed)
 - ~~**Shield_Badge**: Standardized badge format using shields.io for consistent visual presentation~~ (Badge system removed)
@@ -168,6 +171,42 @@ Phase 3 of mypylogger v0.2.0 focuses on implementing automated quality and deplo
 
 ### Requirement 13
 
+**User Story:** As a developer, I want the PyPI publishing workflow to successfully authenticate with AWS, so that PyPI tokens can be retrieved from AWS Secrets Manager for package publishing.
+
+#### Acceptance Criteria
+
+1. WHEN the PyPI publishing workflow executes, THE GitHub_Actions SHALL provide the required `aws-region` input with value `us-east-1` to the `aws-actions/configure-aws-credentials@v4` action
+2. WHEN AWS OIDC authentication is configured, THE GitHub_Actions SHALL use `us-east-1` as the default region with fallback to repository secrets if needed
+3. WHEN the AWS configuration step runs, THE GitHub_Actions SHALL complete successfully without "Input required and not supplied: aws-region" errors
+4. THE GitHub_Actions SHALL validate that all required AWS OIDC parameters including region are present before attempting authentication
+5. THE GitHub_Actions SHALL provide clear error messages if AWS region configuration is missing or invalid
+
+### Requirement 14
+
+**User Story:** As a project maintainer, I want AWS region configuration to be properly managed through GitHub secrets, so that sensitive AWS configuration is secure and easily maintainable.
+
+#### Acceptance Criteria
+
+1. THE GitHub_Actions SHALL use `us-east-1` as the default AWS region with optional override from `${{ secrets.AWS_REGION }}`
+2. WHEN AWS region is not explicitly configured, THE GitHub_Actions SHALL default to `us-east-1` region
+3. THE GitHub_Actions SHALL validate that the AWS region value is a valid AWS region identifier
+4. THE GitHub_Actions SHALL document that `us-east-1` is the default region for AWS OIDC authentication
+5. THE GitHub_Actions SHALL ensure AWS region configuration is consistent across all workflows that use AWS services
+
+### Requirement 15
+
+**User Story:** As a developer, I want the AWS OIDC authentication to be robust and reliable, so that publishing workflows don't fail due to transient AWS issues.
+
+#### Acceptance Criteria
+
+1. THE GitHub_Actions SHALL implement retry logic for AWS authentication failures with exponential backoff
+2. WHEN AWS authentication fails, THE GitHub_Actions SHALL provide detailed error information including region and role details
+3. THE GitHub_Actions SHALL validate AWS credentials and permissions before attempting to access Secrets Manager
+4. THE GitHub_Actions SHALL set appropriate timeout values for AWS operations to prevent workflow hanging
+5. THE GitHub_Actions SHALL log AWS authentication steps for debugging purposes while maintaining security
+
+### Requirement 16
+
 **User Story:** As a developer, I want consistent Git workflow practices enforced in CI/CD, so that repository history remains clean and merge conflicts are minimized.
 
 #### Acceptance Criteria
@@ -177,3 +216,5 @@ Phase 3 of mypylogger v0.2.0 focuses on implementing automated quality and deplo
 3. WHEN merge conflicts occur during rebase, THE GitHub_Actions SHALL provide clear resolution guidance and fail gracefully
 4. THE GitHub_Actions SHALL enforce linear commit history by preventing merge commits in automated workflows
 5. THE GitHub_Actions SHALL document Git workflow best practices for maintaining clean repository history
+
+**IMPLEMENTATION NOTE**: This requirement is fully addressed by the Rebase Fix Phase, which implements comprehensive race condition prevention and automated conflict resolution for all CI/CD workflows.

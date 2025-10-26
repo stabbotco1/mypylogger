@@ -1,4 +1,4 @@
-last_updated: '2025-10-26T18:24:08.518601+00:00'
+last_updated: '2025-10-26T20:01:43.575552+00:00'
 findings:
   PYSEC-2025-49:
     first_discovered: '2025-10-25T01:18:57.882345+00:00'
@@ -3388,6 +3388,70 @@ findings:
         reference_url: https://osv.dev/vulnerability/PYSEC-2025-49
       source: scanner
       notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T18:33:26.508287+00:00'
+      finding_id: PYSEC-2025-49
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:43.900030+00:00'
+      finding_id: PYSEC-2025-49
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2025-49
+        package: setuptools
+        version: 75.3.2
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: setuptools is a package that allows users to download, build,
+          install, upgrade, and uninstall Python packages. A path traversal vulnerability
+          in `PackageIndex` is present in setuptools prior to version 78.1.1. An attacker
+          would be allowed to write files to arbitrary locations on the filesystem
+          with the permissions of the process running the Python code, which could
+          escalate to remote code execution depending on the context. Version 78.1.1
+          fixes the issue.
+        impact: Vulnerability in setuptools package
+        fix_available: true
+        fix_version: 78.1.1
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2025-49
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T19:57:59.772355+00:00'
+      finding_id: PYSEC-2025-49
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:39.774881+00:00'
+      finding_id: PYSEC-2025-49
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2025-49
+        package: setuptools
+        version: 75.3.2
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: setuptools is a package that allows users to download, build,
+          install, upgrade, and uninstall Python packages. A path traversal vulnerability
+          in `PackageIndex` is present in setuptools prior to version 78.1.1. An attacker
+          would be allowed to write files to arbitrary locations on the filesystem
+          with the permissions of the process running the Python code, which could
+          escalate to remote code execution depending on the context. Version 78.1.1
+          fixes the issue.
+        impact: Vulnerability in setuptools package
+        fix_available: true
+        fix_version: 78.1.1
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2025-49
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
   PYSEC-2022-42969:
     first_discovered: '2025-10-25T01:18:57.886980+00:00'
     events:
@@ -6437,6 +6501,64 @@ findings:
       source: scanner
       notes: Finding resolved - no longer detected by security scanners
     - timestamp: '2025-10-26T18:24:04.957513+00:00'
+      finding_id: PYSEC-2022-42969
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2022-42969
+        package: py
+        version: 1.11.0
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: The py library through 1.11.0 for Python allows remote attackers
+          to conduct a ReDoS (Regular expression Denial of Service) attack via a Subversion
+          repository with crafted info data, because the InfoSvnCommand argument is
+          mishandled.
+        impact: Vulnerability in py package
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2022-42969
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T18:33:16.080683+00:00'
+      finding_id: PYSEC-2022-42969
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:41.930463+00:00'
+      finding_id: PYSEC-2022-42969
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2022-42969
+        package: py
+        version: 1.11.0
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: The py library through 1.11.0 for Python allows remote attackers
+          to conduct a ReDoS (Regular expression Denial of Service) attack via a Subversion
+          repository with crafted info data, because the InfoSvnCommand argument is
+          mishandled.
+        impact: Vulnerability in py package
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2022-42969
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T19:58:02.462383+00:00'
+      finding_id: PYSEC-2022-42969
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:41.851962+00:00'
       finding_id: PYSEC-2022-42969
       event_type: discovered
       old_data: null
@@ -12495,6 +12617,370 @@ findings:
       new_data: null
       source: scanner
       notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:20.262004+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:39.211224+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:46.986058+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:59.745810+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:04.809349+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:12.488142+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:27.694475+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:35.374054+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:48.146440+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:53.229692+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:58.334571+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:06.041607+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:11.165048+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:16.325837+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:33.102796+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:40.913189+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:48.691968+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:53.879205+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:59.074061+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:04.273848+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:09.450556+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:14.660085+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:24.147416+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:26.296166+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:32.348545+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:36.543228+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:05.144527+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:21.071296+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:31.828535+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:42.451000+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:50.478197+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:55.877363+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:11.917447+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:22.736927+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:33.517837+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:38.879171+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:46.960227+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:52.351364+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:57.739840+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:03.128398+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:21.940199+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:32.936502+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:38.415900+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:43.891924+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:49.380744+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:54.853609+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:00.337318+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:05.874034+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:15.504482+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:17.770306+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:24.171160+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:26.486911+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
   BANDIT-B101-test_file.py-10:
     first_discovered: '2025-10-25T01:19:25.863342+00:00'
     events:
@@ -15196,6 +15682,58 @@ findings:
       source: scanner
       notes: New low severity finding discovered by bandit
     - timestamp: '2025-10-26T18:24:02.908630+00:00'
+      finding_id: BANDIT-B101-test_file.py-10
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:28.455981+00:00'
+      finding_id: BANDIT-B101-test_file.py-10
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B101-test_file.py-10
+        package: test_file.py
+        version: local
+        severity: low
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'assert_used: Use of assert detected'
+        impact: Code security issue in test_file.py at line 10
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b101.html
+      source: scanner
+      notes: New low severity finding discovered by bandit
+    - timestamp: '2025-10-26T18:36:35.533746+00:00'
+      finding_id: BANDIT-B101-test_file.py-10
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:22.106089+00:00'
+      finding_id: BANDIT-B101-test_file.py-10
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B101-test_file.py-10
+        package: test_file.py
+        version: local
+        severity: low
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'assert_used: Use of assert detected'
+        impact: Code security issue in test_file.py at line 10
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b101.html
+      source: scanner
+      notes: New low severity finding discovered by bandit
+    - timestamp: '2025-10-26T20:01:29.605870+00:00'
       finding_id: BANDIT-B101-test_file.py-10
       event_type: resolved
       old_data: null
@@ -17909,6 +18447,58 @@ findings:
       new_data: null
       source: scanner
       notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:36:30.411503+00:00'
+      finding_id: CVE-2023-12345
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: CVE-2023-12345
+        package: test-package
+        version: 1.0.0
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Test vulnerability description
+        impact: Vulnerability in test-package package
+        fix_available: true
+        fix_version: 1.0.1
+        cvss_score: null
+        reference_url: https://nvd.nist.gov/vuln/detail/CVE-2023-12345
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T18:36:34.537023+00:00'
+      finding_id: CVE-2023-12345
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:01:20.038046+00:00'
+      finding_id: CVE-2023-12345
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: CVE-2023-12345
+        package: test-package
+        version: 1.0.0
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Test vulnerability description
+        impact: Vulnerability in test-package package
+        fix_available: true
+        fix_version: 1.0.1
+        cvss_score: null
+        reference_url: https://nvd.nist.gov/vuln/detail/CVE-2023-12345
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T20:01:28.562488+00:00'
+      finding_id: CVE-2023-12345
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
   PYSEC-2023-74:
     first_discovered: '2025-10-26T13:23:49.623210+00:00'
     events:
@@ -19492,6 +20082,162 @@ findings:
       source: scanner
       notes: New medium severity finding discovered by pip-audit
     - timestamp: '2025-10-26T18:23:11.930508+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:29.115442+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2023-74
+        package: requests
+        version: 2.25.1
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Requests Proxy-Authorization header leak
+        impact: Vulnerability in requests package
+        fix_available: true
+        fix_version: 2.31.0
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2023-74
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T18:33:44.313748+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:17.569482+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2023-74
+        package: requests
+        version: 2.25.1
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Requests Proxy-Authorization header leak
+        impact: Vulnerability in requests package
+        fix_available: true
+        fix_version: 2.31.0
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2023-74
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T18:34:32.781507+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:22.854273+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2023-74
+        package: requests
+        version: 2.25.1
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Requests Proxy-Authorization header leak vulnerability
+        impact: Vulnerability in requests package
+        fix_available: true
+        fix_version: 2.31.0
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2023-74
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T18:35:38.275731+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:10.470045+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2023-74
+        package: requests
+        version: 2.25.1
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Requests Proxy-Authorization header leak
+        impact: Vulnerability in requests package
+        fix_available: true
+        fix_version: 2.31.0
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2023-74
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T19:58:26.415598+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:01.210659+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2023-74
+        package: requests
+        version: 2.25.1
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Requests Proxy-Authorization header leak
+        impact: Vulnerability in requests package
+        fix_available: true
+        fix_version: 2.31.0
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2023-74
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T19:59:17.293805+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:11.095067+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: PYSEC-2023-74
+        package: requests
+        version: 2.25.1
+        severity: medium
+        source_scanner: pip-audit
+        discovered_date: '2025-10-26'
+        description: Requests Proxy-Authorization header leak vulnerability
+        impact: Vulnerability in requests package
+        fix_available: true
+        fix_version: 2.31.0
+        cvss_score: null
+        reference_url: https://osv.dev/vulnerability/PYSEC-2023-74
+      source: scanner
+      notes: New medium severity finding discovered by pip-audit
+    - timestamp: '2025-10-26T20:00:27.418910+00:00'
       finding_id: PYSEC-2023-74
       event_type: resolved
       old_data: null
@@ -21094,6 +21840,162 @@ findings:
       new_data: null
       source: scanner
       notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:34.161041+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-core.py-42
+        package: core.py
+        version: local
+        severity: low
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in src/mypylogger/core.py at line 42
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New low severity finding discovered by bandit
+    - timestamp: '2025-10-26T18:33:52.084236+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:22.629406+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-core.py-42
+        package: core.py
+        version: local
+        severity: high
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in src/mypylogger/core.py at line 42
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New high severity finding discovered by bandit
+    - timestamp: '2025-10-26T18:34:40.457204+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:35:27.966851+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-core.py-42
+        package: core.py
+        version: local
+        severity: high
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Hardcoded password detected'
+        impact: Code security issue in src/mypylogger/core.py at line 42
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New high severity finding discovered by bandit
+    - timestamp: '2025-10-26T18:35:46.053369+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:15.776679+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-core.py-42
+        package: core.py
+        version: local
+        severity: low
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in src/mypylogger/core.py at line 42
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New low severity finding discovered by bandit
+    - timestamp: '2025-10-26T19:58:29.126735+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:06.546945+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-core.py-42
+        package: core.py
+        version: local
+        severity: high
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in src/mypylogger/core.py at line 42
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New high severity finding discovered by bandit
+    - timestamp: '2025-10-26T19:59:20.026464+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T20:00:16.523775+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-core.py-42
+        package: core.py
+        version: local
+        severity: high
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Hardcoded password detected'
+        impact: Code security issue in src/mypylogger/core.py at line 42
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New high severity finding discovered by bandit
+    - timestamp: '2025-10-26T20:00:30.162401+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
   BANDIT-B105-test.py-10:
     first_discovered: '2025-10-26T13:27:48.174409+00:00'
     events:
@@ -22033,6 +22935,110 @@ findings:
       new_data: null
       source: scanner
       notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:33:54.665679+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-test.py-10
+        package: test.py
+        version: local
+        severity: medium
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in test.py at line 10
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New medium severity finding discovered by bandit
+    - timestamp: '2025-10-26T18:34:09.854282+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T18:34:43.067614+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-test.py-10
+        package: test.py
+        version: local
+        severity: low
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in test.py at line 10
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New low severity finding discovered by bandit
+    - timestamp: '2025-10-26T18:35:03.436215+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:58:37.159722+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-test.py-10
+        package: test.py
+        version: local
+        severity: medium
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in test.py at line 10
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New medium severity finding discovered by bandit
+    - timestamp: '2025-10-26T19:58:47.773496+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
+    - timestamp: '2025-10-26T19:59:28.174816+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: discovered
+      old_data: null
+      new_data:
+        finding_id: BANDIT-B105-test.py-10
+        package: test.py
+        version: local
+        severity: low
+        source_scanner: bandit
+        discovered_date: '2025-10-26'
+        description: 'hardcoded_password_string: Possible hardcoded password'
+        impact: Code security issue in test.py at line 10
+        fix_available: false
+        fix_version: null
+        cvss_score: null
+        reference_url: https://bandit.readthedocs.io/en/latest/plugins/b105.html
+      source: scanner
+      notes: New low severity finding discovered by bandit
+    - timestamp: '2025-10-26T19:59:44.232410+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: resolved
+      old_data: null
+      new_data: null
+      source: scanner
+      notes: Finding resolved - no longer detected by security scanners
   SECRET-unknown-unknown-0:
     first_discovered: '2025-10-26T16:48:19.252269+00:00'
     events:
@@ -22940,6 +23946,22 @@ remediation:
       changed_fields: []
       user: system
       notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:36:44.897212+00:00'
+      finding_id: PYSEC-2025-49
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T20:01:40.826272+00:00'
+      finding_id: PYSEC-2025-49
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
   PYSEC-2022-42969:
     created: '2025-10-25T01:18:57.891958+00:00'
     events:
@@ -23784,6 +24806,22 @@ remediation:
       user: system
       notes: 'Remediation plan created with status: new'
     - timestamp: '2025-10-26T18:24:05.948894+00:00'
+      finding_id: PYSEC-2022-42969
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:36:42.929444+00:00'
+      finding_id: PYSEC-2022-42969
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T20:01:42.901821+00:00'
       finding_id: PYSEC-2022-42969
       event_type: created
       old_status: null
@@ -26818,6 +27856,474 @@ remediation:
       - status
       user: system
       notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:33:24.043488+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:33:41.783880+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:33:49.589005+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:02.292025+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:07.390301+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:15.054355+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:30.276447+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:37.959274+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:50.711190+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:34:55.806558+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:00.935451+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:08.651815+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:13.802468+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:18.914352+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:35.728516+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:43.521953+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:51.334168+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:35:56.526469+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:01.725983+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:06.881557+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:12.072967+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:17.279500+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:25.138046+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:27.294614+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:33.346723+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T18:36:37.538277+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:58:07.864572+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:58:23.785036+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:58:34.542980+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:58:45.152511+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:58:53.179152+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:58:58.566280+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:59:14.662992+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:59:25.465399+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:59:36.251064+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:59:41.609545+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:59:49.686089+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T19:59:55.090624+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:00.483578+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:05.862602+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:24.681498+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:35.721782+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:41.212559+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:46.698732+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:52.154213+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:00:57.611185+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:01:03.133203+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:01:08.629716+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:01:16.547453+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:01:18.819836+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:01:25.217446+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
+    - timestamp: '2025-10-26T20:01:27.536276+00:00'
+      finding_id: GHSA-4xh5-x5gv-qwph
+      event_type: status_changed
+      old_status: completed
+      new_status: completed
+      changed_fields:
+      - status
+      user: system
+      notes: Finding resolved - auto-marked as completed
   BANDIT-B105-core.py-42:
     created: '2025-10-26T13:23:51.807972+00:00'
     events:
@@ -27302,6 +28808,54 @@ remediation:
       user: system
       notes: 'Remediation plan created with status: new'
     - timestamp: '2025-10-26T18:22:51.437689+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:33:36.750417+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:34:25.201115+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:35:30.598324+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T19:58:18.495732+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T19:59:09.292750+00:00'
+      finding_id: BANDIT-B105-core.py-42
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T20:00:19.262126+00:00'
       finding_id: BANDIT-B105-core.py-42
       event_type: created
       old_status: null
@@ -28144,6 +29698,22 @@ remediation:
       changed_fields: []
       user: system
       notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:36:29.443832+00:00'
+      finding_id: BANDIT-B101-test_file.py-10
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T20:01:23.151157+00:00'
+      finding_id: BANDIT-B101-test_file.py-10
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
   CVE-2023-12345:
     created: '2025-10-25T01:19:25.883632+00:00'
     events:
@@ -28979,6 +30549,22 @@ remediation:
       changed_fields: []
       user: system
       notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:36:31.401766+00:00'
+      finding_id: CVE-2023-12345
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T20:01:21.084273+00:00'
+      finding_id: CVE-2023-12345
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
   PYSEC-2023-74:
     created: '2025-10-26T13:23:50.303489+00:00'
     events:
@@ -29462,6 +31048,54 @@ remediation:
       changed_fields: []
       user: system
       notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:33:31.672092+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:34:20.127404+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:35:25.468756+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T19:58:13.196446+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T19:59:03.924173+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T20:00:13.842512+00:00'
+      finding_id: PYSEC-2023-74
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
   BANDIT-B105-test.py-10:
     created: '2025-10-26T13:27:49.760642+00:00'
     events:
@@ -29746,6 +31380,38 @@ remediation:
       user: system
       notes: 'Remediation plan created with status: new'
     - timestamp: '2025-10-26T18:22:11.928935+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:33:57.266148+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T18:34:45.671183+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T19:58:39.868071+00:00'
+      finding_id: BANDIT-B105-test.py-10
+      event_type: created
+      old_status: null
+      new_status: new
+      changed_fields: []
+      user: system
+      notes: 'Remediation plan created with status: new'
+    - timestamp: '2025-10-26T19:59:30.900419+00:00'
       finding_id: BANDIT-B105-test.py-10
       event_type: created
       old_status: null

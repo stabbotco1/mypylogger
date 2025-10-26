@@ -4,10 +4,20 @@
 
 Phase 3 implements a comprehensive CI/CD pipeline using GitHub Actions to enforce quality gates, automate testing across multiple Python versions, and provide secure package publishing capabilities. The design focuses on fast feedback, security-first approach, and consistency with local development environments.
 
+**CRITICAL UPDATE**: This phase now includes race condition prevention through proper Git rebase logic and workflow coordination, as addressed by the Rebase Fix Phase.
+
 The system consists of three primary workflows:
 1. **Quality Gate Workflow** - Runs on every pull request to enforce code quality
-2. **Security Scanning Workflow** - Continuous security monitoring with zero-tolerance policy
+2. **Security Scanning Workflow** - Continuous security monitoring with zero-tolerance policy and race condition prevention
 3. **Publishing Workflow** - Manual trigger for secure PyPI package distribution
+
+### Race Condition Prevention Integration
+
+All workflows now implement:
+- **Concurrency controls** to prevent simultaneous execution
+- **Git rebase logic** with `git pull --rebase origin main` before pushes
+- **Automated conflict resolution** for timestamp-only conflicts
+- **Linear commit history** maintenance without merge commits
 
 ## Architecture
 
@@ -16,8 +26,15 @@ The system consists of three primary workflows:
 ```mermaid
 graph TB
     PR[Pull Request] --> QG[Quality Gate Workflow]
-    PUSH[Push to Main] --> SEC[Security Scanning]
+    PUSH[Push to Main] --> COORD[Workflow Coordination]
     MANUAL[Manual Trigger] --> PUB[Publishing Workflow]
+    
+    COORD --> SEC[Security Scanning]
+    SEC --> REBASE[Git Rebase Logic]
+    REBASE --> CONFLICT{Conflicts?}
+    CONFLICT -->|Timestamp Only| RESOLVE[Auto-Resolve]
+    CONFLICT -->|Content| FAIL[Fail Gracefully]
+    RESOLVE --> PUSH[Push Changes]
     
     QG --> MATRIX[Python Version Matrix]
     QG --> TESTS[Test Suite + Coverage]
@@ -102,8 +119,28 @@ graph TB
 1. Run complete quality gate checks
 2. Verify security scans pass
 3. Build package using standard tools
-4. Authenticate with PyPI using OIDC
-5. Upload to PyPI with verification
+4. Authenticate with AWS using OIDC (us-east-1 region)
+5. Retrieve PyPI token from AWS Secrets Manager
+6. Authenticate with PyPI using retrieved token
+7. Upload to PyPI with verification
+
+### 4. AWS OIDC Configuration Component
+
+**Purpose**: Secure AWS authentication for PyPI token retrieval
+
+**Configuration Parameters**:
+```yaml
+aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+role-session-name: GitHubActions-PyPI-Publishing
+role-duration-seconds: 900
+```
+
+**Key Features**:
+- Default region fallback to `us-east-1`
+- Configurable via GitHub secrets
+- Retry logic for transient failures
+- Comprehensive error handling and validation
 
 ## Data Models
 
@@ -142,8 +179,15 @@ COVERAGE_THRESHOLD: "95"
 CODEQL_LANGUAGES: "python"
 DEPENDABOT_SCHEDULE: "daily"
 
+# AWS OIDC Configuration
+AWS_DEFAULT_REGION: "us-east-1"
+AWS_RETRY_MODE: "adaptive"
+AWS_MAX_ATTEMPTS: 3
+
 # Publishing (secrets)
-PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+AWS_REGION: ${{ secrets.AWS_REGION }}
+AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
 ```
 
 ### Caching Strategy
