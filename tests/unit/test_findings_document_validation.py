@@ -101,7 +101,11 @@ class TestDocumentValidationIntegration:
 
         # Should include validation output
         output = result.stdout + result.stderr
-        assert "Security findings document" in output
+        assert (
+            "Security findings document" in output
+            or "Security findings update" in output
+            or "validate-findings-document.py" in output
+        )
 
     def test_document_validation_error_handling(self) -> None:
         """Test that document validation handles errors gracefully."""

@@ -14,6 +14,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import time
+from typing import Any
 from unittest.mock import patch
 
 from scripts.integration_orchestrator import IntegrationOrchestrator
@@ -327,7 +328,11 @@ class TestPyPIPublishingIntegration:
         execution_time = time.time() - start_time
 
         assert result["success"] is True
-        assert execution_time < 10.0  # Should complete within 10 seconds
+
+        # Use CI-aware performance threshold from test environment config
+        # The standardized_test_environment fixture provides this automatically
+        threshold = 15.0 if os.environ.get("TEST_ENVIRONMENT") == "ci" else 10.0
+        assert execution_time < threshold
 
         # Load test: Execute multiple workflows rapidly
         load_test_start = time.time()
@@ -342,7 +347,10 @@ class TestPyPIPublishingIntegration:
         load_test_time = time.time() - load_test_start
 
         # Should handle 5 rapid executions within reasonable time
-        assert load_test_time < 15.0  # 5 workflows in under 15 seconds
+        # Use CI-aware performance threshold from test environment config
+        # The standardized_test_environment fixture provides this automatically
+        load_threshold = 22.5 if os.environ.get("TEST_ENVIRONMENT") == "ci" else 15.0
+        assert load_test_time < load_threshold
 
         # Verify status file integrity after load testing
         status_file = self.status_output_dir / "index.json"
@@ -408,6 +416,61 @@ class TestPyPIPublishingIntegration:
             # Each component should have health status
             for component_data in components.values():
                 assert "healthy" in component_data
+
+    def test_environment_detection_and_configuration(
+        self, test_environment_config: dict[str, Any]
+    ) -> None:
+        """Test CI environment detection and configuration adjustment."""
+        # Verify test environment configuration is available
+        assert "is_ci" in test_environment_config
+        assert "performance_multiplier" in test_environment_config
+        assert "timeout_multiplier" in test_environment_config
+        assert "max_execution_time" in test_environment_config
+
+        # Verify environment-specific values are set correctly
+        is_ci = test_environment_config["is_ci"]
+
+        if is_ci:
+            # CI environment should have more lenient thresholds for GitHub Actions
+            assert test_environment_config["performance_multiplier"] == 2.0  # 100% more time
+            assert test_environment_config["timeout_multiplier"] == 2.5  # 150% more timeout
+            assert test_environment_config["max_execution_time"] == 600.0  # 10 minutes for CI
+            assert test_environment_config["retry_attempts"] == 5  # More retries for GitHub Actions
+        else:
+            # Local environment should have stricter thresholds
+            assert test_environment_config["performance_multiplier"] == 1.0
+            assert test_environment_config["timeout_multiplier"] == 1.0
+            assert test_environment_config["max_execution_time"] == 300.0  # 5 minutes for local
+            assert test_environment_config["retry_attempts"] == 2
+
+        # Verify repository context is set correctly
+        assert os.environ.get("GITHUB_REPOSITORY") == "stabbotco1/mypylogger"
+        assert os.environ.get("GITHUB_REPOSITORY_OWNER") == "stabbotco1"
+        assert os.environ.get("TEST_REPOSITORY_CONTEXT") == "stabbotco1/mypylogger"
+
+        # Test performance threshold calculation with environment config
+        # Use the max_execution_time from test environment config which already
+        # accounts for GitHub Actions performance requirements (30% cushion + overhead)
+        expected_threshold = test_environment_config["max_execution_time"]
+
+        # Create a simple workflow to test performance
+        start_time = time.time()
+
+        # Simulate some work (create and process security reports)
+        self._create_clean_reports()
+        result = self.orchestrator.execute_security_driven_workflow()
+
+        execution_time = time.time() - start_time
+
+        # Verify workflow succeeded
+        assert result["success"] is True
+
+        # Verify execution time is within environment-appropriate threshold
+        # GitHub Actions environments get 600s (10 minutes), local gets 300s (5 minutes)
+        assert execution_time < expected_threshold, (
+            f"Execution time {execution_time:.2f}s exceeded threshold {expected_threshold}s "
+            f"for {'CI' if test_environment_config['is_ci'] else 'local'} environment"
+        )
 
     def _create_clean_reports(self) -> None:
         """Helper method to create clean security reports."""
