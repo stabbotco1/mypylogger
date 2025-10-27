@@ -26,7 +26,7 @@ class TestSecurityIntegration:
         project_root = Path(__file__).parent.parent.parent
 
         required_files = [
-            ".github/workflows/security-scan.yml",
+            ".github/workflows/security-driven-release.yml",
             ".github/dependabot.yml",
             ".github/SECURITY.md",
             ".github/SECURITY_CONFIG.yml",
@@ -41,21 +41,19 @@ class TestSecurityIntegration:
     def test_security_workflow_configuration(self) -> None:
         """Test that security workflow is properly configured."""
         project_root = Path(__file__).parent.parent.parent
-        workflow_file = project_root / ".github/workflows/security-scan.yml"
+        workflow_file = project_root / ".github/workflows/security-driven-release.yml"
 
         with workflow_file.open() as f:
             workflow_content = f.read()
 
         # Check for required workflow components
         required_components = [
-            "name: Security Scanning",
-            "security-scan-matrix",
-            "security-config-validation",
-            "security-summary",
-            "zero-tolerance",
+            "name: Security-Driven Release",
+            "security-change-analysis",
             "pip-audit",
             "bandit",
-            "trufflehog",
+            "schedule:",
+            "workflow_dispatch:",
         ]
 
         for component in required_components:
@@ -185,7 +183,7 @@ class TestSecurityIntegration:
     def test_workflow_triggers_configuration(self) -> None:
         """Test that security workflow has proper triggers configured."""
         project_root = Path(__file__).parent.parent.parent
-        workflow_file = project_root / ".github/workflows/security-scan.yml"
+        workflow_file = project_root / ".github/workflows/security-driven-release.yml"
 
         with workflow_file.open() as f:
             workflow_content = f.read()
@@ -198,15 +196,11 @@ class TestSecurityIntegration:
         except yaml.YAMLError:
             # Fallback to text-based validation if YAML parsing fails
             assert "on:" in workflow_content, "Workflow triggers not found"
-            assert "pull_request:" in workflow_content, "Pull request trigger missing"
-            assert "push:" in workflow_content, "Push trigger missing"
             assert "schedule:" in workflow_content, "Scheduled scan trigger missing"
             assert "workflow_dispatch:" in workflow_content, "Manual trigger missing"
             return
 
         # Check required triggers
-        assert "pull_request" in triggers, "Pull request trigger missing"
-        assert "push" in triggers, "Push trigger missing"
         assert "schedule" in triggers, "Scheduled scan trigger missing"
         assert "workflow_dispatch" in triggers, "Manual trigger missing"
 
@@ -344,7 +338,7 @@ class TestSecurityIntegration:
 
         # Check that all required files exist and are properly configured
         security_files = [
-            ".github/workflows/security-scan.yml",
+            ".github/workflows/security-driven-release.yml",
             ".github/dependabot.yml",
             ".github/SECURITY.md",
             ".github/SECURITY_CONFIG.yml",

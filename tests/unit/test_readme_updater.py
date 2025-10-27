@@ -401,7 +401,7 @@ pip install mypylogger
                 # Generate some badge URLs (these would come from generator functions)
                 badges = [
                     "![Quality Gate](https://img.shields.io/github/actions/workflow/status/user/repo/quality-gate.yml?branch=main&style=flat)",
-                    "![Security](https://img.shields.io/github/actions/workflow/status/user/repo/security-scan.yml?branch=main&style=flat)",
+                    "![Security](https://img.shields.io/github/actions/workflow/status/user/repo/security-driven-release.yml?branch=main&style=flat)",
                     "![Code Style](https://img.shields.io/badge/code%20style-ruff-000000?style=flat)",
                     "![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue?style=flat)",
                 ]

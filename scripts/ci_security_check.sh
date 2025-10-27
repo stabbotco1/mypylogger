@@ -78,7 +78,7 @@ else
 fi
 
 # Check workflow configuration
-if [ -f ".github/workflows/security-scan.yml" ]; then
+if [ -f ".github/workflows/security-driven-release.yml" ]; then
     echo -e "${GREEN}✅ Security workflow configured${NC}"
 else
     echo -e "${RED}❌ Security workflow missing${NC}"
