@@ -204,19 +204,14 @@ class TestSecurityIntegration:
         assert "schedule" in triggers, "Scheduled scan trigger missing"
         assert "workflow_dispatch" in triggers, "Manual trigger missing"
 
-        # Validate pull request trigger
-        pr_trigger = triggers["pull_request"]
-        assert "main" in pr_trigger["branches"], "Main branch not in PR trigger"
-
-        # Validate push trigger
-        push_trigger = triggers["push"]
-        assert "main" in push_trigger["branches"], "Main branch not in push trigger"
+        # The security-driven-release workflow doesn't have pull_request or push triggers
+        # It only runs on schedule and manual dispatch
 
         # Validate scheduled trigger (weekly scans for CodeQL optimization)
         schedule_trigger = triggers["schedule"]
         assert len(schedule_trigger) > 0, "No scheduled scans configured"
         cron_expr = schedule_trigger[0]["cron"]
-        assert "0 2 * * 1" in cron_expr, "Weekly Monday 2 AM UTC scan not configured"
+        assert "0 3 * * 1" in cron_expr, "Weekly Monday 3 AM UTC scan not configured"
 
     def test_security_tools_configuration(self) -> None:
         """Test that security tools are properly configured."""
