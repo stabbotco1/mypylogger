@@ -11,20 +11,40 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import importlib.util
 import json
 import logging
+import os
 from pathlib import Path
 import sys
 from typing import Any
 
+# Add project root to Python path for imports
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # Import existing error handling and monitoring infrastructure
 try:
-    from scripts.validate_security_yaml import (
-        FunctionalityLevel,
-        GracefulDegradation,
-        SecurityFileValidator,
-        ValidationSummary,
-    )
+    # Try to import from scripts package first, then fallback to direct import
+    try:
+        from scripts.validate_security_yaml import (
+            FunctionalityLevel,
+            GracefulDegradation,
+            SecurityFileValidator,
+            ValidationSummary,
+        )
+    except ImportError:
+        # Fallback: add scripts directory to path and import directly
+        scripts_dir = os.path.dirname(os.path.abspath(__file__))
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+        from validate_security_yaml import (
+            FunctionalityLevel,
+            GracefulDegradation,
+            SecurityFileValidator,
+            ValidationSummary,
+        )
+    
     from security.error_handling import (
         CorruptionSeverity,
         FileIntegrityInfo,

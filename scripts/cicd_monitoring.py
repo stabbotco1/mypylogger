@@ -19,6 +19,9 @@ from pathlib import Path
 import sys
 from typing import Any
 
+# Add project root to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # Import existing monitoring infrastructure
 try:
     from security.error_handling import CorruptionSeverity, FileIntegrityInfo, RecoveryResult
