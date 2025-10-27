@@ -9,7 +9,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 from typing import TYPE_CHECKING, Any
+
+# Add current directory to Python path for badges module
+if str(Path.cwd()) not in sys.path:
+    sys.path.insert(0, str(Path.cwd()))
 
 from badges.live_status import SecurityStatus
 from scripts.release_automation_engine import ReleaseAutomationEngine, ReleaseDecision
