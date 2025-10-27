@@ -164,7 +164,7 @@ class GitHubPagesGenerator:
         }
         grade_color = grade_colors.get(status.security_grade, "#6c757d")
 
-        html_content = f"""<!DOCTYPE html>
+        return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -317,8 +317,6 @@ class GitHubPagesGenerator:
 </body>
 </html>"""
 
-        return html_content
-
     def _generate_findings_html(self, findings: list) -> str:
         """Generate HTML for security findings list.
 
@@ -348,7 +346,7 @@ class GitHubPagesGenerator:
         <div class="finding {severity_class}">
             <div class="finding-title">{finding.finding_id} - {finding.severity.upper()}</div>
             <div class="finding-meta">
-                Package: {finding.package} v{finding.version} | 
+                Package: {finding.package} v{finding.version} |
                 Discovered: {finding.discovered_date} ({finding.days_since_discovery} days ago) |
                 {fix_status}
             </div>
@@ -449,22 +447,22 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          
+
       - name: Install UV
         uses: astral-sh/setup-uv@v3
-        
+
       - name: Install dependencies
         run: uv sync
-        
+
       - name: Update security status
         run: |
           uv run python -c "
@@ -475,15 +473,15 @@ jobs:
           if not result['success']:
               exit(1)
           "
-          
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './security-status'
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

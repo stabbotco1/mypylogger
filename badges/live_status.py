@@ -10,10 +10,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from security.models import SecurityFinding
 from security.parsers import extract_all_findings
+
+if TYPE_CHECKING:
+    from security.models import SecurityFinding
 
 
 @dataclass

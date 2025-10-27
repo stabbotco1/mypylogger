@@ -5,12 +5,13 @@ This script validates that workflows have proper permissions configured
 and can perform repository operations without permission errors.
 """
 
+from __future__ import annotations
+
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
-from typing import Dict, List
 
 import yaml
 
@@ -18,7 +19,7 @@ import yaml
 class WorkflowPermissionTester:
     """Test GitHub Actions workflow permissions."""
 
-    def __init__(self, repo_root: Path):
+    def __init__(self, repo_root: Path) -> None:
         """Initialize the workflow permission tester.
 
         Args:
@@ -71,7 +72,7 @@ class WorkflowPermissionTester:
 
         return all_passed
 
-    def _test_workflow_file(self, workflow_file: Path) -> Dict:
+    def _test_workflow_file(self, workflow_file: Path) -> dict:
         """Test a single workflow file for permission configuration.
 
         Args:
@@ -98,13 +99,9 @@ class WorkflowPermissionTester:
         needs_write_permissions = self._analyze_workflow_operations(workflow_data)
 
         # Validate permissions
-        validation_result = self._validate_permissions(
-            workflow_file.name, permissions, needs_write_permissions
-        )
+        return self._validate_permissions(workflow_file.name, permissions, needs_write_permissions)
 
-        return validation_result
-
-    def _analyze_workflow_operations(self, workflow_data: Dict) -> Dict[str, bool]:
+    def _analyze_workflow_operations(self, workflow_data: dict) -> dict[str, bool]:
         """Analyze workflow for operations that require specific permissions.
 
         Args:
@@ -123,7 +120,7 @@ class WorkflowPermissionTester:
         # Check all jobs and steps
         jobs = workflow_data.get("jobs", {})
 
-        for job_name, job_data in jobs.items():
+        for job_data in jobs.values():
             steps = job_data.get("steps", [])
 
             for step in steps:
@@ -142,9 +139,8 @@ class WorkflowPermissionTester:
                 if any(
                     keyword in step_name.lower()
                     for keyword in ["security", "upload", "sarif", "bandit", "audit"]
-                ):
-                    if "upload" in step_name.lower() or "actions/upload" in step_uses:
-                        needs_permissions["security_events_write"] = True
+                ) and ("upload" in step_name.lower() or "actions/upload" in step_uses):
+                    needs_permissions["security_events_write"] = True
 
                 # Check for workflow dispatch operations
                 if "workflow_dispatch" in step_run or "createWorkflowDispatch" in step_run:
@@ -160,8 +156,8 @@ class WorkflowPermissionTester:
         return needs_permissions
 
     def _validate_permissions(
-        self, workflow_name: str, permissions: Dict, needs_permissions: Dict[str, bool]
-    ) -> Dict:
+        self, workflow_name: str, permissions: dict, needs_permissions: dict[str, bool]
+    ) -> dict:
         """Validate that workflow has appropriate permissions.
 
         Args:
@@ -321,7 +317,7 @@ class WorkflowPermissionTester:
             print(f"❌ GitHub token test failed: {e}")
             return False
 
-    def generate_report(self) -> Dict:
+    def generate_report(self) -> dict:
         """Generate a comprehensive test report.
 
         Returns:
@@ -330,7 +326,7 @@ class WorkflowPermissionTester:
         passed_tests = sum(1 for result in self.test_results if result["status"] == "PASS")
         total_tests = len(self.test_results)
 
-        report = {
+        return {
             "summary": {
                 "total_workflows": total_tests,
                 "passed_tests": passed_tests,
@@ -341,9 +337,7 @@ class WorkflowPermissionTester:
             "recommendations": self._generate_recommendations(),
         }
 
-        return report
-
-    def _generate_recommendations(self) -> List[str]:
+    def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on test results.
 
         Returns:
@@ -370,7 +364,7 @@ class WorkflowPermissionTester:
         return recommendations
 
 
-def main():
+def main() -> int:
     """Main function to run workflow permission tests."""
     repo_root = Path.cwd()
 

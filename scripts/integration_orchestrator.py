@@ -9,15 +9,17 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from badges.live_status import SecurityStatus
 from scripts.release_automation_engine import ReleaseAutomationEngine, ReleaseDecision
 from scripts.security_change_detector import SecurityChangeDetector
 from scripts.workflow_monitoring import WorkflowMonitor
-from security.models import SecurityFinding
 from security.parsers import extract_all_findings
 from security.synchronizer import RemediationSynchronizer
+
+if TYPE_CHECKING:
+    from security.models import SecurityFinding
 
 
 class IntegrationOrchestrator:
@@ -342,13 +344,13 @@ class IntegrationOrchestrator:
 </head>
 <body>
     <h1>mypylogger Security Status</h1>
-    
+
     <div class="status-card grade-{status.security_grade}">
         <h2>Security Grade: {status.security_grade}</h2>
         <p>Last Updated: {status.last_updated}</p>
         <p>Last Scan: {status.scan_date}</p>
     </div>
-    
+
     <div class="status-card">
         <h2>Vulnerability Summary</h2>
         <div class="summary">
@@ -374,13 +376,13 @@ class IntegrationOrchestrator:
             </div>
         </div>
     </div>
-    
+
     <div class="status-card">
         <h2>Security Metrics</h2>
         <p><strong>Days Since Last Vulnerability:</strong> {status.days_since_last_vulnerability}</p>
         <p><strong>Remediation Status:</strong> {status.remediation_status}</p>
     </div>
-    
+
     <div class="status-card">
         <h2>API Access</h2>
         <p>JSON API: <a href="index.json">index.json</a></p>

@@ -159,7 +159,8 @@ class WorkflowMonitor:
             **kwargs: Metric fields to update
         """
         if execution_id not in self.current_metrics:
-            raise ValueError(f"No workflow found with execution_id: {execution_id}")
+            msg = f"No workflow found with execution_id: {execution_id}"
+            raise ValueError(msg)
 
         metrics = self.current_metrics[execution_id]
 
@@ -187,7 +188,8 @@ class WorkflowMonitor:
             Final workflow metrics
         """
         if execution_id not in self.current_metrics:
-            raise ValueError(f"No workflow found with execution_id: {execution_id}")
+            msg = f"No workflow found with execution_id: {execution_id}"
+            raise ValueError(msg)
 
         metrics = self.current_metrics[execution_id]
         metrics.end_time = datetime.now(timezone.utc)
@@ -467,7 +469,7 @@ def create_monitoring_dashboard(monitor: WorkflowMonitor, output_file: Path) -> 
     <div class="dashboard">
         <h1>PyPI Publishing Monitoring Dashboard</h1>
         <p class="timestamp">Last updated: {dashboard_data["generated_at"]}</p>
-        
+
         <div class="card">
             <h2>Publishing Statistics (Last 7 Days)</h2>
             <div class="metric">
@@ -487,7 +489,7 @@ def create_monitoring_dashboard(monitor: WorkflowMonitor, output_file: Path) -> 
                 <p>Health Status</p>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>Release Types (Last 7 Days)</h2>
             <div class="metric">
@@ -499,7 +501,7 @@ def create_monitoring_dashboard(monitor: WorkflowMonitor, output_file: Path) -> 
                 <p>Manual</p>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>Success Rate Trend</h2>
             <div class="metric">
@@ -515,7 +517,7 @@ def create_monitoring_dashboard(monitor: WorkflowMonitor, output_file: Path) -> 
                 <p>Change</p>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>Recent Workflow Executions</h2>
             <table>
@@ -552,7 +554,7 @@ def create_monitoring_dashboard(monitor: WorkflowMonitor, output_file: Path) -> 
                 </tbody>
             </table>
         </div>
-        
+
         <div class="card">
             <h2>30-Day Overview</h2>
             <div class="metric">

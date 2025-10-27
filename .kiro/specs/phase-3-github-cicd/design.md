@@ -30,7 +30,15 @@ graph TB
     MANUAL[Manual Trigger] --> PUB[Publishing Workflow]
     
     COORD --> SEC[Security Scanning]
-    SEC --> REBASE[Git Rebase Logic]
+    SEC --> YAML_VAL[YAML Validation]
+    YAML_VAL --> YAML_OK{YAML Valid?}
+    YAML_OK -->|Yes| REBASE[Git Rebase Logic]
+    YAML_OK -->|No| YAML_REPAIR[YAML Repair Engine]
+    YAML_REPAIR --> REPAIR_OK{Repair Success?}
+    REPAIR_OK -->|Yes| REBASE
+    REPAIR_OK -->|No| DEGRADE[Graceful Degradation]
+    DEGRADE --> REBASE
+    
     REBASE --> CONFLICT{Conflicts?}
     CONFLICT -->|Timestamp Only| RESOLVE[Auto-Resolve]
     CONFLICT -->|Content| FAIL[Fail Gracefully]
@@ -89,12 +97,18 @@ graph TB
 
 ### 2. Security Scanning Workflow (`security-scan.yml`)
 
-**Purpose**: Continuous security monitoring with zero-tolerance policy
+**Purpose**: Continuous security monitoring with zero-tolerance policy and YAML validation
 
 **Triggers**:
 - Push to main branch
 - Scheduled daily scans
 - Manual trigger
+
+**YAML Validation Integration**:
+- **Pre-scan Validation**: Validate all security data files before processing
+- **Automatic Repair**: Attempt repair of common YAML syntax errors
+- **Graceful Degradation**: Continue with reduced functionality when files cannot be repaired
+- **Error Recovery**: Use backup data or regenerate corrupted files
 
 **Security Checks**:
 - **Dependabot**: Dependency vulnerability scanning
@@ -106,6 +120,8 @@ graph TB
 - Any security issue fails the workflow
 - Blocks pull request merging
 - Requires resolution before code integration
+- YAML corruption in critical files fails the workflow
+- YAML corruption in non-critical files triggers degraded mode
 
 ### 3. Publishing Workflow (`publish.yml`)
 
@@ -122,7 +138,35 @@ graph TB
 4. Authenticate with PyPI using trusted publishing
 5. Upload to PyPI with verification
 
-### 4. Trusted Publishing Configuration
+### 4. YAML Validation Engine
+
+**Purpose**: Validate and repair YAML files in security workflows
+
+**Core Components**:
+- **Validation Engine**: Syntax and structure validation for security data files
+- **Repair Engine**: Automatic repair of common YAML syntax errors
+- **Backup System**: Create backups before attempting repairs
+- **Degradation Manager**: Handle workflow continuation with corrupted files
+
+**Integration Points**:
+```yaml
+# YAML validation step in security workflows
+- name: Validate Security YAML Files
+  run: |
+    python scripts/validate_security_yaml.py --repair --verbose
+    if [ $? -ne 0 ]; then
+      echo "YAML validation failed, attempting graceful degradation"
+      python scripts/validate_security_yaml.py --degraded-mode
+    fi
+```
+
+**Error Recovery Mechanisms**:
+- **Automatic Repair**: Fix indentation, quotes, and block structure issues
+- **Backup Restoration**: Restore from previous valid versions
+- **Fallback Generation**: Create minimal valid files for critical data
+- **Degraded Operation**: Continue with reduced security functionality
+
+### 5. Trusted Publishing Configuration
 
 **Purpose**: Secure PyPI publishing without credential management
 
@@ -177,6 +221,14 @@ COVERAGE_THRESHOLD: "95"
 CODEQL_LANGUAGES: "python"
 DEPENDABOT_SCHEDULE: "daily"
 
+# YAML Validation Configuration
+YAML_VALIDATION_ENABLED: "true"
+YAML_REPAIR_ENABLED: "true"
+YAML_BACKUP_ENABLED: "true"
+YAML_DEGRADED_MODE_ENABLED: "true"
+SECURITY_FILES_PATH: "security/findings/history"
+CRITICAL_YAML_FILES: "remediation-timeline.yml,security-findings.yml"
+
 # Trusted Publishing Configuration
 PYPI_ENVIRONMENT: "pypi-publishing"
 OIDC_PERMISSIONS: "id-token:write,contents:read"
@@ -215,12 +267,19 @@ OIDC_PERMISSIONS: "id-token:write,contents:read"
    - Display formatting differences
    - Report type checking issues with context
 
-3. **Security Issues**
+3. **YAML Validation Failures**
+   - Display specific YAML syntax errors with line numbers
+   - Show repair attempts and results
+   - Indicate whether graceful degradation was successful
+   - Provide backup restoration status
+
+4. **Security Issues**
    - Block workflow immediately
    - Generate detailed security reports
    - Require manual resolution before proceeding
+   - Handle YAML corruption in security data files
 
-4. **Publishing Failures**
+5. **Publishing Failures**
    - Validate all prerequisites before upload
    - Provide clear authentication error messages
    - Rollback on partial failures
@@ -234,6 +293,26 @@ OIDC_PERMISSIONS: "id-token:write,contents:read"
     timeout_minutes: 10
     max_attempts: 3
     command: uv run pytest --cov=mypylogger --cov-fail-under=95
+
+# YAML validation and repair workflow
+- name: YAML Validation and Repair
+  run: |
+    # Validate YAML files
+    if ! python scripts/validate_security_yaml.py --check; then
+      echo "YAML validation failed, attempting repair..."
+      
+      # Create backups
+      python scripts/validate_security_yaml.py --backup
+      
+      # Attempt repair
+      if python scripts/validate_security_yaml.py --repair; then
+        echo "YAML repair successful"
+      else
+        echo "YAML repair failed, enabling graceful degradation"
+        python scripts/validate_security_yaml.py --degraded-mode
+      fi
+    fi
+  continue-on-error: false  # Fail workflow if critical YAML files cannot be processed
 ```
 
 ## Testing Strategy

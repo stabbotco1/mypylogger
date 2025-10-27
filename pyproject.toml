@@ -330,7 +330,11 @@ extend_exclude = [
 # DEP004: imported but declared as dev dependency
 # tomli is used in scripts (dev context) and is in dev group - this is correct
 # yaml is used in security modules and is in security group - this is correct
-DEP004 = ["tomli", "yaml"]
+# requests is used conditionally in monitoring (dev/testing context) and is in dev group - this is correct
+DEP004 = ["tomli", "yaml", "requests"]
+# DEP001: imported but missing from dependency definitions
+# validate_security_yaml is a script module, not a package dependency
+DEP001 = ["validate_security_yaml"]
 
 [tool.bumpversion]
 current_version = "0.2.0"

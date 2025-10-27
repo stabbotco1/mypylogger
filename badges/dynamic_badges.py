@@ -422,7 +422,7 @@ class BadgeAutomation:
         """
         try:
             # Get current status
-            current_status = self.status_manager.get_current_status()
+            self.status_manager.get_current_status()
 
             # Always update for now (in a real implementation, you'd compare with previous status)
             # This could be enhanced to track status changes and only update when needed
@@ -470,7 +470,7 @@ def main() -> None:
     try:
         automation = BadgeAutomation()
         result = automation.update_badges_if_changed()
-        
+
         if result["success"]:
             print(f"✅ Badges updated successfully: {result.get('reason', 'Updated')}")
             print(f"Security Status: {result.get('security_status', 'unknown')}")
@@ -479,7 +479,7 @@ def main() -> None:
         else:
             print(f"❌ Badge update failed: {result.get('error', 'Unknown error')}")
             sys.exit(1)
-            
+
     except Exception as e:
         print(f"❌ Script execution failed: {e}")
         sys.exit(1)

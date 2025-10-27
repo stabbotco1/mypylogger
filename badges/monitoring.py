@@ -237,7 +237,8 @@ class SecurityStatusMonitor:
                 try:
                     json.loads(content.decode("utf-8"))
                 except json.JSONDecodeError:
-                    raise ValueError("Invalid JSON response")
+                    msg = "Invalid JSON response"
+                    raise ValueError(msg)
 
                 # Create metrics
                 metrics = PerformanceMetrics(

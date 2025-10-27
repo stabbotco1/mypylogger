@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""AWS Configuration Validation Script
+"""AWS Configuration Validation Script.
 
 Validates AWS OIDC configuration for PyPI publishing workflow.
 Checks AWS_REGION format and AWS_ROLE_ARN presence with proper error handling.
 """
 
+from __future__ import annotations
+
 import os
 import re
 import sys
-from typing import List, Optional
 
 
 class AWSConfigError(Exception):
     """Custom exception for AWS configuration errors."""
 
 
-
-def validate_aws_region(region: Optional[str]) -> str:
+def validate_aws_region(region: str | None) -> str:
     """Validate AWS region format.
 
     Args:
@@ -39,10 +39,11 @@ def validate_aws_region(region: Optional[str]) -> str:
     region_pattern = r"^[a-z]{2,3}-[a-z]+-\d+$"
 
     if not re.match(region_pattern, region):
-        raise AWSConfigError(
+        msg = (
             f"Invalid AWS region format: '{region}'. "
             f"Expected format: <region>-<direction>-<number> (e.g., us-east-1, eu-west-2)"
         )
+        raise AWSConfigError(msg)
 
     # Additional validation for known AWS regions
     valid_regions = {
@@ -88,7 +89,7 @@ def validate_aws_region(region: Optional[str]) -> str:
     return region
 
 
-def validate_aws_role_arn(role_arn: Optional[str]) -> str:
+def validate_aws_role_arn(role_arn: str | None) -> str:
     """Validate AWS Role ARN format.
 
     Args:
@@ -101,24 +102,26 @@ def validate_aws_role_arn(role_arn: Optional[str]) -> str:
         AWSConfigError: If role ARN is missing or invalid
     """
     if not role_arn:
-        raise AWSConfigError(
+        msg = (
             "AWS_ROLE_ARN is required for OIDC authentication. "
             "Please set the AWS_ROLE_ARN secret in your GitHub repository."
         )
+        raise AWSConfigError(msg)
 
     # AWS Role ARN format: arn:aws:iam::account-id:role/role-name
     arn_pattern = r"^arn:aws:iam::\d{12}:role/[a-zA-Z0-9+=,.@_-]+$"
 
     if not re.match(arn_pattern, role_arn):
-        raise AWSConfigError(
+        msg = (
             f"Invalid AWS Role ARN format: '{role_arn}'. "
             f"Expected format: arn:aws:iam::ACCOUNT-ID:role/ROLE-NAME"
         )
+        raise AWSConfigError(msg)
 
     return role_arn
 
 
-def validate_aws_secret_name(secret_name: Optional[str]) -> str:
+def validate_aws_secret_name(secret_name: str | None) -> str:
     """Validate AWS Secrets Manager secret name.
 
     Args:
@@ -131,26 +134,29 @@ def validate_aws_secret_name(secret_name: Optional[str]) -> str:
         AWSConfigError: If secret name is missing or invalid
     """
     if not secret_name:
-        raise AWSConfigError(
+        msg = (
             "AWS_SECRET_NAME is required for PyPI token retrieval. "
             "Please set the AWS_SECRET_NAME secret in your GitHub repository."
         )
+        raise AWSConfigError(msg)
 
     # AWS Secrets Manager name validation
     # Can contain alphanumeric characters and /_+=.@-
     secret_pattern = r"^[a-zA-Z0-9/_+=.@-]+$"
 
     if not re.match(secret_pattern, secret_name):
-        raise AWSConfigError(
+        msg = (
             f"Invalid AWS secret name format: '{secret_name}'. "
             f"Secret names can only contain alphanumeric characters and /_+=.@-"
         )
+        raise AWSConfigError(msg)
 
     if len(secret_name) > 512:
-        raise AWSConfigError(
+        msg = (
             f"AWS secret name too long: {len(secret_name)} characters. "
             f"Maximum length is 512 characters."
         )
+        raise AWSConfigError(msg)
 
     return secret_name
 
@@ -166,7 +172,7 @@ def validate_aws_configuration() -> dict:
     """
     print("🔍 Validating AWS OIDC configuration...")
 
-    errors: List[str] = []
+    errors: list[str] = []
     config = {}
 
     try:

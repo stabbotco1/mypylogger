@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""AWS OIDC Workflow Testing Script
+"""AWS OIDC Workflow Testing Script.
 
 Tests and validates the AWS OIDC configuration for PyPI publishing workflow.
 Simulates different scenarios including default region, custom region, and retry logic.
 """
 
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
 import time
-from typing import Dict, Optional
 
 
 class WorkflowTestError(Exception):
     """Custom exception for workflow testing errors."""
 
 
-
-def log_test_step(step: str, status: str, details: Optional[str] = None) -> None:
+def log_test_step(step: str, status: str, details: str | None = None) -> None:
     """Log test step with structured output.
 
     Args:
@@ -57,7 +57,8 @@ def test_aws_config_validation() -> bool:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_aws_config.py"],
-            check=False, env={**os.environ, **env},
+            check=False,
+            env={**os.environ, **env},
             capture_output=True,
             text=True,
         )
@@ -73,7 +74,8 @@ def test_aws_config_validation() -> bool:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_aws_config.py"],
-            check=False, env={**os.environ, **env_missing_role},
+            check=False,
+            env={**os.environ, **env_missing_role},
             capture_output=True,
             text=True,
         )
@@ -93,7 +95,8 @@ def test_aws_config_validation() -> bool:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_aws_config.py"],
-            check=False, env={**os.environ, **env_invalid_region},
+            check=False,
+            env={**os.environ, **env_invalid_region},
             capture_output=True,
             text=True,
         )
@@ -112,7 +115,8 @@ def test_aws_config_validation() -> bool:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_aws_config.py"],
-            check=False, env={**os.environ, **env_no_region},
+            check=False,
+            env={**os.environ, **env_no_region},
             capture_output=True,
             text=True,
         )
@@ -207,7 +211,8 @@ def test_aws_region_scenarios() -> bool:
 
             result = subprocess.run(
                 [sys.executable, "scripts/validate_aws_config.py"],
-                check=False, env={**os.environ, **env},
+                check=False,
+                env={**os.environ, **env},
                 capture_output=True,
                 text=True,
             )
@@ -252,7 +257,8 @@ def test_error_messages() -> bool:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_aws_config.py"],
-            check=False, env={**os.environ, **env},
+            check=False,
+            env={**os.environ, **env},
             capture_output=True,
             text=True,
         )
@@ -287,7 +293,8 @@ def test_error_messages() -> bool:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_aws_config.py"],
-            check=False, env={**os.environ, **env_invalid},
+            check=False,
+            env={**os.environ, **env_invalid},
             capture_output=True,
             text=True,
         )
@@ -307,7 +314,7 @@ def test_error_messages() -> bool:
         return False
 
 
-def generate_test_report(results: Dict[str, bool]) -> None:
+def generate_test_report(results: dict[str, bool]) -> None:
     """Generate a comprehensive test report.
 
     Args:

@@ -1,0 +1,10 @@
+metadata:
+  generated: '2025-10-26T17:35:31.320185'
+  mode: minimal_fallback
+  source: graceful_degradation
+timeline:
+- action: emergency_mode_activated
+  description: Activated minimal mode due to file corruption
+  finding_id: SYSTEM
+  timestamp: '2025-10-26T17:35:31.320175'
+  user: system

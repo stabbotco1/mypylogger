@@ -1,712 +1,521 @@
-"""Tests for security status monitoring and alerting."""
+"""Unit tests for data integrity monitoring and alerting system.
 
-from datetime import datetime, timedelta, timezone
+Tests the monitoring functionality for security data file integrity operations.
+"""
+
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import tempfile
-from unittest.mock import Mock, patch
-from urllib.error import URLError
+import unittest
+from unittest.mock import MagicMock, patch
 
-from badges.monitoring import (
+from security.error_handling import (
+    CorruptionSeverity,
+    FileIntegrityInfo,
+    RecoveryResult,
+    RecoveryStrategy,
+)
+from security.monitoring import (
+    AlertChannel,
     AlertConfig,
-    PerformanceMetrics,
-    SecurityStatusMonitor,
-    StatusUpdateMonitor,
-    UptimeMetrics,
-    get_default_monitor,
-    get_default_update_monitor,
-    run_monitoring_check,
+    AlertSeverity,
+    AuditEntry,
+    DataIntegrityMonitor,
+    IntegrityAlert,
+    alert_manual_intervention,
+    create_default_monitor,
+    log_recovery_result,
+    log_validation_result,
 )
 
 
-class TestPerformanceMetrics:
-    """Test PerformanceMetrics class."""
+class TestDataIntegrityMonitor(unittest.TestCase):
+    """Test cases for DataIntegrityMonitor class."""
 
-    def test_init_success_metrics(self) -> None:
-        """Test initialization of successful metrics."""
-        now = datetime.now(timezone.utc)
-        metrics = PerformanceMetrics(
-            response_time_ms=150.5,
-            status_code=200,
-            content_size_bytes=1024,
-            timestamp=now,
-            endpoint_url="https://example.com/api",
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        self.temp_dir = Path(tempfile.mkdtemp())
+        self.audit_file = self.temp_dir / "audit.log"
+
+        # Create test alert config
+        self.alert_config = AlertConfig(
+            enabled=True,
+            channels=[AlertChannel.LOG, AlertChannel.CONSOLE],
+            min_severity=AlertSeverity.WARNING,
+        )
+
+        self.monitor = DataIntegrityMonitor(
+            audit_file=self.audit_file, alert_config=self.alert_config, verbose=False
+        )
+
+    def tearDown(self) -> None:
+        """Clean up test fixtures."""
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_monitor_initialization(self) -> None:
+        """Test monitor initialization."""
+        assert self.audit_file.parent.exists()
+        assert self.monitor.audit_file == self.audit_file
+        assert self.monitor.alert_config == self.alert_config
+        assert len(self.monitor.active_alerts) == 0
+        assert len(self.monitor.alert_history) == 0
+
+    def test_map_corruption_to_alert_severity(self) -> None:
+        """Test corruption to alert severity mapping."""
+        # Test all corruption severity levels
+        assert (
+            self.monitor._map_corruption_to_alert_severity(CorruptionSeverity.NONE)
+            == AlertSeverity.INFO
+        )
+        assert (
+            self.monitor._map_corruption_to_alert_severity(CorruptionSeverity.MINOR)
+            == AlertSeverity.WARNING
+        )
+        assert (
+            self.monitor._map_corruption_to_alert_severity(CorruptionSeverity.MODERATE)
+            == AlertSeverity.WARNING
+        )
+        assert (
+            self.monitor._map_corruption_to_alert_severity(CorruptionSeverity.SEVERE)
+            == AlertSeverity.ERROR
+        )
+        assert (
+            self.monitor._map_corruption_to_alert_severity(CorruptionSeverity.CRITICAL)
+            == AlertSeverity.CRITICAL
+        )
+
+    def test_is_below_min_severity(self) -> None:
+        """Test minimum severity filtering."""
+        # With min severity WARNING
+        assert self.monitor._is_below_min_severity(AlertSeverity.INFO)
+        assert not self.monitor._is_below_min_severity(AlertSeverity.WARNING)
+        assert not self.monitor._is_below_min_severity(AlertSeverity.ERROR)
+        assert not self.monitor._is_below_min_severity(AlertSeverity.CRITICAL)
+
+    def test_write_audit_entry(self) -> None:
+        """Test audit entry writing."""
+        entry = AuditEntry(
+            timestamp=datetime.now(timezone.utc),
+            operation_type="validation",
+            file_path="/test/file.yml",
+            severity=AlertSeverity.WARNING,
+            details={"test": "data"},
             success=True,
         )
 
-        assert metrics.response_time_ms == 150.5
-        assert metrics.status_code == 200
-        assert metrics.content_size_bytes == 1024
-        assert metrics.timestamp == now
-        assert metrics.endpoint_url == "https://example.com/api"
-        assert metrics.success is True
-        assert metrics.error_message is None
+        self.monitor._write_audit_entry(entry)
 
-    def test_init_failure_metrics(self) -> None:
-        """Test initialization of failure metrics."""
-        now = datetime.now(timezone.utc)
-        metrics = PerformanceMetrics(
-            response_time_ms=5000.0,
-            status_code=0,
-            content_size_bytes=0,
-            timestamp=now,
-            endpoint_url="https://example.com/api",
+        # Verify audit file was created and contains entry
+        assert self.audit_file.exists()
+
+        with self.audit_file.open() as f:
+            logged_entry = json.loads(f.read().strip())
+
+        assert logged_entry["operation_type"] == "validation"
+        assert logged_entry["file_path"] == "/test/file.yml"
+        assert logged_entry["severity"] == "warning"
+        assert logged_entry["success"]
+        assert logged_entry["details"]["test"] == "data"
+
+    def test_log_validation_operation_clean_file(self) -> None:
+        """Test logging validation operation for clean file."""
+        integrity_info = FileIntegrityInfo(
+            file_path="/test/clean.yml",
+            file_type="yaml",
+            checksum="abc123",
+            size_bytes=1024,
+            is_corrupted=False,
+            corruption_severity=CorruptionSeverity.NONE,
+        )
+
+        self.monitor.log_validation_operation("/test/clean.yml", integrity_info)
+
+        # Check statistics
+        assert self.monitor.stats["validations_performed"] == 1
+        assert self.monitor.stats["corruptions_detected"] == 0
+
+        # Check audit log
+        assert self.audit_file.exists()
+        with self.audit_file.open() as f:
+            entry = json.loads(f.read().strip())
+
+        assert entry["operation_type"] == "validation"
+        assert entry["success"]
+        assert not entry["details"]["is_corrupted"]
+
+    def test_log_validation_operation_corrupted_file(self) -> None:
+        """Test logging validation operation for corrupted file."""
+        integrity_info = FileIntegrityInfo(
+            file_path="/test/corrupted.yml",
+            file_type="yaml",
+            checksum="def456",
+            size_bytes=2048,
+            is_corrupted=True,
+            corruption_severity=CorruptionSeverity.SEVERE,
+            corruption_details=["YAML parsing error", "Invalid indentation"],
+        )
+
+        with patch.object(self.monitor, "_send_alert") as mock_send_alert:
+            self.monitor.log_validation_operation("/test/corrupted.yml", integrity_info)
+
+        # Check statistics
+        assert self.monitor.stats["validations_performed"] == 1
+        assert self.monitor.stats["corruptions_detected"] == 1
+
+        # Check that alert was generated
+        mock_send_alert.assert_called_once()
+
+        # Check audit log
+        with self.audit_file.open() as f:
+            entry = json.loads(f.read().strip())
+
+        assert entry["operation_type"] == "validation"
+        assert not entry["success"]
+        assert entry["details"]["is_corrupted"]
+        assert entry["details"]["corruption_severity"] == "severe"
+
+    def test_log_repair_operation_success(self) -> None:
+        """Test logging successful repair operation."""
+        recovery_result = RecoveryResult(
+            success=True,
+            strategy_used=RecoveryStrategy.REPAIR_IN_PLACE,
+            original_file="/test/repaired.yml",
+            recovered_file="/test/repaired.yml",
+            backup_created="/test/repaired.backup.yml",
+            data_integrity_verified=True,
+        )
+
+        self.monitor.log_repair_operation("/test/repaired.yml", recovery_result)
+
+        # Check statistics
+        assert self.monitor.stats["repairs_attempted"] == 1
+        assert self.monitor.stats["repairs_successful"] == 1
+
+        # Check audit log
+        with self.audit_file.open() as f:
+            entry = json.loads(f.read().strip())
+
+        assert entry["operation_type"] == "repair"
+        assert entry["success"]
+        assert entry["details"]["strategy_used"] == "repair_in_place"
+        assert entry["details"]["data_integrity_verified"]
+
+    def test_log_repair_operation_failure(self) -> None:
+        """Test logging failed repair operation."""
+        recovery_result = RecoveryResult(
             success=False,
-            error_message="Connection timeout",
+            strategy_used=RecoveryStrategy.REPAIR_IN_PLACE,
+            original_file="/test/failed.yml",
+            errors=["Repair failed", "File too corrupted"],
         )
 
-        assert metrics.success is False
-        assert metrics.error_message == "Connection timeout"
+        with patch.object(self.monitor, "_send_alert") as mock_send_alert:
+            self.monitor.log_repair_operation("/test/failed.yml", recovery_result)
 
-    def test_to_dict(self) -> None:
-        """Test converting metrics to dictionary."""
-        now = datetime.now(timezone.utc)
-        metrics = PerformanceMetrics(
-            response_time_ms=200.0,
-            status_code=200,
-            content_size_bytes=512,
-            timestamp=now,
-            endpoint_url="https://example.com/api",
-        )
+        # Check statistics
+        assert self.monitor.stats["repairs_attempted"] == 1
+        assert self.monitor.stats["repairs_successful"] == 0
 
-        result = metrics.to_dict()
+        # Check that alert was generated
+        mock_send_alert.assert_called_once()
 
-        assert result["response_time_ms"] == 200.0
-        assert result["status_code"] == 200
-        assert result["content_size_bytes"] == 512
-        assert result["timestamp"] == now.isoformat()
-        assert result["endpoint_url"] == "https://example.com/api"
-        assert result["success"] is True
+        # Check audit log
+        with self.audit_file.open() as f:
+            entry = json.loads(f.read().strip())
 
-    def test_from_dict(self) -> None:
-        """Test creating metrics from dictionary."""
-        now = datetime.now(timezone.utc)
-        data = {
-            "response_time_ms": 300.0,
-            "status_code": 404,
-            "content_size_bytes": 256,
-            "timestamp": now.isoformat(),
-            "endpoint_url": "https://example.com/api",
-            "success": False,
-            "error_message": "Not found",
-        }
+        assert entry["operation_type"] == "repair"
+        assert not entry["success"]
+        assert "Repair failed" in entry["error_message"]
 
-        metrics = PerformanceMetrics.from_dict(data)
-
-        assert metrics.response_time_ms == 300.0
-        assert metrics.status_code == 404
-        assert metrics.success is False
-        assert metrics.error_message == "Not found"
-
-
-class TestUptimeMetrics:
-    """Test UptimeMetrics class."""
-
-    def test_init_default_values(self) -> None:
-        """Test initialization with default values."""
-        metrics = UptimeMetrics()
-
-        assert metrics.total_checks == 0
-        assert metrics.successful_checks == 0
-        assert metrics.failed_checks == 0
-        assert metrics.consecutive_failures == 0
-        assert metrics.uptime_percentage == 100.0
-        assert metrics.is_healthy is True
-
-    def test_uptime_percentage_calculation(self) -> None:
-        """Test uptime percentage calculation."""
-        metrics = UptimeMetrics()
-        metrics.total_checks = 10
-        metrics.successful_checks = 8
-        metrics.failed_checks = 2
-
-        assert metrics.uptime_percentage == 80.0
-
-    def test_is_healthy_good_uptime(self) -> None:
-        """Test healthy status with good uptime."""
-        metrics = UptimeMetrics()
-        metrics.total_checks = 100
-        metrics.successful_checks = 98
-        metrics.failed_checks = 2
-        metrics.consecutive_failures = 1
-
-        assert metrics.is_healthy is True
-
-    def test_is_healthy_low_uptime(self) -> None:
-        """Test unhealthy status with low uptime."""
-        metrics = UptimeMetrics()
-        metrics.total_checks = 100
-        metrics.successful_checks = 90
-        metrics.failed_checks = 10
-
-        assert metrics.is_healthy is False
-
-    def test_is_healthy_consecutive_failures(self) -> None:
-        """Test unhealthy status with consecutive failures."""
-        metrics = UptimeMetrics()
-        metrics.total_checks = 100
-        metrics.successful_checks = 97
-        metrics.failed_checks = 3
-        metrics.consecutive_failures = 5
-
-        assert metrics.is_healthy is False
-
-    def test_record_success(self) -> None:
-        """Test recording successful check."""
-        metrics = UptimeMetrics()
-
-        metrics.record_success(100.0)
-
-        assert metrics.total_checks == 1
-        assert metrics.successful_checks == 1
-        assert metrics.failed_checks == 0
-        assert metrics.consecutive_failures == 0
-        assert metrics.average_response_time_ms == 100.0
-        assert metrics.last_success_time is not None
-
-    def test_record_success_running_average(self) -> None:
-        """Test recording multiple successes with running average."""
-        metrics = UptimeMetrics()
-
-        metrics.record_success(100.0)
-        metrics.record_success(200.0)
-
-        assert metrics.successful_checks == 2
-        assert metrics.average_response_time_ms == 150.0
-
-    def test_record_failure(self) -> None:
-        """Test recording failed check."""
-        metrics = UptimeMetrics()
-
-        metrics.record_failure()
-
-        assert metrics.total_checks == 1
-        assert metrics.successful_checks == 0
-        assert metrics.failed_checks == 1
-        assert metrics.consecutive_failures == 1
-        assert metrics.last_failure_time is not None
-
-    def test_to_dict(self) -> None:
-        """Test converting metrics to dictionary."""
-        now = datetime.now(timezone.utc)
-        metrics = UptimeMetrics()
-        metrics.total_checks = 100
-        metrics.successful_checks = 98  # 98% uptime, above 95% threshold
-        metrics.failed_checks = 2
-        metrics.last_check_time = now
-
-        result = metrics.to_dict()
-
-        assert result["total_checks"] == 100
-        assert result["successful_checks"] == 98
-        assert result["uptime_percentage"] == 98.0
-        assert result["is_healthy"] is True
-
-    def test_from_dict(self) -> None:
-        """Test creating metrics from dictionary."""
-        now = datetime.now(timezone.utc)
-        data = {
-            "total_checks": 20,
-            "successful_checks": 18,
-            "failed_checks": 2,
-            "last_check_time": now.isoformat(),
-            "consecutive_failures": 1,
-            "average_response_time_ms": 250.0,
-        }
-
-        metrics = UptimeMetrics.from_dict(data)
-
-        assert metrics.total_checks == 20
-        assert metrics.successful_checks == 18
-        assert metrics.consecutive_failures == 1
-        assert metrics.average_response_time_ms == 250.0
-
-
-class TestAlertConfig:
-    """Test AlertConfig class."""
-
-    def test_init_default_values(self) -> None:
-        """Test initialization with default values."""
-        config = AlertConfig()
-
-        assert config.response_time_threshold_ms == 1000.0
-        assert config.uptime_threshold_percentage == 95.0
-        assert config.consecutive_failure_threshold == 3
-        assert config.alert_cooldown_minutes == 60
-        assert config.enabled is True
-
-    def test_init_custom_values(self) -> None:
-        """Test initialization with custom values."""
-        config = AlertConfig(
-            response_time_threshold_ms=500.0,
-            uptime_threshold_percentage=99.0,
-            consecutive_failure_threshold=5,
-            alert_cooldown_minutes=30,
-            enabled=False,
-        )
-
-        assert config.response_time_threshold_ms == 500.0
-        assert config.uptime_threshold_percentage == 99.0
-        assert config.consecutive_failure_threshold == 5
-        assert config.alert_cooldown_minutes == 30
-        assert config.enabled is False
-
-    def test_to_dict(self) -> None:
-        """Test converting config to dictionary."""
-        config = AlertConfig(response_time_threshold_ms=750.0)
-
-        result = config.to_dict()
-
-        assert result["response_time_threshold_ms"] == 750.0
-        assert result["enabled"] is True
-
-    def test_from_dict(self) -> None:
-        """Test creating config from dictionary."""
-        data = {
-            "response_time_threshold_ms": 2000.0,
-            "uptime_threshold_percentage": 90.0,
-            "enabled": False,
-        }
-
-        config = AlertConfig.from_dict(data)
-
-        assert config.response_time_threshold_ms == 2000.0
-        assert config.uptime_threshold_percentage == 90.0
-        assert config.enabled is False
-
-
-class TestSecurityStatusMonitor:
-    """Test SecurityStatusMonitor class."""
-
-    def test_init_default_config(self) -> None:
-        """Test initialization with default configuration."""
-        monitor = SecurityStatusMonitor()
-
-        assert "github.io" in monitor.base_url
-        assert monitor.metrics_file == Path("monitoring/metrics.json")
-        assert isinstance(monitor.alert_config, AlertConfig)
-        assert isinstance(monitor.uptime_metrics, UptimeMetrics)
-
-    def test_init_custom_config(self) -> None:
-        """Test initialization with custom configuration."""
-        base_url = "https://custom.github.io/repo"
-        metrics_file = Path("/custom/metrics.json")
-        alert_config = AlertConfig(enabled=False)
-
-        monitor = SecurityStatusMonitor(base_url, metrics_file, alert_config)
-
-        assert monitor.base_url == base_url
-        assert monitor.metrics_file == metrics_file
-        assert monitor.alert_config.enabled is False
-
-    @patch("badges.monitoring.urlopen")
-    def test_check_api_availability_success(self, mock_urlopen: Mock) -> None:
-        """Test successful API availability check."""
-        # Mock successful response
-        mock_response = Mock()
-        mock_response.getcode.return_value = 200
-        mock_response.read.return_value = b'{"status": "ok"}'
-        mock_urlopen.return_value.__enter__.return_value = mock_response
-
-        monitor = SecurityStatusMonitor()
-        metrics = monitor.check_api_availability()
-
-        assert metrics.success is True
-        assert metrics.status_code == 200
-        assert metrics.content_size_bytes == len(b'{"status": "ok"}')
-        assert metrics.response_time_ms > 0
-        assert monitor.uptime_metrics.successful_checks == 1
-
-    @patch("badges.monitoring.urlopen")
-    def test_check_api_availability_failure(self, mock_urlopen: Mock) -> None:
-        """Test failed API availability check."""
-        # Mock URLError
-        mock_urlopen.side_effect = URLError("Connection failed")
-
-        monitor = SecurityStatusMonitor()
-        metrics = monitor.check_api_availability()
-
-        assert metrics.success is False
-        assert metrics.status_code == 0
-        assert "Connection failed" in metrics.error_message
-        assert monitor.uptime_metrics.failed_checks == 1
-
-    @patch("badges.monitoring.urlopen")
-    def test_check_api_availability_invalid_json(self, mock_urlopen: Mock) -> None:
-        """Test API check with invalid JSON response."""
-        # Mock response with invalid JSON
-        mock_response = Mock()
-        mock_response.getcode.return_value = 200
-        mock_response.read.return_value = b"invalid json"
-        mock_urlopen.return_value.__enter__.return_value = mock_response
-
-        monitor = SecurityStatusMonitor()
-        metrics = monitor.check_api_availability()
-
-        assert metrics.success is False
-        assert "Invalid JSON response" in metrics.error_message
-
-    def test_run_monitoring_check_success(self) -> None:
-        """Test successful monitoring check."""
-        monitor = SecurityStatusMonitor()
-
-        # Mock check_api_availability
-        with patch.object(monitor, "check_api_availability") as mock_check:
-            mock_metrics = PerformanceMetrics(
-                response_time_ms=100.0,
-                status_code=200,
-                content_size_bytes=512,
-                timestamp=datetime.now(timezone.utc),
-                endpoint_url="https://example.com/api",
-                success=True,
+    def test_log_manual_intervention_required(self) -> None:
+        """Test logging manual intervention requirement."""
+        with patch.object(self.monitor, "_send_alert") as mock_send_alert:
+            self.monitor.log_manual_intervention_required(
+                "/test/critical.yml", "File completely corrupted", {"backup_missing": True}
             )
-            mock_check.return_value = mock_metrics
 
-            # Mock save_metrics
-            with patch.object(monitor, "_save_metrics"):
-                result = monitor.run_monitoring_check()
+        # Check statistics
+        assert self.monitor.stats["manual_interventions_required"] == 1
 
-        assert result["success"] is True
-        assert "metrics" in result
-        assert "uptime" in result
-        assert "alerts" in result
+        # Check that critical alert was generated
+        mock_send_alert.assert_called_once()
 
-    def test_run_monitoring_check_failure(self) -> None:
-        """Test monitoring check with exception."""
-        monitor = SecurityStatusMonitor()
+        # Check audit log
+        with self.audit_file.open() as f:
+            entry = json.loads(f.read().strip())
 
-        # Mock check_api_availability to raise exception
-        with patch.object(monitor, "check_api_availability") as mock_check:
-            mock_check.side_effect = RuntimeError("Check failed")
+        assert entry["operation_type"] == "manual_intervention_required"
+        assert not entry["success"]
+        assert entry["severity"] == "critical"
+        assert entry["error_message"] == "File completely corrupted"
 
-            result = monitor.run_monitoring_check()
-
-        assert result["success"] is False
-        assert "Check failed" in result["error"]
-
-    def test_get_monitoring_summary(self) -> None:
-        """Test getting monitoring summary."""
-        monitor = SecurityStatusMonitor()
-
-        # Add some test metrics
-        now = datetime.now(timezone.utc)
-        test_metrics = PerformanceMetrics(
-            response_time_ms=200.0,
-            status_code=200,
-            content_size_bytes=1024,
-            timestamp=now,
-            endpoint_url="https://example.com/api",
-        )
-        monitor.performance_history.append(test_metrics)
-        monitor.uptime_metrics.record_success(200.0)
-
-        summary = monitor.get_monitoring_summary()
-
-        assert "uptime" in summary
-        assert "recent_performance" in summary
-        assert "alert_config" in summary
-        assert summary["service_status"] == "healthy"
-
-    def test_check_alerts_high_response_time(self) -> None:
-        """Test alert generation for high response time."""
-        config = AlertConfig(response_time_threshold_ms=100.0)
-        monitor = SecurityStatusMonitor(alert_config=config)
-
-        # Create metrics with high response time
-        metrics = PerformanceMetrics(
-            response_time_ms=500.0,
-            status_code=200,
-            content_size_bytes=512,
+    def test_send_log_alert(self) -> None:
+        """Test sending alert to log."""
+        alert = IntegrityAlert(
+            alert_id="test_alert_001",
             timestamp=datetime.now(timezone.utc),
-            endpoint_url="https://example.com/api",
+            severity=AlertSeverity.ERROR,
+            title="Test Alert",
+            message="This is a test alert",
+            file_path="/test/file.yml",
+        )
+
+        with patch.object(self.monitor.logger, "log") as mock_log:
+            self.monitor._send_log_alert(alert)
+
+        # Verify log was called with correct level and message
+        mock_log.assert_called_once()
+        args, _kwargs = mock_log.call_args
+        assert args[0] == 40  # ERROR level
+        assert "Test Alert" in args[1]
+
+    def test_send_console_alert(self) -> None:
+        """Test sending alert to console."""
+        alert = IntegrityAlert(
+            alert_id="test_alert_002",
+            timestamp=datetime.now(timezone.utc),
+            severity=AlertSeverity.WARNING,
+            title="Test Warning",
+            message="This is a test warning",
+            file_path="/test/file.yml",
+            corruption_details=["Detail 1", "Detail 2"],
+        )
+
+        with patch("builtins.print") as mock_print:
+            self.monitor._send_console_alert(alert)
+
+        # Verify print was called multiple times
+        assert mock_print.call_count > 5
+
+        # Check that key information was printed
+        printed_text = " ".join([str(call.args[0]) for call in mock_print.call_args_list])
+        assert "Test Warning" in printed_text
+        assert "/test/file.yml" in printed_text
+        assert "Detail 1" in printed_text
+
+    def test_send_file_alert(self) -> None:
+        """Test sending alert to file."""
+        alert_file = self.temp_dir / "alerts.json"
+        self.monitor.alert_config.alert_file = alert_file
+
+        alert = IntegrityAlert(
+            alert_id="test_alert_003",
+            timestamp=datetime.now(timezone.utc),
+            severity=AlertSeverity.CRITICAL,
+            title="Test Critical Alert",
+            message="This is a test critical alert",
+            file_path="/test/file.yml",
+            requires_manual_intervention=True,
+        )
+
+        self.monitor._send_file_alert(alert)
+
+        # Verify alert file was created
+        assert alert_file.exists()
+
+        # Verify alert content
+        with alert_file.open() as f:
+            alert_data = json.loads(f.read().strip())
+
+        assert alert_data["alert_id"] == "test_alert_003"
+        assert alert_data["severity"] == "critical"
+        assert alert_data["title"] == "Test Critical Alert"
+        assert alert_data["requires_manual_intervention"]
+
+    def test_send_alert_integration(self) -> None:
+        """Test complete alert sending integration."""
+        # Configure for log and console channels
+        self.monitor.alert_config.channels = [AlertChannel.LOG, AlertChannel.CONSOLE]
+
+        alert = IntegrityAlert(
+            alert_id="integration_test_001",
+            timestamp=datetime.now(timezone.utc),
+            severity=AlertSeverity.ERROR,
+            title="Integration Test Alert",
+            message="Testing alert integration",
+            file_path="/test/integration.yml",
+        )
+
+        with patch.object(self.monitor, "_send_log_alert") as mock_log, patch.object(
+            self.monitor, "_send_console_alert"
+        ) as mock_console:
+            self.monitor._send_alert(alert)
+
+        # Verify alert was sent through both channels
+        mock_log.assert_called_once_with(alert)
+        mock_console.assert_called_once_with(alert)
+
+        # Verify alert tracking
+        assert "integration_test_001" in self.monitor.active_alerts
+        assert len(self.monitor.alert_history) == 1
+        assert self.monitor.stats["alerts_sent"] == 1
+
+    def test_get_audit_summary(self) -> None:
+        """Test audit summary generation."""
+        # Create some test audit entries
+        entries = [
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation_type": "validation",
+                "file_path": "/test/file1.yml",
+                "severity": "warning",
+                "success": False,
+            },
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation_type": "repair",
+                "file_path": "/test/file1.yml",
+                "severity": "info",
+                "success": True,
+            },
+        ]
+
+        # Write entries to audit file
+        with self.audit_file.open("w") as f:
+            for entry in entries:
+                f.write(json.dumps(entry) + "\n")
+
+        summary = self.monitor.get_audit_summary()
+
+        # Verify summary structure
+        assert "period" in summary
+        assert "statistics" in summary
+        assert "operations" in summary
+        assert "severity_breakdown" in summary
+        assert "files_affected" in summary
+
+        # Verify counts
+        assert summary["operations"]["validation"] == 1
+        assert summary["operations"]["repair"] == 1
+        assert summary["severity_breakdown"]["warning"] == 1
+        assert summary["severity_breakdown"]["info"] == 1
+        assert "/test/file1.yml" in summary["files_affected"]
+
+    def test_clear_resolved_alerts(self) -> None:
+        """Test clearing resolved alerts."""
+        # Add some active alerts
+        alert1 = IntegrityAlert(
+            alert_id="alert_001",
+            timestamp=datetime.now(timezone.utc),
+            severity=AlertSeverity.WARNING,
+            title="Alert 1",
+            message="Test alert 1",
+            file_path="/test/file1.yml",
+        )
+
+        alert2 = IntegrityAlert(
+            alert_id="alert_002",
+            timestamp=datetime.now(timezone.utc),
+            severity=AlertSeverity.ERROR,
+            title="Alert 2",
+            message="Test alert 2",
+            file_path="/test/file2.yml",
+        )
+
+        self.monitor.active_alerts["alert_001"] = alert1
+        self.monitor.active_alerts["alert_002"] = alert2
+
+        # Clear one alert
+        cleared_count = self.monitor.clear_resolved_alerts(["alert_001"])
+
+        assert cleared_count == 1
+        assert "alert_001" not in self.monitor.active_alerts
+        assert "alert_002" in self.monitor.active_alerts
+
+    def test_get_active_alerts(self) -> None:
+        """Test getting active alerts."""
+        # Initially no active alerts
+        active_alerts = self.monitor.get_active_alerts()
+        assert len(active_alerts) == 0
+
+        # Add an active alert
+        alert = IntegrityAlert(
+            alert_id="active_001",
+            timestamp=datetime.now(timezone.utc),
+            severity=AlertSeverity.WARNING,
+            title="Active Alert",
+            message="Test active alert",
+            file_path="/test/active.yml",
+        )
+
+        self.monitor.active_alerts["active_001"] = alert
+
+        # Get active alerts
+        active_alerts = self.monitor.get_active_alerts()
+        assert len(active_alerts) == 1
+        assert active_alerts[0].alert_id == "active_001"
+
+
+class TestConvenienceFunctions(unittest.TestCase):
+    """Test cases for convenience functions."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        self.temp_dir = Path(tempfile.mkdtemp())
+
+    def tearDown(self) -> None:
+        """Clean up test fixtures."""
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_create_default_monitor(self) -> None:
+        """Test creating default monitor."""
+        monitor = create_default_monitor(verbose=True)
+
+        assert isinstance(monitor, DataIntegrityMonitor)
+        assert monitor.verbose
+
+    @patch("security.monitoring.create_default_monitor")
+    def test_log_validation_result(self, mock_create_monitor: MagicMock) -> None:
+        """Test log_validation_result convenience function."""
+        mock_monitor = MagicMock()
+        mock_create_monitor.return_value = mock_monitor
+
+        integrity_info = FileIntegrityInfo(
+            file_path="/test/file.yml", file_type="yaml", is_corrupted=False
+        )
+
+        log_validation_result("/test/file.yml", integrity_info)
+
+        mock_create_monitor.assert_called_once()
+        mock_monitor.log_validation_operation.assert_called_once_with(
+            "/test/file.yml", integrity_info
+        )
+
+    @patch("security.monitoring.create_default_monitor")
+    def test_log_recovery_result(self, mock_create_monitor: MagicMock) -> None:
+        """Test log_recovery_result convenience function."""
+        mock_monitor = MagicMock()
+        mock_create_monitor.return_value = mock_monitor
+
+        recovery_result = RecoveryResult(
             success=True,
+            strategy_used=RecoveryStrategy.REPAIR_IN_PLACE,
+            original_file="/test/file.yml",
         )
 
-        alerts = monitor._check_alerts(metrics)
+        log_recovery_result("/test/file.yml", recovery_result)
 
-        assert len(alerts) == 1
-        assert alerts[0]["type"] == "high_response_time"
-        assert alerts[0]["severity"] == "warning"
+        mock_create_monitor.assert_called_once()
+        mock_monitor.log_repair_operation.assert_called_once_with("/test/file.yml", recovery_result)
 
-    def test_check_alerts_consecutive_failures(self) -> None:
-        """Test alert generation for consecutive failures."""
-        config = AlertConfig(consecutive_failure_threshold=2)
-        monitor = SecurityStatusMonitor(alert_config=config)
+    @patch("security.monitoring.create_default_monitor")
+    def test_alert_manual_intervention(self, mock_create_monitor: MagicMock) -> None:
+        """Test alert_manual_intervention convenience function."""
+        mock_monitor = MagicMock()
+        mock_create_monitor.return_value = mock_monitor
 
-        # Set up consecutive failures
-        monitor.uptime_metrics.consecutive_failures = 3
+        alert_manual_intervention("/test/file.yml", "File corrupted", {"details": "test"})
 
-        # Create failure metrics
-        metrics = PerformanceMetrics(
-            response_time_ms=0.0,
-            status_code=0,
-            content_size_bytes=0,
-            timestamp=datetime.now(timezone.utc),
-            endpoint_url="https://example.com/api",
-            success=False,
-            error_message="Connection failed",
+        mock_create_monitor.assert_called_once()
+        mock_monitor.log_manual_intervention_required.assert_called_once_with(
+            "/test/file.yml", "File corrupted", {"details": "test"}
         )
 
-        alerts = monitor._check_alerts(metrics)
 
-        assert len(alerts) >= 1
-        alert_types = [alert["type"] for alert in alerts]
-        assert "consecutive_failures" in alert_types
-
-    def test_check_alerts_disabled(self) -> None:
-        """Test no alerts when alerting is disabled."""
-        config = AlertConfig(enabled=False)
-        monitor = SecurityStatusMonitor(alert_config=config)
-
-        # Create metrics that would normally trigger alerts
-        metrics = PerformanceMetrics(
-            response_time_ms=5000.0,
-            status_code=0,
-            content_size_bytes=0,
-            timestamp=datetime.now(timezone.utc),
-            endpoint_url="https://example.com/api",
-            success=False,
-        )
-
-        alerts = monitor._check_alerts(metrics)
-
-        assert len(alerts) == 0
-
-    def test_should_send_alert_cooldown(self) -> None:
-        """Test alert cooldown functionality."""
-        config = AlertConfig(alert_cooldown_minutes=30)
-        monitor = SecurityStatusMonitor(alert_config=config)
-
-        now = datetime.now(timezone.utc)
-
-        # First alert should be sent
-        assert monitor._should_send_alert("test_alert", now) is True
-
-        # Record the alert
-        monitor.last_alerts["test_alert"] = now
-
-        # Alert within cooldown period should not be sent
-        soon = now + timedelta(minutes=15)
-        assert monitor._should_send_alert("test_alert", soon) is False
-
-        # Alert after cooldown period should be sent
-        later = now + timedelta(minutes=35)
-        assert monitor._should_send_alert("test_alert", later) is True
-
-    def test_load_metrics_no_file(self) -> None:
-        """Test loading metrics when file doesn't exist."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            metrics_file = temp_path / "nonexistent.json"
-
-            monitor = SecurityStatusMonitor(metrics_file=metrics_file)
-
-            # Should not raise exception and use default values
-            assert monitor.uptime_metrics.total_checks == 0
-
-    def test_load_metrics_success(self) -> None:
-        """Test successful metrics loading."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            metrics_file = temp_path / "metrics.json"
-
-            # Create test data
-            now = datetime.now(timezone.utc)
-            test_data = {
-                "uptime_metrics": {
-                    "total_checks": 10,
-                    "successful_checks": 8,
-                    "failed_checks": 2,
-                    "consecutive_failures": 1,
-                    "average_response_time_ms": 150.0,
-                },
-                "performance_history": [],
-                "last_alerts": {
-                    "test_alert": now.isoformat(),
-                },
-            }
-
-            # Write test data
-            with metrics_file.open("w") as f:
-                json.dump(test_data, f)
-
-            monitor = SecurityStatusMonitor(metrics_file=metrics_file)
-
-            assert monitor.uptime_metrics.total_checks == 10
-            assert monitor.uptime_metrics.successful_checks == 8
-            assert "test_alert" in monitor.last_alerts
-
-    def test_save_metrics_success(self) -> None:
-        """Test successful metrics saving."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            metrics_file = temp_path / "metrics.json"
-
-            monitor = SecurityStatusMonitor(metrics_file=metrics_file)
-            monitor.uptime_metrics.record_success(100.0)
-
-            monitor._save_metrics()
-
-            assert metrics_file.exists()
-
-            # Verify saved data
-            with metrics_file.open("r") as f:
-                data = json.load(f)
-            assert data["uptime_metrics"]["total_checks"] == 1
-
-
-class TestStatusUpdateMonitor:
-    """Test StatusUpdateMonitor class."""
-
-    def test_init_default_components(self) -> None:
-        """Test initialization with default components."""
-        monitor = StatusUpdateMonitor()
-
-        assert monitor.status_manager is not None
-        assert monitor.pages_generator is not None
-        assert isinstance(monitor.alert_config, AlertConfig)
-
-    def test_init_custom_components(self) -> None:
-        """Test initialization with custom components."""
-        status_manager = Mock()
-        pages_generator = Mock()
-        alert_config = AlertConfig(enabled=False)
-
-        monitor = StatusUpdateMonitor(status_manager, pages_generator, alert_config)
-
-        assert monitor.status_manager == status_manager
-        assert monitor.pages_generator == pages_generator
-        assert monitor.alert_config.enabled is False
-
-    def test_monitor_status_update_success(self) -> None:
-        """Test successful status update monitoring."""
-        # Mock components
-        mock_status_manager = Mock()
-        mock_pages_generator = Mock()
-
-        monitor = StatusUpdateMonitor(mock_status_manager, mock_pages_generator)
-
-        # Mock successful operations
-        with patch.object(monitor, "_test_status_manager_update") as mock_sm_test:
-            with patch.object(monitor, "_test_pages_generator_update") as mock_pg_test:
-                mock_sm_test.return_value = {"success": True, "duration_ms": 100}
-                mock_pg_test.return_value = {"success": True, "duration_ms": 200}
-
-                result = monitor.monitor_status_update()
-
-        assert result["success"] is True
-        assert result["total_time_ms"] > 0
-        assert len(result["alerts"]) == 0
-
-    def test_monitor_status_update_failure(self) -> None:
-        """Test status update monitoring with failure."""
-        # Mock components
-        mock_status_manager = Mock()
-        mock_pages_generator = Mock()
-        alert_config = AlertConfig(enabled=True)
-
-        monitor = StatusUpdateMonitor(mock_status_manager, mock_pages_generator, alert_config)
-
-        # Mock failed operations
-        with patch.object(monitor, "_test_status_manager_update") as mock_sm_test:
-            with patch.object(monitor, "_test_pages_generator_update") as mock_pg_test:
-                mock_sm_test.return_value = {"success": False, "error": "SM failed"}
-                mock_pg_test.return_value = {"success": True, "duration_ms": 200}
-
-                result = monitor.monitor_status_update()
-
-        assert result["success"] is False
-        assert len(result["alerts"]) == 1
-        assert result["alerts"][0]["type"] == "status_update_failure"
-
-    def test_test_status_manager_update_success(self) -> None:
-        """Test successful status manager update test."""
-        mock_status_manager = Mock()
-        mock_status = Mock()
-        mock_status.security_grade = "A"
-        mock_status.vulnerability_summary.total = 0
-
-        mock_status_manager.get_current_status.return_value = mock_status
-        mock_status_manager.update_status.return_value = mock_status
-
-        monitor = StatusUpdateMonitor(mock_status_manager)
-        result = monitor._test_status_manager_update()
-
-        assert result["success"] is True
-        assert result["updated_status_grade"] == "A"
-        assert result["vulnerability_count"] == 0
-
-    def test_test_status_manager_update_failure(self) -> None:
-        """Test failed status manager update test."""
-        mock_status_manager = Mock()
-        mock_status_manager.update_status.side_effect = RuntimeError("Update failed")
-
-        monitor = StatusUpdateMonitor(mock_status_manager)
-        result = monitor._test_status_manager_update()
-
-        assert result["success"] is False
-        assert "Update failed" in result["error"]
-
-    def test_test_pages_generator_update_success(self) -> None:
-        """Test successful pages generator update test."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-
-            mock_pages_generator = Mock()
-            mock_pages_generator.pages_dir = temp_path
-
-            # Create mock files
-            (temp_path / "index.json").touch()
-            (temp_path / "index.html").touch()
-
-            monitor = StatusUpdateMonitor(pages_generator=mock_pages_generator)
-            result = monitor._test_pages_generator_update()
-
-            assert result["success"] is True
-            assert result["api_file_exists"] is True
-            assert result["html_file_exists"] is True
-
-    def test_test_pages_generator_update_failure(self) -> None:
-        """Test failed pages generator update test."""
-        mock_pages_generator = Mock()
-        mock_pages_generator.generate_api_endpoint.side_effect = RuntimeError("Generation failed")
-
-        monitor = StatusUpdateMonitor(pages_generator=mock_pages_generator)
-        result = monitor._test_pages_generator_update()
-
-        assert result["success"] is False
-        assert "Generation failed" in result["error"]
-
-
-class TestModuleFunctions:
-    """Test module-level functions."""
-
-    def test_get_default_monitor(self) -> None:
-        """Test getting default monitor."""
-        monitor = get_default_monitor()
-
-        assert isinstance(monitor, SecurityStatusMonitor)
-
-    def test_get_default_update_monitor(self) -> None:
-        """Test getting default update monitor."""
-        monitor = get_default_update_monitor()
-
-        assert isinstance(monitor, StatusUpdateMonitor)
-
-    @patch("badges.monitoring.SecurityStatusMonitor")
-    def test_run_monitoring_check(self, mock_monitor_class: Mock) -> None:
-        """Test run_monitoring_check function."""
-        mock_monitor = Mock()
-        mock_result = {"success": True}
-        mock_monitor.run_monitoring_check.return_value = mock_result
-        mock_monitor_class.return_value = mock_monitor
-
-        base_url = "https://custom.github.io/repo"
-        metrics_file = Path("/custom/metrics.json")
-        alert_config = AlertConfig()
-
-        result = run_monitoring_check(base_url, metrics_file, alert_config)
-
-        mock_monitor_class.assert_called_once_with(base_url, metrics_file, alert_config)
-        mock_monitor.run_monitoring_check.assert_called_once()
-        assert result == mock_result
+if __name__ == "__main__":
+    unittest.main()

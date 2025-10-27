@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""AWS Authentication Retry Logic
+"""AWS Authentication Retry Logic.
 
 Implements retry wrapper around AWS OIDC authentication with exponential backoff
 and comprehensive logging for troubleshooting authentication failures.
 """
+
+from __future__ import annotations
 
 import json
 import os
 import subprocess
 import sys
 import time
-from typing import List
 
 
 class AWSAuthError(Exception):
     """Custom exception for AWS authentication errors."""
-
 
 
 def log_structured(level: str, message: str, **kwargs) -> None:
@@ -37,7 +37,7 @@ def log_structured(level: str, message: str, **kwargs) -> None:
     print(json.dumps(log_entry))
 
 
-def run_command(command: List[str], timeout: int = 60) -> subprocess.CompletedProcess:
+def run_command(command: list[str], timeout: int = 60) -> subprocess.CompletedProcess:
     """Run a command with timeout and error handling.
 
     Args:
@@ -73,11 +73,13 @@ def run_command(command: List[str], timeout: int = 60) -> subprocess.CompletedPr
 
     except subprocess.TimeoutExpired:
         log_structured("ERROR", "Command timed out", command=" ".join(command), timeout=timeout)
-        raise AWSAuthError(f"Command timed out after {timeout} seconds: {' '.join(command)}")
+        msg = f"Command timed out after {timeout} seconds: {' '.join(command)}"
+        raise AWSAuthError(msg)
 
     except Exception as e:
         log_structured("ERROR", "Command execution failed", command=" ".join(command), error=str(e))
-        raise AWSAuthError(f"Failed to execute command: {e}")
+        msg = f"Failed to execute command: {e}"
+        raise AWSAuthError(msg)
 
 
 def validate_aws_connectivity() -> None:
@@ -93,7 +95,8 @@ def validate_aws_connectivity() -> None:
         result = run_command(["aws", "sts", "get-caller-identity"], timeout=30)
 
         if result.returncode != 0:
-            raise AWSAuthError(f"AWS connectivity test failed: {result.stderr}")
+            msg = f"AWS connectivity test failed: {result.stderr}"
+            raise AWSAuthError(msg)
 
         # Parse caller identity
         try:
@@ -109,7 +112,8 @@ def validate_aws_connectivity() -> None:
             log_structured("WARN", "Could not parse caller identity response", stdout=result.stdout)
 
     except Exception as e:
-        raise AWSAuthError(f"AWS connectivity validation failed: {e}")
+        msg = f"AWS connectivity validation failed: {e}"
+        raise AWSAuthError(msg)
 
 
 def validate_secrets_manager_access(secret_name: str) -> None:
@@ -142,17 +146,19 @@ def validate_secrets_manager_access(secret_name: str) -> None:
 
         if result.returncode != 0:
             if "ResourceNotFoundException" in result.stderr:
-                raise AWSAuthError(f"Secret '{secret_name}' not found in AWS Secrets Manager")
+                msg = f"Secret '{secret_name}' not found in AWS Secrets Manager"
+                raise AWSAuthError(msg)
             if "AccessDenied" in result.stderr:
-                raise AWSAuthError(
-                    f"Access denied to secret '{secret_name}'. Check IAM permissions."
-                )
-            raise AWSAuthError(f"Secrets Manager access test failed: {result.stderr}")
+                msg = f"Access denied to secret '{secret_name}'. Check IAM permissions."
+                raise AWSAuthError(msg)
+            msg = f"Secrets Manager access test failed: {result.stderr}"
+            raise AWSAuthError(msg)
 
         log_structured("INFO", "Secrets Manager access validated", secret_name=secret_name)
 
     except Exception as e:
-        raise AWSAuthError(f"Secrets Manager validation failed: {e}")
+        msg = f"Secrets Manager validation failed: {e}"
+        raise AWSAuthError(msg)
 
 
 def configure_aws_credentials_with_retry(
@@ -238,7 +244,8 @@ def configure_aws_credentials_with_retry(
                 log_structured(
                     "ERROR", "All AWS authentication attempts failed", total_attempts=max_attempts
                 )
-                raise AWSAuthError(f"AWS authentication failed after {max_attempts} attempts: {e}")
+                msg = f"AWS authentication failed after {max_attempts} attempts: {e}"
+                raise AWSAuthError(msg)
 
 
 def main() -> int:
@@ -254,10 +261,12 @@ def main() -> int:
         secret_name = os.environ.get("AWS_SECRET_NAME")
 
         if not role_arn:
-            raise AWSAuthError("AWS_ROLE_ARN environment variable is required")
+            msg = "AWS_ROLE_ARN environment variable is required"
+            raise AWSAuthError(msg)
 
         if not secret_name:
-            raise AWSAuthError("AWS_SECRET_NAME environment variable is required")
+            msg = "AWS_SECRET_NAME environment variable is required"
+            raise AWSAuthError(msg)
 
         log_structured(
             "INFO",
