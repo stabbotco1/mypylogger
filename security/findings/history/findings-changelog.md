@@ -37069,3 +37069,1311 @@ Each entry represents a significant event in the security findings management pr
 **Package**: setuptools 75.3.2  
 **Scanner**: pip-audit  
 
+
+## 2025-10-27 01:44:51 UTC
+
+**Finding ID**: PYSEC-2022-42969  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:44:56 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:45:05 UTC
+
+**Finding ID**: PYSEC-2025-49  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:45:10 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:45:20 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:45:30 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:45:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:45:50 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:45:55 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:46:00 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by bandit  
+**Severity**: medium  
+**Package**: test.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:46:11 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:46:21 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:46:30 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:46:34 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:46:42 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New high severity finding discovered by bandit  
+**Severity**: high  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:46:50 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:46:59 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:07 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:15 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:19 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:23 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: test.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:47:32 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:48 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:47:56 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:48:00 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:48:09 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:48:17 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:48:27 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New high severity finding discovered by bandit  
+**Severity**: high  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:48:35 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:48:43 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:48:51 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:00 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:04 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:08 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:16 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:25 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:33 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:41 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:49:50 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:03 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:06 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:10 UTC
+
+**Finding ID**: CVE-2023-12345  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: test-package 1.0.0  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:50:13 UTC
+
+**Finding ID**: BANDIT-B101-test_file.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: test_file.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:50:16 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:20 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:23 UTC
+
+**Finding ID**: CVE-2023-12345  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:25 UTC
+
+**Finding ID**: BANDIT-B101-test_file.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:50:30 UTC
+
+**Finding ID**: PYSEC-2022-42969  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: py 1.11.0  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:50:34 UTC
+
+**Finding ID**: PYSEC-2025-49  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: setuptools 75.3.2  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:52:33 UTC
+
+**Finding ID**: PYSEC-2025-49  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:52:37 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:52:45 UTC
+
+**Finding ID**: PYSEC-2022-42969  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:52:50 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:52:58 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:53:06 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:53:15 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:53:19 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:53:23 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:53:31 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by bandit  
+**Severity**: medium  
+**Package**: test.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:53:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:53:48 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:53:57 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:54:02 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:54:11 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:54:19 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New high severity finding discovered by bandit  
+**Severity**: high  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:54:28 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:54:36 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:54:40 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:54:45 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:54:53 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: test.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:55:01 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:10 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:18 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:26 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:31 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:39 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:47 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:55:57 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:56:06 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New high severity finding discovered by bandit  
+**Severity**: high  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:56:14 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:56:23 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:56:27 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:56:32 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:56:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:56:49 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:56:57 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:06 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:14 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:23 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:36 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:43 UTC
+
+**Finding ID**: CVE-2023-12345  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: test-package 1.0.0  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:57:47 UTC
+
+**Finding ID**: BANDIT-B101-test_file.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: test_file.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:57:50 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:53 UTC
+
+**Finding ID**: BANDIT-B101-test_file.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:55 UTC
+
+**Finding ID**: CVE-2023-12345  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:57:57 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:58:01 UTC
+
+**Finding ID**: PYSEC-2022-42969  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: py 1.11.0  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:58:04 UTC
+
+**Finding ID**: PYSEC-2025-49  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: setuptools 75.3.2  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:58:28 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:58:37 UTC
+
+**Finding ID**: PYSEC-2022-42969  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:58:41 UTC
+
+**Finding ID**: PYSEC-2025-49  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:58:45 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 01:58:54 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:59:02 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:59:10 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:59:15 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:59:21 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:59:31 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by bandit  
+**Severity**: medium  
+**Package**: test.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 01:59:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:59:48 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 01:59:53 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:00:01 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:00:10 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 02:00:18 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New high severity finding discovered by bandit  
+**Severity**: high  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 02:00:27 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:00:36 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:00:40 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:00:44 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:00:53 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: test.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 02:01:01 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:10 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:19 UTC
+
+**Finding ID**: BANDIT-B105-test.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:23 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:32 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:40 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:49 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:01:59 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: requests 2.25.1  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 02:02:08 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New high severity finding discovered by bandit  
+**Severity**: high  
+**Package**: core.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 02:02:16 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:02:25 UTC
+
+**Finding ID**: PYSEC-2023-74  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:02:30 UTC
+
+**Finding ID**: BANDIT-B105-core.py-42  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:02:34 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:02:43 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:02:51 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:00 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:09 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:17 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:26 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:39 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:43 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:47 UTC
+
+**Finding ID**: CVE-2023-12345  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: test-package 1.0.0  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 02:03:50 UTC
+
+**Finding ID**: BANDIT-B101-test_file.py-10  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New low severity finding discovered by bandit  
+**Severity**: low  
+**Package**: test_file.py local  
+**Scanner**: bandit  
+
+
+## 2025-10-27 02:03:53 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:03:57 UTC
+
+**Finding ID**: GHSA-4xh5-x5gv-qwph  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:04:00 UTC
+
+**Finding ID**: CVE-2023-12345  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:04:02 UTC
+
+**Finding ID**: BANDIT-B101-test_file.py-10  
+**Event**: Resolved  
+**Source**: scanner  
+**Notes**: Finding resolved - no longer detected by security scanners  
+
+
+## 2025-10-27 02:04:05 UTC
+
+**Finding ID**: PYSEC-2022-42969  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: py 1.11.0  
+**Scanner**: pip-audit  
+
+
+## 2025-10-27 02:04:08 UTC
+
+**Finding ID**: PYSEC-2025-49  
+**Event**: Discovered  
+**Source**: scanner  
+**Notes**: New medium severity finding discovered by pip-audit  
+**Severity**: medium  
+**Package**: setuptools 75.3.2  
+**Scanner**: pip-audit  
+

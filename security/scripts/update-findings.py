@@ -98,7 +98,9 @@ class AutomationEngine:
             RuntimeError: If workflow execution fails and cannot be recovered
         """
         try:
-            self._log(f"Starting security findings automation workflow in {self.operational_mode} mode...")
+            self._log(
+                f"Starting security findings automation workflow in {self.operational_mode} mode..."
+            )
 
             workflow_results = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -135,7 +137,10 @@ class AutomationEngine:
                 workflow_results["synchronization_stats"] = sync_result
             else:
                 self._log("Step 2: Skipping synchronization in emergency/minimal mode")
-                workflow_results["synchronization_stats"] = {"skipped": True, "reason": "emergency_mode"}
+                workflow_results["synchronization_stats"] = {
+                    "skipped": True,
+                    "reason": "emergency_mode",
+                }
 
             # Step 3: Generate findings document with fallback
             self._log("Step 3: Generating findings document with fallback support...")
@@ -168,7 +173,7 @@ class AutomationEngine:
         except Exception as e:
             error_msg = f"Automation workflow failed: {e}"
             self._log(f"ERROR: {error_msg}")
-            
+
             # In YAML-safe mode, try to create emergency fallback
             if self.yaml_safe:
                 try:
@@ -179,11 +184,11 @@ class AutomationEngine:
                         "operational_mode": "emergency_fallback",
                         "emergency_fallback": emergency_result,
                         "original_error": error_msg,
-                        "workflow_status": "failed_with_fallback"
+                        "workflow_status": "failed_with_fallback",
                     }
                 except Exception as fallback_error:
                     self._log(f"ERROR: Emergency fallback also failed: {fallback_error}")
-            
+
             raise RuntimeError(error_msg) from e
 
     def _process_scanner_outputs(self) -> dict[str, any]:
@@ -573,12 +578,11 @@ For complete security findings, resolve YAML corruption and regenerate this docu
         """
         if self.minimal_mode:
             return "minimal"
-        elif self.degraded_mode:
+        if self.degraded_mode:
             return "degraded"
-        elif self.reduced_mode:
+        if self.reduced_mode:
             return "reduced"
-        else:
-            return "full"
+        return "full"
 
     def _validate_security_yaml_files_with_error_handling(self) -> dict[str, any]:
         """Validate security YAML files with comprehensive error handling.
@@ -596,7 +600,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                     "yaml_validation_status": "basic_only",
                     "yaml_validation_errors": [],
                     "yaml_validation_warnings": ["Advanced YAML validation not available"],
-                    "fallback_actions": ["Using basic file existence checks"]
+                    "fallback_actions": ["Using basic file existence checks"],
                 }
 
             # Run comprehensive YAML validation
@@ -608,10 +612,12 @@ For complete security findings, resolve YAML corruption and regenerate this docu
             )
 
             result = {
-                "yaml_validation_status": "success" if summary.invalid_files == 0 else "issues_detected",
+                "yaml_validation_status": "success"
+                if summary.invalid_files == 0
+                else "issues_detected",
                 "yaml_validation_errors": [],
                 "yaml_validation_warnings": [],
-                "fallback_actions": []
+                "fallback_actions": [],
             }
 
             # Handle validation issues with graceful degradation
@@ -643,18 +649,26 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                             created_files = degradation.create_emergency_fallback_files()
                         else:
                             created_files = degradation.create_minimal_valid_files(corrupted_files)
-                        
-                        result["fallback_actions"].append(f"Created {len(created_files)} fallback files")
-                        self._log(f"Created {len(created_files)} fallback files for {level.value} mode")
-                    except Exception as e:
-                        result["yaml_validation_warnings"].append(f"Fallback file creation failed: {e}")
 
-                result.update({
-                    "yaml_validation_status": "degraded",
-                    "degradation_level": level.value,
-                    "corrupted_files": corrupted_files,
-                    "strategy_description": strategy.description
-                })
+                        result["fallback_actions"].append(
+                            f"Created {len(created_files)} fallback files"
+                        )
+                        self._log(
+                            f"Created {len(created_files)} fallback files for {level.value} mode"
+                        )
+                    except Exception as e:
+                        result["yaml_validation_warnings"].append(
+                            f"Fallback file creation failed: {e}"
+                        )
+
+                result.update(
+                    {
+                        "yaml_validation_status": "degraded",
+                        "degradation_level": level.value,
+                        "corrupted_files": corrupted_files,
+                        "strategy_description": strategy.description,
+                    }
+                )
 
             return result
 
@@ -667,7 +681,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                 "yaml_validation_status": "error",
                 "yaml_validation_errors": [error_msg],
                 "yaml_validation_warnings": ["Continuing with basic error handling"],
-                "fallback_actions": ["Using emergency mode operations"]
+                "fallback_actions": ["Using emergency mode operations"],
             }
 
     def _process_scanner_outputs_with_fallback(self) -> dict[str, any]:
@@ -686,21 +700,21 @@ For complete security findings, resolve YAML corruption and regenerate this docu
 
             if not self.reports_dir.exists():
                 self._log(f"WARNING: Reports directory not found: {self.reports_dir}")
-                
+
                 # Create fallback report data
                 fallback_result = self._create_fallback_scanner_data()
                 return {
                     "reports_processed": 0,
                     "findings_extracted": 0,
                     "fallback_data_created": True,
-                    "warnings": [f"Reports directory not found, using fallback data"],
-                    "fallback_actions": ["Created minimal scanner data for workflow continuation"]
+                    "warnings": ["Reports directory not found, using fallback data"],
+                    "fallback_actions": ["Created minimal scanner data for workflow continuation"],
                 }
 
             # Try to process available reports with error tolerance
             expected_files = {
                 "pip-audit.json": "pip-audit",
-                "bandit.json": "bandit", 
+                "bandit.json": "bandit",
                 "secrets-scan.json": "secrets",
             }
 
@@ -710,7 +724,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                 if file_path.exists():
                     try:
                         # Validate file is readable and not corrupted
-                        with open(file_path, 'r') as f:
+                        with open(file_path) as f:
                             json.load(f)  # Basic JSON validation
                         reports_found.append((file_path, scanner_type))
                         self._log(f"Found valid {scanner_type} report: {file_path}")
@@ -730,7 +744,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                     "findings_extracted": 0,
                     "fallback_data_created": True,
                     "warnings": ["No valid scanner output files found"],
-                    "fallback_actions": ["Created minimal scanner data"]
+                    "fallback_actions": ["Created minimal scanner data"],
                 }
 
             # Extract findings with error tolerance
@@ -744,7 +758,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                     "reports_processed": len(reports_found),
                     "findings_extracted": len(all_findings),
                     "scanner_types": [scanner_type for _, scanner_type in reports_found],
-                    "operational_mode": self.operational_mode
+                    "operational_mode": self.operational_mode,
                 }
 
             except Exception as e:
@@ -759,9 +773,9 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                         "findings_extracted": 0,
                         "fallback_data_created": True,
                         "warnings": [f"Scanner parsing failed, using fallback: {error_msg}"],
-                        "fallback_actions": ["Created fallback findings data"]
+                        "fallback_actions": ["Created fallback findings data"],
                     }
-                
+
                 return {
                     "reports_processed": 0,
                     "findings_extracted": 0,
@@ -771,7 +785,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
         except Exception as e:
             error_msg = f"Failed to process scanner outputs with fallback: {e}"
             self._log(f"ERROR: {error_msg}")
-            
+
             if self.yaml_safe:
                 # Emergency fallback
                 fallback_result = self._create_fallback_scanner_data()
@@ -780,9 +794,9 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                     "findings_extracted": 0,
                     "fallback_data_created": True,
                     "errors": [error_msg],
-                    "fallback_actions": ["Emergency fallback data created"]
+                    "fallback_actions": ["Emergency fallback data created"],
                 }
-            
+
             raise RuntimeError(error_msg) from e
 
     def _synchronize_remediation_plans_with_recovery(self) -> dict[str, any]:
@@ -797,7 +811,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                 return {
                     "skipped": True,
                     "reason": "synchronizer_unavailable",
-                    "fallback_actions": ["Manual synchronization required"]
+                    "fallback_actions": ["Manual synchronization required"],
                 }
 
             # Check if we're in degraded mode due to YAML issues
@@ -805,7 +819,9 @@ For complete security findings, resolve YAML corruption and regenerate this docu
             if self.yaml_safe and self.yaml_validation_results:
                 degradation_level = self.yaml_validation_results.get("degradation_level")
                 if degradation_level and degradation_level.value in ["minimal", "emergency"]:
-                    self._log("WARNING: Operating in degraded mode - synchronization may be limited")
+                    self._log(
+                        "WARNING: Operating in degraded mode - synchronization may be limited"
+                    )
                     recovery_actions.append("Limited synchronization due to YAML degradation")
 
             # Get synchronization status with error handling
@@ -834,9 +850,18 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                     self._log(f"Synchronization attempt {attempt + 1} failed: {e}")
                     if attempt == 2:  # Last attempt
                         if self.yaml_safe:
-                            self._log("WARNING: All synchronization attempts failed, using fallback")
-                            sync_stats = {"added": 0, "removed": 0, "preserved": 0, "errors": [str(e)]}
-                            recovery_actions.append("Synchronization failed, manual review required")
+                            self._log(
+                                "WARNING: All synchronization attempts failed, using fallback"
+                            )
+                            sync_stats = {
+                                "added": 0,
+                                "removed": 0,
+                                "preserved": 0,
+                                "errors": [str(e)],
+                            }
+                            recovery_actions.append(
+                                "Synchronization failed, manual review required"
+                            )
                         else:
                             raise
 
@@ -860,7 +885,9 @@ For complete security findings, resolve YAML corruption and regenerate this docu
             try:
                 validation_errors = self.synchronizer.validate_synchronization()
                 if validation_errors:
-                    self._log(f"WARNING: Synchronization validation found {len(validation_errors)} issues")
+                    self._log(
+                        f"WARNING: Synchronization validation found {len(validation_errors)} issues"
+                    )
                     for error in validation_errors:
                         self._log(f"  - {error}")
             except Exception as e:
@@ -877,21 +904,24 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                 "changes": sync_stats,
                 "validation_errors": validation_errors,
                 "recovery_actions": recovery_actions,
-                "operational_mode": self.operational_mode
+                "operational_mode": self.operational_mode,
             }
 
         except Exception as e:
             error_msg = f"Failed to synchronize remediation plans with recovery: {e}"
             self._log(f"ERROR: {error_msg}")
-            
+
             if self.yaml_safe:
                 return {
                     "failed": True,
                     "error": error_msg,
-                    "recovery_actions": ["Manual synchronization required", "Check YAML file integrity"],
-                    "fallback_status": "emergency_mode_active"
+                    "recovery_actions": [
+                        "Manual synchronization required",
+                        "Check YAML file integrity",
+                    ],
+                    "fallback_status": "emergency_mode_active",
                 }
-            
+
             raise RuntimeError(error_msg) from e
 
     def _generate_findings_document_with_fallback(self) -> bool:
@@ -910,7 +940,9 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                     self.generator.generate_document()
                     if self.findings_file.exists():
                         file_size = self.findings_file.stat().st_size
-                        self._log(f"Generated findings document: {self.findings_file} ({file_size} bytes)")
+                        self._log(
+                            f"Generated findings document: {self.findings_file} ({file_size} bytes)"
+                        )
                         return True
                 except Exception as e:
                     self._log(f"WARNING: Normal document generation failed: {e}")
@@ -918,12 +950,14 @@ For complete security findings, resolve YAML corruption and regenerate this docu
             # Use fallback document generation
             self._log("Using fallback document generation due to errors or degraded mode")
             self._create_fallback_findings_document_enhanced()
-            
+
             if self.findings_file.exists():
                 file_size = self.findings_file.stat().st_size
-                self._log(f"Generated fallback findings document: {self.findings_file} ({file_size} bytes)")
+                self._log(
+                    f"Generated fallback findings document: {self.findings_file} ({file_size} bytes)"
+                )
                 return True
-            
+
             self._log("ERROR: Fallback document generation also failed")
             return False
 
@@ -949,34 +983,43 @@ For complete security findings, resolve YAML corruption and regenerate this docu
         """
         try:
             self._log("Creating fallback scanner data...")
-            
+
             # Ensure reports directory exists
             self.reports_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Create minimal valid scanner reports
             fallback_reports = {
-                "pip-audit.json": {"vulnerabilities": [], "metadata": {"timestamp": datetime.now().isoformat(), "fallback": True}},
-                "bandit.json": {"results": [], "metadata": {"timestamp": datetime.now().isoformat(), "fallback": True}},
-                "secrets-scan.json": {"results": [], "metadata": {"timestamp": datetime.now().isoformat(), "fallback": True}}
+                "pip-audit.json": {
+                    "vulnerabilities": [],
+                    "metadata": {"timestamp": datetime.now().isoformat(), "fallback": True},
+                },
+                "bandit.json": {
+                    "results": [],
+                    "metadata": {"timestamp": datetime.now().isoformat(), "fallback": True},
+                },
+                "secrets-scan.json": {
+                    "results": [],
+                    "metadata": {"timestamp": datetime.now().isoformat(), "fallback": True},
+                },
             }
-            
+
             created_files = []
             for filename, data in fallback_reports.items():
                 file_path = self.reports_dir / filename
                 try:
-                    with open(file_path, 'w') as f:
+                    with open(file_path, "w") as f:
                         json.dump(data, f, indent=2)
                     created_files.append(str(file_path))
                     self._log(f"Created fallback report: {file_path}")
                 except Exception as e:
                     self._log(f"WARNING: Failed to create fallback report {file_path}: {e}")
-            
+
             return {
                 "created_files": created_files,
                 "fallback_type": "minimal_scanner_data",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
-            
+
         except Exception as e:
             self._log(f"ERROR: Failed to create fallback scanner data: {e}")
             return {"error": str(e), "created_files": []}
@@ -993,7 +1036,7 @@ For complete security findings, resolve YAML corruption and regenerate this docu
         """
         try:
             fallback_path = original_path.parent / f"fallback_{original_path.name}"
-            
+
             # Create minimal valid report based on scanner type
             if scanner_type == "pip-audit":
                 fallback_data = {
@@ -1002,8 +1045,8 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                         "timestamp": datetime.now().isoformat(),
                         "fallback": True,
                         "original_file": str(original_path),
-                        "reason": "corrupted_original_file"
-                    }
+                        "reason": "corrupted_original_file",
+                    },
                 }
             elif scanner_type == "bandit":
                 fallback_data = {
@@ -1012,8 +1055,8 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                         "timestamp": datetime.now().isoformat(),
                         "fallback": True,
                         "original_file": str(original_path),
-                        "reason": "corrupted_original_file"
-                    }
+                        "reason": "corrupted_original_file",
+                    },
                 }
             else:  # secrets
                 fallback_data = {
@@ -1022,16 +1065,16 @@ For complete security findings, resolve YAML corruption and regenerate this docu
                         "timestamp": datetime.now().isoformat(),
                         "fallback": True,
                         "original_file": str(original_path),
-                        "reason": "corrupted_original_file"
-                    }
+                        "reason": "corrupted_original_file",
+                    },
                 }
-            
-            with open(fallback_path, 'w') as f:
+
+            with open(fallback_path, "w") as f:
                 json.dump(fallback_data, f, indent=2)
-            
+
             self._log(f"Created fallback report: {fallback_path}")
             return fallback_path
-            
+
         except Exception as e:
             self._log(f"ERROR: Failed to create fallback report for {original_path}: {e}")
             return None
@@ -1067,8 +1110,8 @@ For complete security findings, resolve YAML corruption and regenerate this docu
 **Generated:** {timestamp}
 **Status:** {status_msg}
 **Operational Mode:** {self.operational_mode.upper()}
-**YAML Safe Mode:** {'ENABLED' if self.yaml_safe else 'DISABLED'}
-**Monitoring:** {'ENABLED' if self.with_monitoring else 'DISABLED'}
+**YAML Safe Mode:** {"ENABLED" if self.yaml_safe else "DISABLED"}
+**Monitoring:** {"ENABLED" if self.with_monitoring else "DISABLED"}
 
 ## {notice_level}
 
@@ -1082,26 +1125,26 @@ or missing. Manual review and intervention may be required.
 - **Document Generation:** Fallback mode active
 - **Data Integrity:** Potentially compromised
 - **Operational Mode:** {self.operational_mode}
-- **Workflow Continuation:** {'Enabled with limitations' if self.yaml_safe else 'May be blocked'}
+- **Workflow Continuation:** {"Enabled with limitations" if self.yaml_safe else "May be blocked"}
 
 ## Recovery Actions Taken
 
 """
 
             # Add recovery actions if available
-            if hasattr(self, 'yaml_validation_results') and self.yaml_validation_results:
-                strategy = self.yaml_validation_results.get('strategy')
+            if hasattr(self, "yaml_validation_results") and self.yaml_validation_results:
+                strategy = self.yaml_validation_results.get("strategy")
                 if strategy:
                     fallback_content += f"- **Recovery Strategy:** {strategy.description}\n"
-                
-                degradation_level = self.yaml_validation_results.get('degradation_level')
+
+                degradation_level = self.yaml_validation_results.get("degradation_level")
                 if degradation_level:
                     fallback_content += f"- **Degradation Level:** {degradation_level.value}\n"
 
             fallback_content += f"""
 - **Fallback Document:** Generated to maintain workflow continuity
-- **Error Handling:** {'Comprehensive error recovery active' if self.yaml_safe else 'Basic error handling'}
-- **Monitoring Integration:** {'Active with limited functionality' if self.with_monitoring else 'Not available'}
+- **Error Handling:** {"Comprehensive error recovery active" if self.yaml_safe else "Basic error handling"}
+- **Monitoring Integration:** {"Active with limited functionality" if self.with_monitoring else "Not available"}
 
 ## Recommended Actions
 
@@ -1163,22 +1206,22 @@ This document contains minimal information due to data processing issues.
 For complete and accurate security findings, resolve data integrity issues and regenerate this document.
 
 ### Data Sources
-- **Scanner Reports:** {'Fallback data used' if self.operational_mode in ['emergency', 'minimal'] else 'Partial data available'}
-- **Remediation Plans:** {'Emergency fallback' if self.operational_mode == 'emergency' else 'Limited availability'}
-- **Historical Data:** {'Not available' if self.operational_mode == 'emergency' else 'Partially available'}
+- **Scanner Reports:** {"Fallback data used" if self.operational_mode in ["emergency", "minimal"] else "Partial data available"}
+- **Remediation Plans:** {"Emergency fallback" if self.operational_mode == "emergency" else "Limited availability"}
+- **Historical Data:** {"Not available" if self.operational_mode == "emergency" else "Partially available"}
 
 ## Technical Details
 
-- **Workflow ID:** {datetime.now().strftime('%Y%m%d_%H%M%S')}
+- **Workflow ID:** {datetime.now().strftime("%Y%m%d_%H%M%S")}
 - **Generation Method:** Enhanced fallback with error recovery
-- **YAML Validation:** {'Comprehensive with repair attempts' if self.yaml_safe else 'Basic validation only'}
-- **Error Recovery:** {'Multi-level graceful degradation' if self.yaml_safe else 'Standard error handling'}
+- **YAML Validation:** {"Comprehensive with repair attempts" if self.yaml_safe else "Basic validation only"}
+- **Error Recovery:** {"Multi-level graceful degradation" if self.yaml_safe else "Standard error handling"}
 
 ---
 
 *This document was automatically generated in {self.operational_mode} mode due to data integrity issues.*
 *For complete and accurate security findings, please resolve data corruption and regenerate.*
-*Monitoring and alerting systems {'are' if self.with_monitoring else 'are not'} active for this workflow.*
+*Monitoring and alerting systems {"are" if self.with_monitoring else "are not"} active for this workflow.*
 """
 
             # Write the enhanced fallback document
@@ -1199,7 +1242,7 @@ For complete and accurate security findings, resolve data integrity issues and r
         """
         try:
             timestamp = datetime.now(timezone.utc).isoformat()
-            
+
             emergency_content = f"""# Security Findings - Emergency Mode
 
 **Generated:** {timestamp}
@@ -1312,7 +1355,9 @@ Do not proceed with any security-related operations until system integrity is re
                         errors.extend(registry_errors)
                     elif registry_errors:
                         # In degraded modes, registry errors are warnings
-                        self._log(f"WARNING: Registry validation issues in {self.operational_mode} mode: {len(registry_errors)} issues")
+                        self._log(
+                            f"WARNING: Registry validation issues in {self.operational_mode} mode: {len(registry_errors)} issues"
+                        )
                 except Exception as e:
                     if self.yaml_safe:
                         self._log(f"WARNING: Registry validation failed: {e}")
@@ -1327,7 +1372,9 @@ Do not proceed with any security-related operations until system integrity is re
                         errors.extend(sync_errors)
                     elif sync_errors:
                         # In degraded modes, sync errors are warnings
-                        self._log(f"WARNING: Synchronization issues in {self.operational_mode} mode: {len(sync_errors)} issues")
+                        self._log(
+                            f"WARNING: Synchronization issues in {self.operational_mode} mode: {len(sync_errors)} issues"
+                        )
                 except Exception as e:
                     if self.yaml_safe:
                         self._log(f"WARNING: Synchronization validation failed: {e}")
@@ -1407,7 +1454,7 @@ Do not proceed with any security-related operations until system integrity is re
                 "actions_taken": [
                     "Created emergency findings document",
                     "Created fallback scanner data",
-                    "Activated emergency mode"
+                    "Activated emergency mode",
                 ],
                 "manual_intervention_required": True,
                 "fallback_files": fallback_scanner_result.get("created_files", []),
@@ -1415,8 +1462,8 @@ Do not proceed with any security-related operations until system integrity is re
                     "Check system logs for detailed error information",
                     "Verify YAML file integrity",
                     "Restore from backups if available",
-                    "Contact system administrators"
-                ]
+                    "Contact system administrators",
+                ],
             }
 
             self._log("Emergency fallback completed")
@@ -1428,7 +1475,7 @@ Do not proceed with any security-related operations until system integrity is re
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "status": "emergency_fallback_failed",
                 "error": str(e),
-                "critical_failure": True
+                "critical_failure": True,
             }
 
     def _log(self, message: str) -> None:
