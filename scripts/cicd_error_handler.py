@@ -615,6 +615,11 @@ class CICDErrorHandler:
         Returns:
             Dictionary with CI/CD report data
         """
+        # Create a JSON-serializable copy of workflow_state
+        workflow_state_serializable = self.workflow_state.copy()
+        if "start_time" in workflow_state_serializable:
+            workflow_state_serializable["start_time"] = workflow_state_serializable["start_time"].isoformat()
+        
         report_data = {
             "workflow_name": self.config.workflow_name,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -635,7 +640,7 @@ class CICDErrorHandler:
                 "recovery_actions": result.recovery_actions,
                 "fallback_files_created": result.fallback_files_created,
             },
-            "workflow_state": self.workflow_state,
+            "workflow_state": workflow_state_serializable,
             "recommendations": self._generate_recommendations(result),
         }
 
