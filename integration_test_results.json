@@ -1,0 +1,90 @@
+{
+  "overall_success": false,
+  "total_tests": 7,
+  "passed_tests": 5,
+  "failed_tests": 2,
+  "success_rate": 71.42857142857143,
+  "test_results": [
+    {
+      "test_name": "YAML Validation Normal Operation",
+      "success": true,
+      "timestamp": 1761528540.504041,
+      "details": {
+        "return_code": 0,
+        "validation_successful": true,
+        "output_contains_valid": true,
+        "no_errors_in_stderr": true
+      }
+    },
+    {
+      "test_name": "YAML Validation with Corruption",
+      "success": true,
+      "timestamp": 1761528540.635509,
+      "details": {
+        "corruption_detected": true,
+        "workflow_can_continue": true,
+        "check_return_code": 1,
+        "degradation_return_code": 0,
+        "degradation_activated": true
+      }
+    },
+    {
+      "test_name": "YAML Repair Functionality",
+      "success": true,
+      "timestamp": 1761528540.681417,
+      "details": {
+        "repair_attempted": true,
+        "backup_created": true,
+        "return_code": 1,
+        "repair_output_length": 2276
+      }
+    },
+    {
+      "test_name": "Emergency File Creation",
+      "success": true,
+      "timestamp": 1761528540.7341309,
+      "details": {
+        "emergency_files_created": 1,
+        "valid_emergency_files": [
+          "remediation-plans.yml"
+        ],
+        "return_code": 0,
+        "degraded_mode_activated": true
+      }
+    },
+    {
+      "test_name": "Workflow Performance Impact",
+      "success": false,
+      "timestamp": 1761528540.794092,
+      "details": {
+        "validation_time": 0.05500626564025879,
+        "performance_acceptable": true,
+        "validation_successful": false,
+        "files_processed": 5
+      }
+    },
+    {
+      "test_name": "Workflow Error Handling",
+      "success": true,
+      "timestamp": 1761528540.8447518,
+      "details": {
+        "handled_gracefully": true,
+        "contains_valid_info": true,
+        "return_code": 0,
+        "output_length": 4986
+      }
+    },
+    {
+      "test_name": "CI Environment Compatibility",
+      "success": false,
+      "timestamp": 1761528540.8851168,
+      "details": {
+        "ci_compatible": false,
+        "return_code": 1,
+        "output_contains_validation": true,
+        "no_ci_specific_errors": true
+      }
+    }
+  ],
+  "timestamp": 1761528540.885157
+}

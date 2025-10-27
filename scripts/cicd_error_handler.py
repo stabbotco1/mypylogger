@@ -123,6 +123,9 @@ class CICDErrorHandler:
             "recovery_attempts": [],
             "alerts_generated": [],
         }
+        
+        # YAML validation context (set by external processes)
+        self.yaml_context = None
 
     def _setup_logger(self) -> logging.Logger:
         """Set up logging for CI/CD error handler.
@@ -212,6 +215,22 @@ class CICDErrorHandler:
                 result.functionality_level = self.degradation.determine_functionality_level(
                     validation_results
                 )
+
+                # Adjust functionality level based on YAML validation context
+                if self.yaml_context:
+                    yaml_level = self.yaml_context.get("validation_level", "unknown")
+                    yaml_degraded = self.yaml_context.get("degraded_mode", False)
+                    
+                    if yaml_degraded:
+                        self.logger.warning(f"YAML validation in degraded mode (level: {yaml_level})")
+                        
+                        # Adjust functionality level to be more conservative when YAML is degraded
+                        if yaml_level == "emergency":
+                            result.functionality_level = FunctionalityLevel.EMERGENCY
+                        elif yaml_level == "minimal" and result.functionality_level != FunctionalityLevel.EMERGENCY:
+                            result.functionality_level = FunctionalityLevel.MINIMAL
+                        elif yaml_level == "degraded" and result.functionality_level == FunctionalityLevel.FULL:
+                            result.functionality_level = FunctionalityLevel.REDUCED
 
                 # Handle graceful degradation if enabled
                 if self.config.enable_graceful_degradation:
@@ -568,7 +587,7 @@ class CICDErrorHandler:
         Returns:
             Dictionary with CI/CD report data
         """
-        return {
+        report_data = {
             "workflow_name": self.config.workflow_name,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "success": result.success,
@@ -591,6 +610,16 @@ class CICDErrorHandler:
             "workflow_state": self.workflow_state,
             "recommendations": self._generate_recommendations(result),
         }
+        
+        # Include YAML validation context if available
+        if self.yaml_context:
+            report_data["yaml_validation_context"] = {
+                "degraded_mode": self.yaml_context.get("degraded_mode", False),
+                "validation_level": self.yaml_context.get("validation_level", "unknown"),
+                "integration_active": True
+            }
+        
+        return report_data
 
     def _generate_recommendations(self, result: CICDErrorResult) -> list[str]:
         """Generate recommendations based on error handling results.
@@ -665,6 +694,12 @@ def main() -> int:
     )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     parser.add_argument("--output-report", help="Path to write CI/CD report JSON file")
+    parser.add_argument(
+        "--yaml-degraded-mode", action="store_true", help="Indicate YAML validation is in degraded mode"
+    )
+    parser.add_argument(
+        "--yaml-level", help="YAML validation level (full, reduced, minimal, emergency)"
+    )
 
     args = parser.parse_args()
 
@@ -685,6 +720,14 @@ def main() -> int:
 
         # Initialize handler and process files
         handler = CICDErrorHandler(config)
+        
+        # Set YAML validation context if provided
+        if args.yaml_degraded_mode or args.yaml_level:
+            handler.yaml_context = {
+                "degraded_mode": args.yaml_degraded_mode,
+                "validation_level": args.yaml_level or "unknown"
+            }
+        
         result = handler.process_security_files(args.files)
 
         # Generate and optionally save report
