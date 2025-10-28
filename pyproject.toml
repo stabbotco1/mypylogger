@@ -1,6 +1,6 @@
 [project]
 name = "mypylogger"
-version = "0.2.1"
+version = "0.2.2"
 description = "Zero-dependency JSON logging library with sensible defaults for Python applications"
 readme = "README.md"
 license = {text = "MIT"}
@@ -337,7 +337,7 @@ DEP004 = ["tomli", "yaml", "requests"]
 DEP001 = ["validate_security_yaml"]
 
 [tool.bumpversion]
-current_version = "0.2.1"
+current_version = "0.2.2"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"
