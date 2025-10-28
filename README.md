@@ -1,4 +1,4 @@
-# mypylogger v0.2.0
+# mypylogger v0.2.1
 
 <!-- BADGES START -->
 [![Quality Gate](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?style=flat&label=quality%20gate)](https://img.shields.io/github/actions/workflow/status/stabbotco1/mypylogger/quality-gate.yml?style=flat&label=quality%20gate) [![Security](https://img.shields.io/badge/security-verified-brightgreen?style=flat)](https://github.com/stabbotco1/mypylogger/security) [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000?style=flat)](https://img.shields.io/badge/code%20style-ruff-000000?style=flat) [![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue?style=flat)](https://img.shields.io/badge/type%20checked-mypy-blue?style=flat) [![Python Versions](https://img.shields.io/pypi/pyversions/mypylogger?style=flat)](https://img.shields.io/pypi/pyversions/mypylogger?style=flat) [![PyPI Version](https://img.shields.io/pypi/v/mypylogger?style=flat)](https://img.shields.io/pypi/v/mypylogger?style=flat) [![Downloads: Development](https://img.shields.io/badge/downloads-development-yellow?style=flat)](https://img.shields.io/badge/downloads-development-yellow?style=flat) [![License: MIT](https://img.shields.io/github/license/stabbotco1/mypylogger?style=flat)](https://img.shields.io/github/license/stabbotco1/mypylogger?style=flat)
@@ -8,7 +8,7 @@ A Python logging library designed to provide enhanced logging capabilities with 
 
 ## Vision
 
-Create a **zero-dependency JSON logging library with sensible defaults** for Python applications. mypylogger v0.2.0 does ONE thing exceptionally well: structured JSON logs that work everywhere—from local development to AWS Lambda to Kubernetes.
+Create a **zero-dependency JSON logging library with sensible defaults** for Python applications. mypylogger v0.2.1 does ONE thing exceptionally well: structured JSON logs that work everywhere—from local development to AWS Lambda to Kubernetes.
 
 ## Installation
 
@@ -34,13 +34,13 @@ logger.info("Application started")
 
 ## Documentation
 
-📚 **Complete documentation available in [docs/](docs/)**
+📚 **Complete documentation available in [docs/](https://github.com/stabbotco1/mypylogger/tree/main/docs)**
 
-- **[Features](docs/FEATURES.md)** - Complete feature reference with code examples
-- **[Security](docs/SECURITY.md)** - Security posture and vulnerability management
-- **[Performance](docs/PERFORMANCE.md)** - Performance characteristics and best practices
+- **[Features](https://github.com/stabbotco1/mypylogger/blob/main/docs/FEATURES.md)** - Complete feature reference with code examples
+- **[Security](https://github.com/stabbotco1/mypylogger/blob/main/docs/SECURITY.md)** - Security posture and vulnerability management
+- **[Performance](https://github.com/stabbotco1/mypylogger/blob/main/docs/PERFORMANCE.md)** - Performance characteristics and best practices
 
-For comprehensive API documentation, see the [Sphinx docs](docs/source/).
+For comprehensive API documentation, see the [Sphinx docs](https://github.com/stabbotco1/mypylogger/tree/main/docs/source).
 
 ## Development
 
