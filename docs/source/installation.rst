@@ -18,9 +18,9 @@ System Requirements
 
 **Memory and Storage:**
 
-* **RAM** - Minimal memory footprint (<10MB)
-* **Disk Space** - <5MB including dependencies
-* **Dependencies** - Only ``python-json-logger`` (no transitive dependencies)
+* **RAM** - Minimal memory footprint (<1MB)
+* **Disk Space** - <100KB installed size
+* **Dependencies** - Zero runtime dependencies (pure Python standard library)
 
 Installation Methods
 --------------------

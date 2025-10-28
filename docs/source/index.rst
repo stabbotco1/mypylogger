@@ -21,7 +21,7 @@ mypylogger does ONE thing exceptionally well: structured JSON logs that work eve
 
 **What makes mypylogger different:**
 
-* **Minimal Dependencies** (only ``python-json-logger``)
+* **Zero Dependencies** (pure Python standard library)
 * **Clean, Predictable JSON Output**
 * **Developer-Friendly Defaults**
 * **Standard Python Patterns**

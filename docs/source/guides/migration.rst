@@ -117,6 +117,6 @@ Benefits of Migration
 
 * **Simpler configuration**: Environment-driven setup
 * **Consistent output**: Predictable JSON format
-* **Zero dependencies**: Only ``python-json-logger`` required
+* **Zero dependencies**: Pure Python standard library only
 * **Better defaults**: Works out of the box
 * **Container friendly**: Environment variable configuration

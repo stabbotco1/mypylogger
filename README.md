@@ -32,6 +32,16 @@ logger.info("Application started")
 - **Developer-Friendly Defaults**
 - **Standard Python Patterns**
 
+## Documentation
+
+📚 **Complete documentation available in [docs/](docs/)**
+
+- **[Features](docs/FEATURES.md)** - Complete feature reference with code examples
+- **[Security](docs/SECURITY.md)** - Security posture and vulnerability management
+- **[Performance](docs/PERFORMANCE.md)** - Performance characteristics and best practices
+
+For comprehensive API documentation, see the [Sphinx docs](docs/source/).
+
 ## Development
 
 This project uses UV for dependency management:
