@@ -34,6 +34,12 @@ graph TB
         RB[README_Badges]
     end
     
+    subgraph "Version Management"
+        VMS[Version_Management_System]
+        VBS[Version_Bump_Script]
+        DVU[Document_Version_Updater]
+    end
+    
     SM --> RDE
     SF --> SS
     SS --> LSS
@@ -45,6 +51,9 @@ graph TB
     GHA --> OIDC
     OIDC --> PPS
     PPS --> PyPI[PyPI Repository]
+    VBS --> VMS
+    VMS --> DVU
+    DVU --> Git[Git Repository]
 ```
 
 ### Component Integration Flow
@@ -186,6 +195,83 @@ PostPublishActions:
   - badge_data_refresh
 ```
 
+### 5. Version Management System
+
+**Purpose**: Centralized version management with interactive version bumping and automatic document updates.
+
+**Key Interfaces**:
+```yaml
+VersionBumpScript:
+  input: user_interaction
+  output: version_update_complete
+  
+VersionParser:
+  input: pyproject.toml
+  output: current_version_info
+  
+DocumentUpdater:
+  inputs:
+    - old_version: string
+    - new_version: string
+    - file_patterns: list
+  output: updated_files_list
+  
+GitIntegration:
+  inputs:
+    - modified_files: list
+    - commit_message: string
+    - user_comment: string
+  output: commit_and_push_result
+```
+
+**Version Management Workflow**:
+```yaml
+InteractivePrompts:
+  - display_current_version
+  - request_new_version
+  - validate_semantic_versioning
+  - request_bump_comment
+  
+DocumentIdentification:
+  - scan_for_version_references
+  - identify_update_targets
+  - validate_update_patterns
+  
+VersionUpdate:
+  - update_pyproject_toml
+  - update_source_code_files
+  - update_documentation_files
+  - update_configuration_files
+  
+GitOperations:
+  - stage_all_changes
+  - create_conventional_commit
+  - push_to_remote_main
+```
+
+**Supported Version References**:
+```yaml
+PyProjectToml:
+  pattern: 'version = "{version}"'
+  file: pyproject.toml
+  
+SourceCode:
+  pattern: '__version__ = "{version}"'
+  files: ["src/mypylogger/__init__.py"]
+  
+Documentation:
+  pattern: "mypylogger v{version}"
+  files: ["README.md", "docs/**/*.md"]
+  
+Scripts:
+  pattern: "mypylogger v{version}"
+  files: ["scripts/**/*.py", "scripts/**/*.sh"]
+  
+Steering:
+  pattern: "mypylogger v{version}"
+  files: [".kiro/steering/**/*.md"]
+```
+
 ## Data Models
 
 ### Security Status Model
@@ -251,6 +337,38 @@ class PublishingConfig:
     notification_channels: List[str]
 ```
 
+### Version Management Model
+
+```python
+@dataclass
+class VersionInfo:
+    current_version: str
+    major: int
+    minor: int
+    patch: int
+    
+@dataclass
+class VersionBumpRequest:
+    old_version: VersionInfo
+    new_version: VersionInfo
+    bump_type: str  # "major", "minor", "patch", "custom"
+    comment: str
+    
+@dataclass
+class DocumentReference:
+    file_path: str
+    pattern: str
+    line_number: Optional[int]
+    content_match: str
+    
+@dataclass
+class VersionUpdateResult:
+    success: bool
+    updated_files: List[str]
+    commit_hash: Optional[str]
+    error_message: Optional[str]
+```
+
 ## Error Handling
 
 ### Authentication Failures
@@ -310,6 +428,31 @@ def handle_status_failure(error: SecurityStatusError) -> None:
     """
 ```
 
+### Version Management Failures
+
+```python
+class VersionManagementError(Exception):
+    """Raised when version management operations fail."""
+    
+class InvalidVersionError(VersionManagementError):
+    """Raised when version format is invalid."""
+    
+class DocumentUpdateError(VersionManagementError):
+    """Raised when document updates fail."""
+    
+def handle_version_bump_failure(error: VersionManagementError) -> None:
+    """
+    Handle version bump failures with rollback capability.
+    
+    Actions:
+    1. Restore original pyproject.toml from backup
+    2. Revert any partially updated documents
+    3. Reset Git working directory to clean state
+    4. Log detailed error information for debugging
+    5. Provide clear error message to user with remediation steps
+    """
+```
+
 ## Testing Strategy
 
 ### Unit Testing
@@ -324,6 +467,21 @@ def test_vulnerability_grade_calculation():
     
 def test_status_api_response_format():
     """Test API response format and schema validation."""
+```
+
+**Version Management**:
+```python
+def test_version_parsing_from_pyproject():
+    """Test version parsing from pyproject.toml file."""
+    
+def test_semantic_version_validation():
+    """Test semantic version format validation and increment logic."""
+    
+def test_document_version_updates():
+    """Test automatic version updates across all project documents."""
+    
+def test_git_integration_workflow():
+    """Test Git staging, committing, and pushing during version bump."""
 ```
 
 **Release Decision Logic**:
@@ -350,6 +508,18 @@ def test_trusted_publishing_integration():
     
 def test_security_status_live_updates():
     """Test live security status updates and API availability."""
+```
+
+**Version Management Integration**:
+```python
+def test_complete_version_bump_workflow():
+    """Test complete version bump from user input to Git push."""
+    
+def test_version_consistency_across_documents():
+    """Test that all documents maintain consistent version references."""
+    
+def test_rollback_on_partial_failure():
+    """Test rollback mechanisms when version update partially fails."""
 ```
 
 ### Security Testing
@@ -470,6 +640,23 @@ def test_publishing_authorization():
    - Dynamic badge implementation
    - Status link integration
    - Documentation updates
+
+### Phase 7E: Version Management System
+
+1. **Interactive Version Bump Script**
+   - Command-line interface development
+   - Version parsing and validation logic
+   - User interaction and input validation
+
+2. **Document Update Automation**
+   - Version reference scanning and identification
+   - Automatic document update mechanisms
+   - Consistency validation across all files
+
+3. **Git Integration**
+   - Automated staging and commit creation
+   - Conventional commit message formatting
+   - Remote push with error handling and rollback
 
 ## Monitoring and Observability
 
