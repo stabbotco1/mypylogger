@@ -228,3 +228,14 @@
   - Add integration tests for complete version bump workflow
   - Test error handling and rollback scenarios for failed version updates
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
+
+- [-] 6.6 Fix version bump script to include test files (CRITICAL BUG FIX)
+  - **BEFORE STARTING**: Run `./scripts/run_tests.sh` to verify current failing state due to version inconsistencies
+  - Update `scripts/version_bump.py` to include test files in `get_version_files()` method
+  - Add test file patterns for version assertions: `assert __version__ == "{version}"`, `assert version == "{version}"`, etc.
+  - Include specific test files: `tests/unit/test_core.py`, `tests/unit/test_public_api.py`, `tests/performance/__init__.py`, `tests/performance/test_benchmarks.py`
+  - Add pattern matching for test files containing version references and assertions
+  - Ensure version bump script updates all test files that contain hardcoded version strings
+  - **VALIDATION**: After implementation, run version bump script and verify `./scripts/run_tests.sh` passes without manual test file updates
+  - **BEFORE COMPLETION**: Run `./scripts/run_tests.sh` to verify all version references are now synchronized - fix any errors/warnings before marking complete
+  - _Requirements: 8.6, 8.7 (ensuring ALL version references are updated automatically)_

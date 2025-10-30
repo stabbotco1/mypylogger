@@ -199,6 +199,8 @@ PostPublishActions:
 
 **Purpose**: Centralized version management with interactive version bumping and automatic document updates.
 
+**CRITICAL IMPLEMENTATION NOTE**: The version management system MUST include test files that contain version assertions. Previous implementation missed test files like `tests/unit/test_core.py` and `tests/unit/test_public_api.py` which contain hardcoded version assertions such as `assert __version__ == "0.2.0"`. When the version bump script runs but doesn't update these test files, the quality gates fail because tests expect the old version. This violates Requirement 8.6 which states that ALL version references must be updated automatically.
+
 **Key Interfaces**:
 ```yaml
 VersionBumpScript:
@@ -270,6 +272,21 @@ Scripts:
 Steering:
   pattern: "mypylogger v{version}"
   files: [".kiro/steering/**/*.md"]
+  
+TestFiles:
+  patterns: 
+    - 'assert __version__ == "{version}"'
+    - 'assert version == "{version}"'
+    - 'assert mypylogger.__version__ == "{version}"'
+    - 'assert "mypylogger v{version}" in'
+    - "mypylogger v{version}"
+  files: 
+    - "tests/unit/test_core.py"
+    - "tests/unit/test_public_api.py"
+    - "tests/performance/__init__.py"
+    - "tests/performance/test_benchmarks.py"
+    - "tests/**/*test*.py"
+  description: "Test files containing version assertions and references"
 ```
 
 ## Data Models
@@ -440,6 +457,9 @@ class InvalidVersionError(VersionManagementError):
 class DocumentUpdateError(VersionManagementError):
     """Raised when document updates fail."""
     
+class IncompleteVersionUpdateError(VersionManagementError):
+    """Raised when version update misses files, causing test failures."""
+    
 def handle_version_bump_failure(error: VersionManagementError) -> None:
     """
     Handle version bump failures with rollback capability.
@@ -450,6 +470,22 @@ def handle_version_bump_failure(error: VersionManagementError) -> None:
     3. Reset Git working directory to clean state
     4. Log detailed error information for debugging
     5. Provide clear error message to user with remediation steps
+    """
+
+def validate_version_consistency_post_bump(new_version: str) -> None:
+    """
+    Validate that all version references were updated after version bump.
+    
+    CRITICAL: This validation prevents the scenario where version bump
+    script runs successfully but test files still contain old version
+    assertions, causing quality gate failures.
+    
+    Actions:
+    1. Run quality gates (./scripts/run_tests.sh) after version update
+    2. Check for version assertion failures in test files
+    3. Scan all project files for remaining old version references
+    4. Raise IncompleteVersionUpdateError if inconsistencies found
+    5. Provide list of files that still need manual updates
     """
 ```
 

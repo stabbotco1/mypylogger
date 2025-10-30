@@ -1,1 +1,1 @@
-# Performance tests for mypylogger v0.2.0
+# Performance tests for mypylogger v0.2.4
