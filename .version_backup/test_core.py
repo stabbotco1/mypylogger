@@ -10,7 +10,7 @@ from mypylogger import __version__, get_version
 def test_version_available() -> None:
     """Test that version information is available."""
     assert __version__ == "0.2.5"
-    assert get_version() == "0.2.5"
+    assert get_version() == "0.2.4"
 
 
 def test_package_imports() -> None:

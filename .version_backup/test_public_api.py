@@ -115,7 +115,7 @@ class TestPublicAPI:
     def test_version_attribute(self) -> None:
         """Test that __version__ attribute is available."""
         assert hasattr(mypylogger, "__version__")
-        assert mypylogger.__version__ == "0.2.5"
+        assert mypylogger.__version__ == "0.2.4"
 
     def test_exception_classes_available(self) -> None:
         """Test that all exception classes are available and properly inherit."""
