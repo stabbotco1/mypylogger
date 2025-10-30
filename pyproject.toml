@@ -40,7 +40,7 @@ dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/stabbotco1/mypylogger"
-Documentation = "https://stabbotco1.github.io/mypylogger"
+Documentation = "https://github.com/stabbotco1/mypylogger/blob/main/README.md"
 Repository = "https://github.com/stabbotco1/mypylogger"
 "Bug Tracker" = "https://github.com/stabbotco1/mypylogger/issues"
 Changelog = "https://github.com/stabbotco1/mypylogger/blob/main/CHANGELOG.md"
