@@ -56,7 +56,7 @@ def generate_pypi_version_badge() -> str:
     """Generate PyPI version badge URL."""
     
 def generate_downloads_badge() -> str:
-    """Generate downloads status badge URL."""
+    """Generate PyPI monthly downloads badge URL using shields.io direct integration."""
     
 def generate_license_badge() -> str:
     """Generate MIT license badge URL."""
@@ -68,6 +68,7 @@ def generate_license_badge() -> str:
 - **Comprehensive security badge**: Combines CI security scans with GitHub CodeQL results
 - **Code quality badges**: Based on CI execution of ruff and mypy
 - **Static badges**: Use project configuration and PyPI API data
+- **Downloads badge**: Uses shields.io direct PyPI integration for real-time monthly download counts
 - **Local testing**: Focuses only on test execution, not badge generation
 
 ### README Updater (`badges/updater.py`)
@@ -136,7 +137,7 @@ BADGE_CONFIG = {
         'type_checked': 'badge/type%20checked-mypy-blue',
         'python_versions': 'pypi/pyversions/{package}',
         'pypi_version': 'pypi/v/{package}',
-        'downloads': 'badge/downloads-development-yellow',
+        'downloads': 'pypi/dm/{package}',
         'license': 'github/license/{repo}'
     },
     'security_badge_links': {
@@ -207,6 +208,7 @@ class BadgeConfig:
 - Cache last known good values
 - Fallback to static version information
 - Graceful handling of network timeouts
+- Downloads badge uses shields.io direct integration (no direct PyPI API calls needed)
 
 ### Security Scan Failures
 
@@ -310,7 +312,7 @@ def test_security_integration_workflow():
 
 ### Resource Usage
 
-**Network Calls**: Maximum 8 API calls per badge update cycle
+**Network Calls**: Maximum 7 API calls per badge update cycle (downloads badge uses shields.io direct integration)
 **File Operations**: Single atomic write per README update
 **Memory Usage**: Minimal - process badges individually
 **Execution Time**: Target <30 seconds for complete badge update
@@ -325,7 +327,8 @@ def test_security_integration_workflow():
 - No sensitive data in API requests
 
 **PyPI API Access**:
-- Read-only public API usage
+- Read-only public API usage for version information
+- Downloads data accessed via shields.io direct integration
 - No authentication required
 - Standard HTTPS communication
 
@@ -366,5 +369,19 @@ def test_security_integration_workflow():
 - Primary link: GitHub CodeQL results page (`/security/code-scanning`)
 - Fallback link: General security tab (`/security`)
 - Include repository context in all security links
+
+## Downloads Badge Implementation
+
+### Shields.io Direct Integration Approach
+
+The downloads badge uses shields.io's built-in PyPI integration rather than scheduled GitHub jobs for the following reasons:
+
+1. **Real-time Data**: Always shows current download statistics without staleness
+2. **Zero Maintenance**: No scheduled jobs or API management required
+3. **Reliability**: Leverages shields.io's robust PyPI integration
+4. **Simplicity**: Aligns with MVP "fast and lean" principles
+5. **Common Pattern**: Standard approach used by most open source projects
+
+**Implementation**: `https://img.shields.io/pypi/dm/{package}` displays monthly download counts automatically updated by shields.io.
 
 This design provides a robust, minimal implementation that meets all requirements while maintaining simplicity and reliability for the MVP badge system.

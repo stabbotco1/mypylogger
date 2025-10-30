@@ -202,7 +202,9 @@ metadata:
         if self.verbose:
             print(f"  Running: {' '.join(cmd)}")
 
-        return subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=self.project_dir, env=env)
+        return subprocess.run(
+            cmd, check=False, capture_output=True, text=True, cwd=self.project_dir, env=env
+        )
 
     def _record_test_result(self, test_name: str, success: bool, details: Dict[str, Any]) -> None:
         """Record test result.

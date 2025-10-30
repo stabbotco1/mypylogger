@@ -40,6 +40,7 @@ from .updater import (
     atomic_write_readme,
     update_readme_with_badges,
     update_readme_with_badges_ci_only,
+    verify_ci_test_success,
 )
 
 # Configure logging for badge system
@@ -257,12 +258,14 @@ def create_badge_section(badges: list[Badge]) -> BadgeSection:
         raise BadgeSystemError(msg) from e
 
 
-def update_project_badges(detect_status: bool = True, ci_only: bool = True) -> bool:
-    """Main badge update workflow - generate badges and update README.
+def update_project_badges(detect_status: bool = True) -> bool:
+    """Main badge update workflow - generate badges and update README (CI-only).
+
+    This function only works in CI/CD environments to prevent local inconsistencies.
+    Badge updates are exclusively performed after successful CI test execution.
 
     Args:
         detect_status: Whether to detect actual badge status or use defaults.
-        ci_only: Whether to restrict updates to CI environments only.
 
     Returns:
         True if badge update was successful, False otherwise.
@@ -271,7 +274,7 @@ def update_project_badges(detect_status: bool = True, ci_only: bool = True) -> b
         BadgeSystemError: If badge update workflow fails.
     """
     try:
-        logger.info("Starting badge update workflow")
+        logger.info("Starting CI-only badge update workflow")
 
         # Clear cache if we're detecting status
         if detect_status:
@@ -290,16 +293,13 @@ def update_project_badges(detect_status: bool = True, ci_only: bool = True) -> b
         # Create badge section
         badge_section = create_badge_section(badges)
 
-        # Update README with badges (CI-only by default)
-        if ci_only:
-            success = update_readme_with_badges_ci_only([badge_section.markdown])
-        else:
-            success = update_readme_with_badges([badge_section.markdown])
+        # Update README with badges (CI-only - no local updates allowed)
+        success = update_readme_with_badges_ci_only([badge_section.markdown])
 
         if success:
-            logger.info("Badge update workflow completed successfully")
+            logger.info("CI-only badge update workflow completed successfully")
         else:
-            logger.error("Failed to update README with badges")
+            logger.error("Failed to update README with badges in CI environment")
 
         return success
 
@@ -344,9 +344,9 @@ def main() -> int:
     )
 
     parser.add_argument(
-        "--allow-local",
+        "--generate-only",
         action="store_true",
-        help="Allow badge updates in local environment (not recommended)",
+        help="Generate badges without updating README (local development mode)",
     )
 
     args = parser.parse_args()
@@ -374,10 +374,19 @@ def main() -> int:
             logger.info(f"Generated badge section: {badge_section.markdown}")
             return 0
 
-        # Normal badge update
+        # Badge generation and update
         detect_status = not args.no_status_detection
-        ci_only = not args.allow_local  # Default to CI-only unless explicitly allowed
-        success = update_project_badges(detect_status=detect_status, ci_only=ci_only)
+
+        if args.generate_only:
+            # Generate badges only (local development mode)
+            logger.info("Running in generate-only mode (local development)")
+            badges = generate_all_badges(detect_status=detect_status)
+            badge_section = create_badge_section(badges)
+            logger.info(f"Generated badge section: {badge_section.markdown}")
+            logger.info("Badge generation completed (no README update in local mode)")
+            return 0
+        # CI-only badge update workflow
+        success = update_project_badges(detect_status=detect_status)
 
         if args.ci_mode:
             # In CI mode, always return 0 to not fail pipelines
@@ -430,7 +439,9 @@ __all__ = [
     "simulate_codeql_checks",
     "update_project_badges",
     "update_readme_with_badges",
+    "update_readme_with_badges_ci_only",
     "validate_badge_status",
+    "verify_ci_test_success",
 ]
 
 

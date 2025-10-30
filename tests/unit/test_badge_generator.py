@@ -315,7 +315,7 @@ class TestDynamicBadgeGeneration:
         with patch.dict(os.environ, {}, clear=True):
             url = generate_downloads_badge()
 
-            expected = "https://img.shields.io/badge/downloads-development-yellow?style=flat"
+            expected = "https://img.shields.io/pypi/dm/mypylogger?style=flat"
             assert url == expected
 
     def test_generate_downloads_badge_with_custom_config(self) -> None:
@@ -327,7 +327,7 @@ class TestDynamicBadgeGeneration:
         with patch.dict(os.environ, env_vars, clear=True):
             url = generate_downloads_badge()
 
-            expected = "https://custom.shields.io/badge/downloads-development-yellow?style=flat"
+            expected = "https://custom.shields.io/pypi/dm/mypylogger?style=flat"
             assert url == expected
 
     def test_generate_downloads_badge_with_config_error(self) -> None:
@@ -340,7 +340,7 @@ class TestDynamicBadgeGeneration:
             # Should fallback to default configuration
             url = generate_downloads_badge()
 
-            expected = "https://img.shields.io/badge/downloads-development-yellow?style=flat"
+            expected = "https://img.shields.io/pypi/dm/mypylogger?style=flat"
             assert url == expected
 
 
@@ -430,7 +430,7 @@ class TestAllBadgeGeneration:
                     "type_checked": "badge/type%20checked-mypy-blue?style=flat",
                     "python_versions": "pypi/pyversions/testpackage?style=flat",
                     "pypi_version": "pypi/v/testpackage?style=flat",
-                    "downloads": "badge/downloads-development-yellow?style=flat",
+                    "downloads": "pypi/dm/testpackage?style=flat",
                     "license": "github/license/testuser/testrepo?style=flat",
                 }
 

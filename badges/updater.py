@@ -226,9 +226,9 @@ def commit_badge_updates() -> bool:
         True if commit was successful, False otherwise.
     """
     try:
-        # Check if there are changes to commit
+        # Check if there are any changes to README.md
         result = subprocess.run(
-            ["git", "diff", "--staged", "--quiet", "README.md"],
+            ["git", "diff", "--quiet", "README.md"],
             check=False,
             capture_output=True,
         )
@@ -246,6 +246,18 @@ def commit_badge_updates() -> bool:
             text=True,
         )
 
+        # Check if there are staged changes
+        result = subprocess.run(
+            ["git", "diff", "--staged", "--quiet"],
+            check=False,
+            capture_output=True,
+        )
+
+        if result.returncode == 0:
+            # No staged changes
+            print("No staged badge changes to commit", file=sys.stderr)
+            return True
+
         # Commit with [skip ci] to prevent infinite loops
         subprocess.run(
             ["git", "commit", "-m", "docs: update badges [skip ci]"],
@@ -254,9 +266,9 @@ def commit_badge_updates() -> bool:
             text=True,
         )
 
-        # Push changes
+        # Push changes to main branch
         subprocess.run(
-            ["git", "push", "origin", "main"],
+            ["git", "push", "origin", "HEAD:main"],
             check=True,
             capture_output=True,
             text=True,
@@ -267,11 +279,42 @@ def commit_badge_updates() -> bool:
 
     except subprocess.CalledProcessError as e:
         print(f"Failed to commit badge updates: {e}", file=sys.stderr)
+        print(f"Command output: {e.output if hasattr(e, 'output') else 'N/A'}", file=sys.stderr)
         return False
 
 
+def verify_ci_test_success() -> bool:
+    """Verify that CI tests have passed before allowing badge updates.
+
+    Returns:
+        True if CI tests passed, False otherwise.
+    """
+    # Check for CI environment variables that indicate test success
+    ci_success_indicators = [
+        "GITHUB_ACTIONS",  # GitHub Actions environment
+        "CI",  # General CI indicator
+    ]
+
+    # Must be in CI environment
+    if not any(os.getenv(indicator) for indicator in ci_success_indicators):
+        print("Not in CI environment - badge updates not allowed", file=sys.stderr)
+        return False
+
+    # For GitHub Actions, check if we're in a successful workflow context
+    if os.getenv("GITHUB_ACTIONS"):
+        # Check if this is running after tests (workflow should set this)
+        if not os.getenv("TESTS_PASSED"):
+            print("CI tests have not passed - badge updates not allowed", file=sys.stderr)
+            return False
+
+    return True
+
+
 def update_readme_with_badges_ci_only(badges: list[str]) -> bool:
-    """Update README.md with badges (CI environment only).
+    """Update README.md with badges (CI environment only, after successful tests).
+
+    This function ensures badge updates only occur in CI/CD environments
+    after successful test execution to maintain consistency with actual code state.
 
     Args:
         badges: List of badge markdown strings to insert.
@@ -279,18 +322,19 @@ def update_readme_with_badges_ci_only(badges: list[str]) -> bool:
     Returns:
         True if update was successful, False otherwise.
     """
-    # Check if we're in CI environment
-    if not is_ci_environment():
-        print("Badge updates are only allowed in CI/CD environments", file=sys.stderr)
+    # Verify we're in CI environment and tests have passed
+    if not verify_ci_test_success():
         return False
 
-    # Set up git configuration
+    # Set up git configuration for CI commits
     if not setup_git_config():
+        print("Failed to configure git for CI environment", file=sys.stderr)
         return False
 
     # Update README with badges
     if not update_readme_with_badges(badges):
+        print("Failed to update README with badges", file=sys.stderr)
         return False
 
-    # Commit and push changes
+    # Commit and push changes back to repository
     return commit_badge_updates()

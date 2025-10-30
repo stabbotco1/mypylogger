@@ -136,21 +136,25 @@ def generate_pypi_version_badge() -> str:
 
 
 def generate_downloads_badge() -> str:
-    """Generate downloads status badge URL.
+    """Generate PyPI monthly downloads badge URL using shields.io direct integration.
 
     Returns:
-        Shields.io URL for downloads status badge.
+        Shields.io URL for PyPI monthly downloads badge.
     """
     try:
         config = get_badge_config()
         template = BADGE_CONFIG["badge_templates"]["downloads"]
 
-        return f"{config.shields_base_url}/{template}"
+        # Replace package placeholder with actual package name
+        formatted_template = template.format(package=config.pypi_package)
+        return f"{config.shields_base_url}/{formatted_template}"
     except Exception:
         # Fallback to default configuration on error
         base_url = BADGE_CONFIG["shields_base_url"]
         template = BADGE_CONFIG["badge_templates"]["downloads"]
-        return f"{base_url}/{template}"
+        package = BADGE_CONFIG["pypi_package"]
+        formatted_template = template.format(package=package)
+        return f"{base_url}/{formatted_template}"
 
 
 def generate_comprehensive_security_badge() -> str:

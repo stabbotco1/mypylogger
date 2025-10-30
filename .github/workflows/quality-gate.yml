@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read          # Required for repository checkout and access
+  contents: write         # Required for repository checkout, access, and badge updates
+  security-events: read   # Required for CodeQL security status
 
 jobs:
   quality-gate:
@@ -42,6 +43,17 @@ jobs:
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PYPI_PACKAGE: mypylogger
+      
+      - name: Update badges (CI-only)
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          export TESTS_PASSED=true
+          export GITHUB_REPOSITORY=${{ github.repository }}
+          export PYPI_PACKAGE=mypylogger
+          uv run python -m badges --ci-mode
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Quality gate summary
         if: always()

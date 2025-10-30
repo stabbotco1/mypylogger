@@ -135,8 +135,8 @@ BADGE_CONFIG: dict[str, Any] = {
         "python_versions": "pypi/pyversions/{package}?style=flat",
         # PyPI badges
         "pypi_version": "pypi/v/{package}?style=flat",
-        # Development status badge
-        "downloads": "badge/downloads-development-yellow?style=flat",
+        # PyPI downloads badge (monthly)
+        "downloads": "pypi/dm/{package}?style=flat",
         # License badge
         "license": "github/license/{repo}?style=flat",
     },

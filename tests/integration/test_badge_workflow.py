@@ -243,8 +243,11 @@ Install the package.
             readme_path = tmp_path / "README.md"
             readme_path.write_text("# Test Project\n\nContent here.")
 
-            # Test complete workflow with local updates allowed for testing
-            update_project_badges(detect_status=False, ci_only=False)
+            # Test complete workflow - this will fail in CI-only mode but we're mocking the write
+            with patch("badges.updater.verify_ci_test_success", return_value=True):
+                with patch("badges.updater.setup_git_config", return_value=True):
+                    with patch("badges.updater.commit_badge_updates", return_value=True):
+                        update_project_badges(detect_status=False)
 
             # Verify atomic_write_readme was called
             assert mock_write.called

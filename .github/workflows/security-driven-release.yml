@@ -17,7 +17,7 @@ on:
         type: string
 
 permissions:
-  contents: read           # Required for repository access and checkout
+  contents: write          # Required for repository access, checkout, and badge updates
   actions: write          # Required for triggering other workflows
   security-events: write  # Required for security report uploads and processing
 
@@ -230,6 +230,36 @@ jobs:
     if: always()
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          source $HOME/.cargo/env
+      
+      - name: Install dependencies
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          uv sync
+      
+      - name: Update badges (CI-only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          export TESTS_PASSED=true
+          export GITHUB_REPOSITORY=${{ github.repository }}
+          export PYPI_PACKAGE=mypylogger
+          uv run python -m badges --ci-mode
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Generate workflow summary
         run: |
           echo "# Security-Driven Release Workflow Summary" >> $GITHUB_STEP_SUMMARY

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import importlib.util
 import json
 import logging
 import os
@@ -20,7 +19,7 @@ import sys
 from typing import Any
 
 # Add project root to Python path for imports
-import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import existing error handling and monitoring infrastructure
@@ -44,7 +43,7 @@ try:
             SecurityFileValidator,
             ValidationSummary,
         )
-    
+
     from security.error_handling import (
         CorruptionSeverity,
         FileIntegrityInfo,
@@ -618,8 +617,10 @@ class CICDErrorHandler:
         # Create a JSON-serializable copy of workflow_state
         workflow_state_serializable = self.workflow_state.copy()
         if "start_time" in workflow_state_serializable:
-            workflow_state_serializable["start_time"] = workflow_state_serializable["start_time"].isoformat()
-        
+            workflow_state_serializable["start_time"] = workflow_state_serializable[
+                "start_time"
+            ].isoformat()
+
         report_data = {
             "workflow_name": self.config.workflow_name,
             "timestamp": datetime.now(timezone.utc).isoformat(),

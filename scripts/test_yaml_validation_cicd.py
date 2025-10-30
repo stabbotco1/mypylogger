@@ -111,7 +111,9 @@ class YAMLValidationCICDTester:
         if self.verbose:
             print(f"  Running: {' '.join(cmd)}")
 
-        return subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=self.project_dir)
+        return subprocess.run(
+            cmd, check=False, capture_output=True, text=True, cwd=self.project_dir
+        )
 
     def _record_test_result(self, test_name: str, success: bool, details: Dict[str, Any]) -> None:
         """Record test result.
@@ -520,7 +522,9 @@ metadata:
             # Measure validation time
             start_time = time.time()
             cmd = [sys.executable, "scripts/validate_security_yaml.py", "--check", "--verbose"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=perf_test_dir)
+            result = subprocess.run(
+                cmd, check=False, capture_output=True, text=True, cwd=perf_test_dir
+            )
             end_time = time.time()
 
             validation_time = end_time - start_time

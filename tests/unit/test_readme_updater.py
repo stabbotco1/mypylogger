@@ -10,7 +10,11 @@ from unittest.mock import patch
 from badges.updater import (
     atomic_write_readme,
     find_badge_section,
+    is_ci_environment,
+    setup_git_config,
     update_readme_with_badges,
+    update_readme_with_badges_ci_only,
+    verify_ci_test_success,
 )
 
 
@@ -547,3 +551,123 @@ More content with **bold** and *italic* text.
 
             finally:
                 os.chdir(original_cwd)
+
+
+class TestCIOnlyFunctionality:
+    """Test CI-only badge update functionality."""
+
+    def test_is_ci_environment_github_actions(self) -> None:
+        """Test CI environment detection for GitHub Actions."""
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}, clear=False):
+            assert is_ci_environment() is True
+
+    def test_is_ci_environment_general_ci(self) -> None:
+        """Test CI environment detection for general CI."""
+        with patch.dict(os.environ, {"CI": "true"}, clear=False):
+            assert is_ci_environment() is True
+
+    def test_is_ci_environment_no_ci(self) -> None:
+        """Test CI environment detection when not in CI."""
+        # Clear all CI environment variables
+        ci_vars = [
+            "CI",
+            "GITHUB_ACTIONS",
+            "GITLAB_CI",
+            "JENKINS_URL",
+            "TRAVIS",
+            "CIRCLECI",
+            "BUILDKITE",
+        ]
+        with patch.dict(os.environ, dict.fromkeys(ci_vars, ""), clear=False):
+            assert is_ci_environment() is False
+
+    def test_verify_ci_test_success_github_actions_with_tests_passed(self) -> None:
+        """Test CI test success verification in GitHub Actions with tests passed."""
+        with patch.dict(
+            os.environ, {"GITHUB_ACTIONS": "true", "TESTS_PASSED": "true"}, clear=False
+        ):
+            assert verify_ci_test_success() is True
+
+    def test_verify_ci_test_success_github_actions_without_tests_passed(self) -> None:
+        """Test CI test success verification in GitHub Actions without tests passed."""
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}, clear=False):
+            # Remove TESTS_PASSED if it exists
+            if "TESTS_PASSED" in os.environ:
+                del os.environ["TESTS_PASSED"]
+            assert verify_ci_test_success() is False
+
+    def test_verify_ci_test_success_not_in_ci(self) -> None:
+        """Test CI test success verification when not in CI."""
+        ci_vars = [
+            "CI",
+            "GITHUB_ACTIONS",
+            "GITLAB_CI",
+            "JENKINS_URL",
+            "TRAVIS",
+            "CIRCLECI",
+            "BUILDKITE",
+        ]
+        with patch.dict(os.environ, dict.fromkeys(ci_vars, ""), clear=False):
+            assert verify_ci_test_success() is False
+
+    def test_setup_git_config_success(self) -> None:
+        """Test successful git configuration setup."""
+        with patch("badges.updater.subprocess.run") as mock_run:
+            mock_run.return_value.returncode = 0
+            result = setup_git_config()
+            assert result is True
+            assert mock_run.call_count == 2  # Two git config commands
+
+    def test_setup_git_config_failure(self) -> None:
+        """Test git configuration setup failure."""
+        with patch("badges.updater.subprocess.run") as mock_run:
+            from subprocess import CalledProcessError
+
+            mock_run.side_effect = CalledProcessError(1, "git config")
+            result = setup_git_config()
+            assert result is False
+
+    def test_update_readme_with_badges_ci_only_not_in_ci(self) -> None:
+        """Test CI-only badge update when not in CI environment."""
+        with patch("badges.updater.verify_ci_test_success", return_value=False):
+            result = update_readme_with_badges_ci_only(["![Test](https://example.com/badge)"])
+            assert result is False
+
+    def test_update_readme_with_badges_ci_only_git_config_failure(self) -> None:
+        """Test CI-only badge update when git config fails."""
+        with patch("badges.updater.verify_ci_test_success", return_value=True):
+            with patch("badges.updater.setup_git_config", return_value=False):
+                result = update_readme_with_badges_ci_only(["![Test](https://example.com/badge)"])
+                assert result is False
+
+    def test_update_readme_with_badges_ci_only_readme_update_failure(self) -> None:
+        """Test CI-only badge update when README update fails."""
+        with patch("badges.updater.verify_ci_test_success", return_value=True):
+            with patch("badges.updater.setup_git_config", return_value=True):
+                with patch("badges.updater.update_readme_with_badges", return_value=False):
+                    result = update_readme_with_badges_ci_only(
+                        ["![Test](https://example.com/badge)"]
+                    )
+                    assert result is False
+
+    def test_update_readme_with_badges_ci_only_commit_failure(self) -> None:
+        """Test CI-only badge update when commit fails."""
+        with patch("badges.updater.verify_ci_test_success", return_value=True):
+            with patch("badges.updater.setup_git_config", return_value=True):
+                with patch("badges.updater.update_readme_with_badges", return_value=True):
+                    with patch("badges.updater.commit_badge_updates", return_value=False):
+                        result = update_readme_with_badges_ci_only(
+                            ["![Test](https://example.com/badge)"]
+                        )
+                        assert result is False
+
+    def test_update_readme_with_badges_ci_only_success(self) -> None:
+        """Test successful CI-only badge update."""
+        with patch("badges.updater.verify_ci_test_success", return_value=True):
+            with patch("badges.updater.setup_git_config", return_value=True):
+                with patch("badges.updater.update_readme_with_badges", return_value=True):
+                    with patch("badges.updater.commit_badge_updates", return_value=True):
+                        result = update_readme_with_badges_ci_only(
+                            ["![Test](https://example.com/badge)"]
+                        )
+                        assert result is True
