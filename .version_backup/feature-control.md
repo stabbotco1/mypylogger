@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines strict feature control policies for mypylogger v0.2.4 to maintain focus, simplicity, and maintainability.
+This document defines strict feature control policies for mypylogger v0.2.0 to maintain focus, simplicity, and maintainability.
 
 ## Feature Acceptance Criteria
 

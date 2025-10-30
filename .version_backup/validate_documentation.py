@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Documentation Quality Validation Script for mypylogger v0.2.4.
+"""Documentation Quality Validation Script for mypylogger v0.2.0.
 
 This script provides comprehensive validation of documentation quality including:
 - Docstring coverage validation (100% requirement)
@@ -510,7 +510,7 @@ class DocumentationValidator:
 def main() -> None:
     """Main entry point for documentation validation."""
     parser = argparse.ArgumentParser(
-        description="Validate documentation quality for mypylogger v0.2.4"
+        description="Validate documentation quality for mypylogger v0.2.0"
     )
     parser.add_argument(
         "--project-root", type=Path, default=Path.cwd(), help="Path to project root directory"

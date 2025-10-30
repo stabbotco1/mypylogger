@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document defines the requirements for Phase 1 of mypylogger v0.2.0 development, focusing on establishing a complete project foundation with modern Python tooling, quality gates, and development infrastructure.
+This document defines the requirements for Phase 1 of mypylogger v0.2.4 development, focusing on establishing a complete project foundation with modern Python tooling, quality gates, and development infrastructure.
 
 ## Glossary
 
@@ -18,7 +18,7 @@ This document defines the requirements for Phase 1 of mypylogger v0.2.0 developm
 
 ### Requirement 1
 
-**User Story:** As a developer, I want a properly structured Python project, so that I can develop mypylogger v0.2.0 with modern best practices.
+**User Story:** As a developer, I want a properly structured Python project, so that I can develop mypylogger v0.2.4 with modern best practices.
 
 #### Acceptance Criteria
 

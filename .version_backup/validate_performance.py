@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Performance threshold validation script for mypylogger v0.2.4.
+"""Performance threshold validation script for mypylogger v0.2.0.
 
 This script validates performance benchmark results against defined thresholds
 and fails CI/CD builds if performance requirements are not met.
@@ -355,7 +355,7 @@ def main() -> None:
         print(f"❌ Benchmark results file not found: {benchmark_file}")
         sys.exit(1)
 
-    print("🚀 Performance Validation for mypylogger v0.2.4")
+    print("🚀 Performance Validation for mypylogger v0.2.0")
     print("=" * 50)
     print(f"Benchmark file: {benchmark_file}")
     if baseline_file:

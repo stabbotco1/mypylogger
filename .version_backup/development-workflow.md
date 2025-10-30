@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the specific development workflow patterns for mypylogger v0.2.4, emphasizing TDD methodology and UV-based environment management.
+This document defines the specific development workflow patterns for mypylogger v0.2.0, emphasizing TDD methodology and UV-based environment management.
 
 ## Core Development Principles
 
