@@ -1,4 +1,4 @@
-# Custom Dictionary for mypylogger v0.2.6 Documentation
+# Custom Dictionary for mypylogger v0.2.5 Documentation
 # 
 # This file contains technical terms, project-specific vocabulary,
 # and domain-specific words that should be ignored during spelling

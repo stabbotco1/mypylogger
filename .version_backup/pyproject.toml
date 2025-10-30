@@ -1,6 +1,6 @@
 [project]
 name = "mypylogger"
-version = "0.2.6"
+version = "0.2.5"
 description = "Zero-dependency JSON logging library with sensible defaults for Python applications"
 readme = "README.md"
 license = {text = "MIT"}

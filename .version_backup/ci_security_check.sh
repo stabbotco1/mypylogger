@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-echo "🛡️  CI Security Check for mypylogger v0.2.6"
+echo "🛡️  CI Security Check for mypylogger v0.2.5"
 echo "============================================"
 
 # Colors for output
