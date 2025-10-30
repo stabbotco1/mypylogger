@@ -171,6 +171,50 @@ class VersionManager:
                 r"echo \"🧪 mypylogger v[0-9]+\.[0-9]+\.[0-9]+ - Master Test Runner\"",
                 "Test script output"
             ),
+            # Test files with version assertions - tests/unit/test_core.py
+            (
+                self.project_root / "tests" / "unit" / "test_core.py",
+                r'assert __version__ == "[^"]*"',
+                "Test version assertion (__version__) - test_version_available"
+            ),
+            (
+                self.project_root / "tests" / "unit" / "test_core.py",
+                r'assert get_version\(\) == "[^"]*"',
+                "Test version assertion (get_version()) - test_version_available"
+            ),
+            (
+                self.project_root / "tests" / "unit" / "test_core.py",
+                r'assert "mypylogger v[0-9]+\.[0-9]+\.[0-9]+" in mypylogger\.__doc__',
+                "Test module docstring version check - test_module_docstring"
+            ),
+            (
+                self.project_root / "tests" / "unit" / "test_core.py",
+                r'assert __version__ == "[^"]*"',
+                "Test version string literal assertion - test_version_is_string_literal"
+            ),
+            # Test files with version assertions - tests/unit/test_public_api.py
+            (
+                self.project_root / "tests" / "unit" / "test_public_api.py",
+                r'assert version == "[^"]*"',
+                "Test version assertion (version variable) - test_get_version_returns_version"
+            ),
+            (
+                self.project_root / "tests" / "unit" / "test_public_api.py",
+                r'assert mypylogger\.__version__ == "[^"]*"',
+                "Test module version assertion - test_version_attribute"
+            ),
+            # Test files with version references - tests/performance/__init__.py
+            (
+                self.project_root / "tests" / "performance" / "__init__.py",
+                r"# Performance tests for mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
+                "Performance test module comment"
+            ),
+            # Test files with version references - tests/performance/test_benchmarks.py
+            (
+                self.project_root / "tests" / "performance" / "test_benchmarks.py",
+                r'"""Performance benchmarks for mypylogger v[0-9]+\.[0-9]+\.[0-9]+\.',
+                "Performance test docstring"
+            ),
         ]
         
         # Add steering documents
@@ -265,10 +309,32 @@ class VersionManager:
                 new_content = content
                 
                 # Apply specific pattern replacements
-                if "__version__" in pattern:
+                if "assert __version__ ==" in pattern:
+                    # Test file __version__ assertions
+                    new_content = re.sub(pattern, f'assert __version__ == "{new_version}"', content)
+                elif "assert get_version()" in pattern:
+                    # Test file get_version() assertions
+                    new_content = re.sub(pattern, f'assert get_version() == "{new_version}"', content)
+                elif "assert version ==" in pattern:
+                    # Test file version variable assertions
+                    new_content = re.sub(pattern, f'assert version == "{new_version}"', content)
+                elif "assert mypylogger.__version__ ==" in pattern:
+                    # Test file module version assertions
+                    new_content = re.sub(pattern, f'assert mypylogger.__version__ == "{new_version}"', content)
+                elif 'assert "mypylogger v' in pattern and '__doc__' in pattern:
+                    # Test file docstring version checks (test_module_docstring)
+                    new_content = re.sub(
+                        r'assert "mypylogger v[0-9]+\.[0-9]+\.[0-9]+" in mypylogger\.__doc__',
+                        f'assert "mypylogger v{new_version}" in mypylogger.__doc__',
+                        content
+                    )
+                elif "__version__" in pattern and "assert" not in pattern:
+                    # Source code __version__ constant
                     new_content = re.sub(pattern, f'__version__ = "{new_version}"', content)
                 elif "# mypylogger v" in pattern:
                     new_content = re.sub(pattern, f"# mypylogger v{new_version}", content)
+                elif "# Performance tests for mypylogger v" in pattern:
+                    new_content = re.sub(pattern, f"# Performance tests for mypylogger v{new_version}", content)
                 elif "Master test script" in pattern:
                     new_content = re.sub(
                         pattern,
@@ -285,6 +351,19 @@ class VersionManager:
                     new_content = re.sub(
                         r'"""mypylogger v[0-9]+\.[0-9]+\.[0-9]+',
                         f'"""mypylogger v{new_version}',
+                        content
+                    )
+                elif '"""Performance benchmarks for mypylogger v' in pattern:
+                    new_content = re.sub(
+                        r'"""Performance benchmarks for mypylogger v[0-9]+\.[0-9]+\.[0-9]+',
+                        f'"""Performance benchmarks for mypylogger v{new_version}',
+                        content
+                    )
+                elif '"mypylogger v' in pattern and 'docstring' in description:
+                    # Test file docstring version checks
+                    new_content = re.sub(
+                        r'"mypylogger v[0-9]+\.[0-9]+\.[0-9]+"',
+                        f'"mypylogger v{new_version}"',
                         content
                     )
                 else:
