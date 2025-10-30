@@ -95,7 +95,7 @@ class TestPublicAPI:
         version = mypylogger.get_version()
 
         assert isinstance(version, str)
-        assert version == "0.2.5"
+        assert version == "0.2.4"
 
     def test_public_api_exports(self) -> None:
         """Test that all expected items are in __all__."""

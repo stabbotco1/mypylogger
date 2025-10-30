@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Implement a fast and lean badge system for mypylogger v0.2.4 that displays professional project badges in README.md and works correctly when published to PyPI. This MVP implementation focuses on the specific set of badges shown in the project requirements, using shields.io integration with minimal code footprint and robust file handling to prevent race conditions during concurrent updates.
+Implement a fast and lean badge system for mypylogger v0.2.5 that displays professional project badges in README.md and works correctly when published to PyPI. This MVP implementation focuses on the specific set of badges shown in the project requirements, using shields.io integration with minimal code footprint and robust file handling to prevent race conditions during concurrent updates.
 
 ## Glossary
 

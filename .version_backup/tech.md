@@ -22,7 +22,7 @@
 
 ## Dependencies
 
-**CRITICAL**: Minimal dependency policy for mypylogger v0.2.5
+**CRITICAL**: Minimal dependency policy for mypylogger v0.2.4
 
 ### Approved Dependencies
 - **python-json-logger** - ONLY external dependency allowed
