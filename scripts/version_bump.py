@@ -464,14 +464,25 @@ class VersionManager:
         Raises:
             VersionError: If cleanup fails
         """
-        if not self.backup_path.exists():
-            return
+        import shutil
         
-        try:
-            import shutil
-            shutil.rmtree(self.backup_path)
-        except OSError as e:
-            raise VersionError(f"Failed to cleanup backup: {e}") from e
+        # Clean up both possible backup directory names
+        backup_paths = [
+            self.backup_path,  # .version_backup
+            self.project_root / "version_backup"  # version_backup (without dot)
+        ]
+        
+        cleanup_errors = []
+        
+        for backup_path in backup_paths:
+            if backup_path.exists():
+                try:
+                    shutil.rmtree(backup_path)
+                except OSError as e:
+                    cleanup_errors.append(f"Failed to cleanup {backup_path}: {e}")
+        
+        if cleanup_errors:
+            raise VersionError("; ".join(cleanup_errors))
 
     def validate_version_consistency(self) -> tuple[bool, list[str]]:
         """Validate that all version references are consistent.
@@ -800,19 +811,22 @@ def main() -> None:
             print("  🔄 Committing and pushing...")
             commit_hash = git_manager.commit_and_push(current_version, new_version, comment)
             
-            # Clean up backup on success
-            version_manager.cleanup_backup()
-            
         except Exception as e:
             print(f"  ❌ Error during version bump: {e}")
             print("  🔄 Restoring backup...")
             try:
                 version_manager.restore_backup()
-                version_manager.cleanup_backup()
                 print("  ✅ Backup restored successfully")
             except VersionError as restore_error:
                 print(f"  ❌ Failed to restore backup: {restore_error}")
             raise
+        finally:
+            # Always clean up backup directory, regardless of success or failure
+            try:
+                version_manager.cleanup_backup()
+                print("  🧹 Backup directory cleaned up")
+            except VersionError as cleanup_error:
+                print(f"  ⚠️  Failed to cleanup backup: {cleanup_error}")
         
         print()
         print("✅ Version bump completed successfully!")

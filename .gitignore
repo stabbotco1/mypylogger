@@ -206,3 +206,7 @@ workflow-*.json
 # Security scan results (legacy compatibility files)
 bandit-ci-results.json
 pip-audit-ci-results.json
+
+# Version management backup directories (temporary only)
+version_backup/
+.version_backup/

@@ -323,6 +323,8 @@ extend_exclude = [
     "scripts/",
     "infrastructure/",
     "debug_*.py",
+    "version_backup/",
+    ".version_backup/",
 ]
 
 # Ignore specific packages that are legitimately used from different dependency groups

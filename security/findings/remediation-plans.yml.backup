@@ -1,7 +1,7 @@
 metadata:
   version: '1.0'
   created: '2025-10-25T00:23:12.940633+00:00'
-  last_updated: '2025-10-30T22:03:35.948446+00:00'
+  last_updated: '2025-10-30T22:03:35.829508+00:00'
 findings:
   GHSA-4xh5-x5gv-qwph:
     finding_id: GHSA-4xh5-x5gv-qwph
@@ -3291,18 +3291,6 @@ findings:
     updated_date: '2025-10-25'
   PYSEC-2022-42969:
     finding_id: PYSEC-2022-42969
-    status: new
-    planned_action: Under evaluation
-    assigned_to: security-team
-    notes: Newly discovered - assessment in progress
-    workaround: None identified
-    target_date: null
-    priority: medium
-    business_impact: Under assessment
-    created_date: '2025-10-30'
-    updated_date: '2025-10-30'
-  PYSEC-2025-49:
-    finding_id: PYSEC-2025-49
     status: new
     planned_action: Under evaluation
     assigned_to: security-team
