@@ -9,8 +9,8 @@ from mypylogger import __version__, get_version
 
 def test_version_available() -> None:
     """Test that version information is available."""
-    assert __version__ == "0.2.7"
-    assert get_version() == "0.2.7"
+    assert __version__ == "0.2.6"
+    assert get_version() == "0.2.6"
 
 
 def test_package_imports() -> None:
@@ -44,7 +44,7 @@ def test_get_version_function_signature() -> None:
 def test_module_docstring() -> None:
     """Test that the module has a proper docstring."""
     assert mypylogger.__doc__ is not None
-    assert "mypylogger v0.2.7" in mypylogger.__doc__
+    assert "mypylogger v0.2.6" in mypylogger.__doc__
     assert "JSON logging" in mypylogger.__doc__
 
 
@@ -56,7 +56,7 @@ def test_get_version_consistency() -> None:
 def test_version_is_string_literal() -> None:
     """Test that __version__ is a string literal."""
     assert isinstance(__version__, str)
-    assert __version__ == "0.2.7"
+    assert __version__ == "0.2.6"
 
 
 def test_package_structure() -> None:

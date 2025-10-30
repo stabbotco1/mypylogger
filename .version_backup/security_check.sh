@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Security Check Script for mypylogger v0.2.7
+# Security Check Script for mypylogger v0.2.6
 #
 # This script performs comprehensive local security validation
 # to ensure code meets zero-tolerance security policy before
@@ -29,7 +29,7 @@ TIMESTAMP=$(date -u '+%Y%m%d_%H%M%S')
 
 # Handle command line arguments
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-    echo -e "${BLUE}🛡️  mypylogger v0.2.7 Security Check Script${NC}"
+    echo -e "${BLUE}🛡️  mypylogger v0.2.6 Security Check Script${NC}"
     echo -e "${BLUE}====================================${NC}"
     echo ""
     echo "This script performs comprehensive local security validation"
@@ -51,7 +51,7 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
 fi
 
 if [[ "${1:-}" == "--version" ]]; then
-    echo "mypylogger v0.2.7 Security Check Script"
+    echo "mypylogger v0.2.6 Security Check Script"
     echo "Zero-tolerance security policy enforcement"
     exit 0
 fi
@@ -59,7 +59,7 @@ fi
 # Create security reports directory
 mkdir -p "$SECURITY_REPORT_DIR"
 
-echo -e "${BLUE}🛡️  mypylogger v0.2.7 Security Check Script${NC}"
+echo -e "${BLUE}🛡️  mypylogger v0.2.6 Security Check Script${NC}"
 echo -e "${BLUE}====================================${NC}"
 echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "Project root: $PROJECT_ROOT"

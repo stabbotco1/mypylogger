@@ -2,7 +2,7 @@
 
 ## Overview
 
-The badge system implements a fast, lean MVP solution for displaying professional project badges in mypylogger v0.2.6's README.md. The design uses shields.io integration with Python APIs to generate dynamic badges that reflect current project state, with robust file handling to prevent race conditions during concurrent updates.
+The badge system implements a fast, lean MVP solution for displaying professional project badges in mypylogger v0.2.7's README.md. The design uses shields.io integration with Python APIs to generate dynamic badges that reflect current project state, with robust file handling to prevent race conditions during concurrent updates.
 
 ## Architecture
 
