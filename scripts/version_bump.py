@@ -77,6 +77,7 @@ class VersionManager:
         """
         self.project_root = project_root or Path.cwd()
         self.pyproject_path = self.project_root / "pyproject.toml"
+        self.backup_path = self.project_root / ".version_backup"
         
         if not self.pyproject_path.exists():
             raise VersionError(f"pyproject.toml not found at {self.pyproject_path}")
@@ -136,7 +137,7 @@ class VersionManager:
         Returns:
             List of tuples (file_path, pattern, description)
         """
-        return [
+        files = [
             # Source code files
             (
                 self.project_root / "src" / "mypylogger" / "__init__.py",
@@ -171,6 +172,74 @@ class VersionManager:
                 "Test script output"
             ),
         ]
+        
+        # Add steering documents
+        steering_files = [
+            ".kiro/steering/tech.md",
+            ".kiro/steering/development-workflow.md", 
+            ".kiro/steering/feature-control.md",
+            ".kiro/steering/product.md"
+        ]
+        
+        for steering_file in steering_files:
+            file_path = self.project_root / steering_file
+            files.append((
+                file_path,
+                r"mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
+                f"Steering document: {steering_file}"
+            ))
+        
+        # Add spec documents
+        spec_dirs = [
+            ".kiro/specs/phase-1-project-setup",
+            ".kiro/specs/phase-2-core-functionality", 
+            ".kiro/specs/phase-3-github-cicd",
+            ".kiro/specs/phase-4-documentation",
+            ".kiro/specs/phase-5-project-badges",
+            ".kiro/specs/phase-7-pypi-publishing"
+        ]
+        
+        for spec_dir in spec_dirs:
+            for spec_file in ["requirements.md", "design.md", "tasks.md"]:
+                file_path = self.project_root / spec_dir / spec_file
+                files.append((
+                    file_path,
+                    r"mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
+                    f"Spec document: {spec_dir}/{spec_file}"
+                ))
+        
+        # Add other documentation files
+        doc_files = [
+            "docs/quality-config.yml",
+            "docs/custom-dict.txt",
+            "docs/README.md"
+        ]
+        
+        for doc_file in doc_files:
+            file_path = self.project_root / doc_file
+            files.append((
+                file_path,
+                r"mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
+                f"Documentation: {doc_file}"
+            ))
+        
+        # Add script files
+        script_files = [
+            "scripts/security_check.sh",
+            "scripts/validate_performance.py",
+            "scripts/ci_security_check.sh",
+            "scripts/validate_documentation.py"
+        ]
+        
+        for script_file in script_files:
+            file_path = self.project_root / script_file
+            files.append((
+                file_path,
+                r"mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
+                f"Script: {script_file}"
+            ))
+        
+        return files
 
     def update_version_files(self, old_version: VersionInfo, new_version: VersionInfo) -> list[Path]:
         """Update version references in all project files.
@@ -193,29 +262,11 @@ class VersionManager:
             
             try:
                 content = file_path.read_text(encoding="utf-8")
-                
-                # Create replacement pattern
-                if "__version__" in pattern:
-                    replacement = f'__version__ = "{new_version}"'
-                elif "mypylogger v" in pattern and "does ONE thing" in pattern:
-                    replacement = re.sub(
-                        r"mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
-                        f"mypylogger v{new_version}",
-                        content
-                    )
-                    new_content = replacement
-                else:
-                    # Generic version replacement
-                    replacement = re.sub(
-                        r"v[0-9]+\.[0-9]+\.[0-9]+",
-                        f"v{new_version}",
-                        content
-                    )
-                    new_content = replacement
+                new_content = content
                 
                 # Apply specific pattern replacements
                 if "__version__" in pattern:
-                    new_content = re.sub(pattern, replacement, content)
+                    new_content = re.sub(pattern, f'__version__ = "{new_version}"', content)
                 elif "# mypylogger v" in pattern:
                     new_content = re.sub(pattern, f"# mypylogger v{new_version}", content)
                 elif "Master test script" in pattern:
@@ -234,6 +285,13 @@ class VersionManager:
                     new_content = re.sub(
                         r'"""mypylogger v[0-9]+\.[0-9]+\.[0-9]+',
                         f'"""mypylogger v{new_version}',
+                        content
+                    )
+                else:
+                    # Generic mypylogger version replacement
+                    new_content = re.sub(
+                        r"mypylogger v[0-9]+\.[0-9]+\.[0-9]+",
+                        f"mypylogger v{new_version}",
                         content
                     )
                 
@@ -261,6 +319,113 @@ class VersionManager:
             return True
         except VersionError:
             return False
+
+    def create_backup(self) -> None:
+        """Create backup of current project state.
+        
+        Raises:
+            VersionError: If backup creation fails
+        """
+        try:
+            # Create backup directory
+            self.backup_path.mkdir(exist_ok=True)
+            
+            # Backup pyproject.toml
+            backup_pyproject = self.backup_path / "pyproject.toml"
+            backup_pyproject.write_text(
+                self.pyproject_path.read_text(encoding="utf-8"),
+                encoding="utf-8"
+            )
+            
+            # Backup version files
+            for file_path, _, description in self.get_version_files():
+                if file_path.exists():
+                    backup_file = self.backup_path / file_path.name
+                    backup_file.write_text(
+                        file_path.read_text(encoding="utf-8"),
+                        encoding="utf-8"
+                    )
+            
+        except OSError as e:
+            raise VersionError(f"Failed to create backup: {e}") from e
+
+    def restore_backup(self) -> None:
+        """Restore project state from backup.
+        
+        Raises:
+            VersionError: If restore fails
+        """
+        if not self.backup_path.exists():
+            raise VersionError("No backup found to restore")
+        
+        try:
+            # Restore pyproject.toml
+            backup_pyproject = self.backup_path / "pyproject.toml"
+            if backup_pyproject.exists():
+                self.pyproject_path.write_text(
+                    backup_pyproject.read_text(encoding="utf-8"),
+                    encoding="utf-8"
+                )
+            
+            # Restore version files
+            for file_path, _, description in self.get_version_files():
+                backup_file = self.backup_path / file_path.name
+                if backup_file.exists() and file_path.exists():
+                    file_path.write_text(
+                        backup_file.read_text(encoding="utf-8"),
+                        encoding="utf-8"
+                    )
+            
+        except OSError as e:
+            raise VersionError(f"Failed to restore backup: {e}") from e
+
+    def cleanup_backup(self) -> None:
+        """Clean up backup files.
+        
+        Raises:
+            VersionError: If cleanup fails
+        """
+        if not self.backup_path.exists():
+            return
+        
+        try:
+            import shutil
+            shutil.rmtree(self.backup_path)
+        except OSError as e:
+            raise VersionError(f"Failed to cleanup backup: {e}") from e
+
+    def validate_version_consistency(self) -> tuple[bool, list[str]]:
+        """Validate that all version references are consistent.
+        
+        Returns:
+            Tuple of (is_consistent, list_of_inconsistencies)
+        """
+        current_version = self.get_current_version()
+        inconsistencies = []
+        
+        for file_path, pattern, description in self.get_version_files():
+            if not file_path.exists():
+                continue
+            
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                
+                # Find version references in the file
+                version_matches = re.findall(r"v?([0-9]+\.[0-9]+\.[0-9]+)", content)
+                
+                for match in version_matches:
+                    if match != str(current_version):
+                        inconsistencies.append(
+                            f"{file_path.relative_to(self.project_root)}: "
+                            f"found v{match}, expected v{current_version}"
+                        )
+                        break  # Only report first inconsistency per file
+                        
+            except OSError:
+                # Skip files that can't be read
+                continue
+        
+        return len(inconsistencies) == 0, inconsistencies
 
 
 class GitManager:
@@ -290,6 +455,62 @@ class GitManager:
             )
             return len(result.stdout.strip()) == 0
         except subprocess.CalledProcessError:
+            return False
+
+    def validate_git_repository(self) -> bool:
+        """Validate that we're in a Git repository.
+        
+        Returns:
+            True if in a valid Git repository
+        """
+        try:
+            subprocess.run(
+                ["git", "rev-parse", "--git-dir"],
+                cwd=self.project_root,
+                capture_output=True,
+                check=True
+            )
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    def get_current_branch(self) -> str:
+        """Get current Git branch name.
+        
+        Returns:
+            Current branch name
+            
+        Raises:
+            VersionError: If unable to get branch name
+        """
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=self.project_root,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            raise VersionError(f"Failed to get current branch: {e}") from e
+
+    def validate_remote_connection(self) -> bool:
+        """Validate connection to remote repository.
+        
+        Returns:
+            True if remote is accessible
+        """
+        try:
+            subprocess.run(
+                ["git", "ls-remote", "--exit-code", "origin"],
+                cwd=self.project_root,
+                capture_output=True,
+                check=True,
+                timeout=10  # 10 second timeout
+            )
+            return True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             return False
 
     def stage_files(self, files: list[Path]) -> None:
@@ -392,10 +613,32 @@ def main() -> None:
         version_manager = VersionManager()
         git_manager = GitManager(version_manager.project_root)
         
+        # Validate Git repository
+        if not git_manager.validate_git_repository():
+            print("❌ Not in a Git repository. Please run from project root.")
+            sys.exit(1)
+        
+        # Check current branch
+        current_branch = git_manager.get_current_branch()
+        if current_branch != "main":
+            print(f"⚠️  Currently on branch '{current_branch}'. Version bumps should be done on 'main' branch.")
+            confirm_branch = get_user_input("Continue anyway? (y/N)", "n").lower()
+            if confirm_branch not in ("y", "yes"):
+                print("❌ Version bump cancelled. Switch to 'main' branch first.")
+                sys.exit(1)
+        
         # Check Git status
         if not git_manager.is_clean_working_directory():
             print("❌ Working directory is not clean. Please commit or stash changes first.")
             sys.exit(1)
+        
+        # Check remote connection
+        if not git_manager.validate_remote_connection():
+            print("⚠️  Cannot connect to remote repository. Push may fail.")
+            confirm_remote = get_user_input("Continue without remote validation? (y/N)", "n").lower()
+            if confirm_remote not in ("y", "yes"):
+                print("❌ Version bump cancelled. Check remote connection.")
+                sys.exit(1)
         
         # Get current version
         current_version = version_manager.get_current_version()
@@ -454,24 +697,43 @@ def main() -> None:
         print()
         print("🚀 Starting version bump...")
         
-        # Update pyproject.toml
-        print("  📝 Updating pyproject.toml...")
-        version_manager.update_pyproject_version(new_version)
+        # Create backup
+        print("  💾 Creating backup...")
+        version_manager.create_backup()
         
-        # Update all version files
-        print("  📝 Updating version references...")
-        updated_files = version_manager.update_version_files(current_version, new_version)
-        
-        if not updated_files:
-            print("  ⚠️  No files were updated")
-        
-        # Stage files
-        print("  📦 Staging changes...")
-        git_manager.stage_files(updated_files)
-        
-        # Commit and push
-        print("  🔄 Committing and pushing...")
-        commit_hash = git_manager.commit_and_push(current_version, new_version, comment)
+        try:
+            # Update pyproject.toml
+            print("  📝 Updating pyproject.toml...")
+            version_manager.update_pyproject_version(new_version)
+            
+            # Update all version files
+            print("  📝 Updating version references...")
+            updated_files = version_manager.update_version_files(current_version, new_version)
+            
+            if not updated_files:
+                print("  ⚠️  No files were updated")
+            
+            # Stage files
+            print("  📦 Staging changes...")
+            git_manager.stage_files(updated_files)
+            
+            # Commit and push
+            print("  🔄 Committing and pushing...")
+            commit_hash = git_manager.commit_and_push(current_version, new_version, comment)
+            
+            # Clean up backup on success
+            version_manager.cleanup_backup()
+            
+        except Exception as e:
+            print(f"  ❌ Error during version bump: {e}")
+            print("  🔄 Restoring backup...")
+            try:
+                version_manager.restore_backup()
+                version_manager.cleanup_backup()
+                print("  ✅ Backup restored successfully")
+            except VersionError as restore_error:
+                print(f"  ❌ Failed to restore backup: {restore_error}")
+            raise
         
         print()
         print("✅ Version bump completed successfully!")
