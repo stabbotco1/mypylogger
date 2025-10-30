@@ -312,13 +312,13 @@ class VersionManager:
                 if "assert __version__ ==" in pattern:
                     # Test file __version__ assertions
                     new_content = re.sub(pattern, f'assert __version__ == "{new_version}"', content)
-                elif "assert get_version()" in pattern:
+                elif "assert get_version\\(\\)" in pattern:
                     # Test file get_version() assertions
                     new_content = re.sub(pattern, f'assert get_version() == "{new_version}"', content)
                 elif "assert version ==" in pattern:
                     # Test file version variable assertions
                     new_content = re.sub(pattern, f'assert version == "{new_version}"', content)
-                elif "assert mypylogger.__version__ ==" in pattern:
+                elif "assert mypylogger\\.__version__ ==" in pattern:
                     # Test file module version assertions
                     new_content = re.sub(pattern, f'assert mypylogger.__version__ == "{new_version}"', content)
                 elif 'assert "mypylogger v' in pattern and '__doc__' in pattern:
