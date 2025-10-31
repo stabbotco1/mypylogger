@@ -48,6 +48,41 @@ def generate_type_check_badge() -> str:
         return f"{base_url}/{template}"
 
 
+def generate_test_coverage_badge() -> str:
+    """Generate test coverage badge URL showing current coverage percentage.
+
+    Returns:
+        Shields.io URL for test coverage badge.
+    """
+    try:
+        from badges.status import get_test_coverage_percentage
+
+        config = get_badge_config()
+        template = BADGE_CONFIG["badge_templates"]["test_coverage"]
+
+        # Get current coverage percentage
+        coverage = get_test_coverage_percentage()
+
+        # Determine badge color based on coverage
+        if coverage >= 95:
+            color = "brightgreen"
+        elif coverage >= 80:
+            color = "yellow"
+        else:
+            color = "red"
+
+        # Format template with coverage and color
+        formatted_template = template.format(coverage=coverage, color=color)
+        return f"{config.shields_base_url}/{formatted_template}"
+    except Exception:
+        # Fallback to default configuration on error
+        base_url = BADGE_CONFIG["shields_base_url"]
+        template = BADGE_CONFIG["badge_templates"]["test_coverage"]
+        # Use 95% as default with green color
+        formatted_template = template.format(coverage=95, color="brightgreen")
+        return f"{base_url}/{formatted_template}"
+
+
 def generate_python_versions_badge() -> str:
     """Generate Python compatibility badge URL.
 

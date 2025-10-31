@@ -13,25 +13,26 @@
   - Add configuration validation and error handling
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 3.1, 3.4_
 
-- [x] 2.2 Implement shields.io URL generation for static badges
+- [ ] 2.2 Implement shields.io URL generation for static badges
   - Create generate_code_style_badge() function for Ruff compliance badge
   - Create generate_type_check_badge() function for mypy validation badge
+  - Create generate_test_coverage_badge() function using file-based approach (implemented in phase-8-test-coverage-badge)
   - Create generate_python_versions_badge() function for Python compatibility
   - Create generate_license_badge() function for MIT license badge
-  - _Requirements: 1.4, 1.5, 1.9, 3.1, 3.2_
+  - _Requirements: 1.4, 1.5, 1.6, 1.9, 3.1, 3.2_
 
 - [x] 2.3 Implement dynamic badge generation with API integration
   - Create generate_quality_gate_badge() function that aggregates all quality checks (linting, style, type checking, security)
   - Create generate_pypi_version_badge() function using PyPI API
   - Add error handling for API failures with fallback to "unknown" status
-  - _Requirements: 1.1, 1.2, 1.5, 1.6, 3.1, 3.2, 6.1, 6.2, 6.4_
+  - _Requirements: 1.1, 1.2, 1.6, 1.7, 3.1, 3.2, 6.1, 6.2, 6.4_
 
 - [x] 2.6 Implement PyPI downloads badge with shields.io direct integration
   - Create generate_downloads_badge() function using shields.io PyPI monthly downloads endpoint
   - Implement URL generation for `https://img.shields.io/pypi/dm/{package}` format
   - Add configuration support for PyPI package name
   - Test badge displays real-time monthly download counts from PyPI
-  - _Requirements: 1.7, 3.1, 3.4_
+  - _Requirements: 1.8, 3.1, 3.4_
 
 - [x] 2.5 Implement comprehensive security badge with all security tests
   - Create generate_comprehensive_security_badge() function combining all security results (local + GitHub CodeQL)
@@ -45,11 +46,12 @@
 - [x] 2.4 Write unit tests for badge generation
   - Create tests for all badge URL generation functions including comprehensive security badge
   - Test API failure scenarios and fallback behavior for GitHub CodeQL integration
-  - Test shields.io URL formatting correctness for all 8 badge types including PyPI downloads integration
+  - Test shields.io URL formatting correctness for all 9 badge types including test coverage and PyPI downloads integration
+  - Test test coverage badge URL generation using file-based coverage data (phase-8 implementation)
   - Test PyPI downloads badge URL generation with different package names
   - Test security status combination logic (all security tests combined)
   - Test quality gate status aggregation logic (all quality checks combined)
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
 - [x] 3. Implement atomic README update system
 - [x] 3.1 Create README parsing and badge section management

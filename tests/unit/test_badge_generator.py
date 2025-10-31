@@ -14,6 +14,7 @@ from badges.generator import (
     generate_pypi_version_badge,
     generate_python_versions_badge,
     generate_quality_gate_badge,
+    generate_test_coverage_badge,
     generate_type_check_badge,
     get_comprehensive_security_badge_link,
 )
@@ -88,6 +89,66 @@ class TestStaticBadgeGeneration:
             expected = "https://img.shields.io/badge/type%20checked-mypy-blue?style=flat"
             assert url == expected
 
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_generate_test_coverage_badge_with_high_coverage(self, mock_coverage: Mock) -> None:
+        """Test test coverage badge generation with high coverage (95%+)."""
+        mock_coverage.return_value = 98
+
+        with patch.dict(os.environ, {}, clear=True):
+            url = generate_test_coverage_badge()
+
+            expected = "https://img.shields.io/badge/coverage-98%25-brightgreen?style=flat"
+            assert url == expected
+
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_generate_test_coverage_badge_with_medium_coverage(self, mock_coverage: Mock) -> None:
+        """Test test coverage badge generation with medium coverage (80-94%)."""
+        mock_coverage.return_value = 85
+
+        with patch.dict(os.environ, {}, clear=True):
+            url = generate_test_coverage_badge()
+
+            expected = "https://img.shields.io/badge/coverage-85%25-yellow?style=flat"
+            assert url == expected
+
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_generate_test_coverage_badge_with_low_coverage(self, mock_coverage: Mock) -> None:
+        """Test test coverage badge generation with low coverage (<80%)."""
+        mock_coverage.return_value = 65
+
+        with patch.dict(os.environ, {}, clear=True):
+            url = generate_test_coverage_badge()
+
+            expected = "https://img.shields.io/badge/coverage-65%25-red?style=flat"
+            assert url == expected
+
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_generate_test_coverage_badge_with_custom_config(self, mock_coverage: Mock) -> None:
+        """Test test coverage badge generation with custom configuration."""
+        mock_coverage.return_value = 95
+
+        env_vars = {
+            "SHIELDS_BASE_URL": "https://custom.shields.io",
+        }
+
+        with patch.dict(os.environ, env_vars, clear=True):
+            url = generate_test_coverage_badge()
+
+            expected = "https://custom.shields.io/badge/coverage-95%25-brightgreen?style=flat"
+            assert url == expected
+
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_generate_test_coverage_badge_with_exception(self, mock_coverage: Mock) -> None:
+        """Test test coverage badge generation handles exceptions."""
+        mock_coverage.side_effect = Exception("Coverage detection failed")
+
+        with patch.dict(os.environ, {}, clear=True):
+            # Should fallback to default 95% coverage
+            url = generate_test_coverage_badge()
+
+            expected = "https://img.shields.io/badge/coverage-95%25-brightgreen?style=flat"
+            assert url == expected
+
     def test_generate_python_versions_badge_with_defaults(self) -> None:
         """Test Python versions badge generation with default configuration."""
         with patch.dict(os.environ, {}, clear=True):
@@ -160,12 +221,16 @@ class TestStaticBadgeGeneration:
 class TestBadgeUrlFormat:
     """Test badge URL formatting and structure."""
 
-    def test_all_static_badges_have_shields_base_url(self) -> None:
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_all_static_badges_have_shields_base_url(self, mock_coverage: Mock) -> None:
         """Test that all static badges use shields.io base URL."""
+        mock_coverage.return_value = 95
+
         with patch.dict(os.environ, {}, clear=True):
             badges = [
                 generate_code_style_badge(),
                 generate_type_check_badge(),
+                generate_test_coverage_badge(),
                 generate_python_versions_badge(),
                 generate_license_badge(),
             ]
@@ -175,12 +240,16 @@ class TestBadgeUrlFormat:
                     f"Badge URL does not start with shields.io base: {badge_url}"
                 )
 
-    def test_all_static_badges_have_style_parameter(self) -> None:
+    @patch("badges.status.get_test_coverage_percentage")
+    def test_all_static_badges_have_style_parameter(self, mock_coverage: Mock) -> None:
         """Test that all static badges include style=flat parameter."""
+        mock_coverage.return_value = 95
+
         with patch.dict(os.environ, {}, clear=True):
             badges = [
                 generate_code_style_badge(),
                 generate_type_check_badge(),
+                generate_test_coverage_badge(),
                 generate_python_versions_badge(),
                 generate_license_badge(),
             ]
@@ -347,12 +416,16 @@ class TestDynamicBadgeGeneration:
 class TestAllBadgeGeneration:
     """Test all badge generation functions together."""
 
+    @patch("badges.status.get_test_coverage_percentage")
     @patch("badges.security.get_comprehensive_security_status")
     @patch("badges.status.get_quality_gate_status")
     def test_all_badges_generate_valid_urls(
-        self, mock_quality_status: Mock, mock_security_status: Mock
+        self, mock_quality_status: Mock, mock_security_status: Mock, mock_coverage: Mock
     ) -> None:
         """Test that all badge generation functions return valid URLs."""
+        # Mock test coverage percentage
+        mock_coverage.return_value = 95
+
         # Mock comprehensive security status for the comprehensive security badge
         mock_security_status.return_value = {
             "status": "Verified",
@@ -371,6 +444,7 @@ class TestAllBadgeGeneration:
             badges = [
                 generate_code_style_badge(),
                 generate_type_check_badge(),
+                generate_test_coverage_badge(),
                 generate_python_versions_badge(),
                 generate_license_badge(),
                 generate_quality_gate_badge(),
@@ -389,13 +463,14 @@ class TestAllBadgeGeneration:
                 # Should have style parameter
                 assert "style=flat" in badge_url, f"Missing style parameter: {badge_url}"
 
-    def test_all_eight_badge_types_generate_correctly(self) -> None:
-        """Test that all 8 badge types generate correct shields.io URLs."""
-        with patch(
+    def test_all_nine_badge_types_generate_correctly(self) -> None:
+        """Test that all 9 badge types generate correct shields.io URLs."""
+        with patch("badges.status.get_test_coverage_percentage") as mock_coverage, patch(
             "badges.security.get_comprehensive_security_status"
         ) as mock_security_status, patch(
             "badges.status.get_quality_gate_status"
         ) as mock_quality_status:
+            mock_coverage.return_value = 95
             mock_security_status.return_value = {
                 "status": "Verified",
                 "local_passed": True,
@@ -419,7 +494,7 @@ class TestAllBadgeGeneration:
             }
 
             with patch.dict(os.environ, env_vars, clear=True):
-                # Test all 8 badge types
+                # Test all 9 badge types
                 expected_badges = {
                     "quality_gate": (
                         "github/actions/workflow/status/testuser/testrepo/quality-gate.yml"
@@ -428,6 +503,7 @@ class TestAllBadgeGeneration:
                     "comprehensive_security": "badge/security-verified-brightgreen?style=flat",
                     "code_style": "badge/code%20style-ruff-000000?style=flat",
                     "type_checked": "badge/type%20checked-mypy-blue?style=flat",
+                    "test_coverage": "badge/coverage-95%25-brightgreen?style=flat",
                     "python_versions": "pypi/pyversions/testpackage?style=flat",
                     "pypi_version": "pypi/v/testpackage?style=flat",
                     "downloads": "pypi/dm/testpackage?style=flat",
@@ -439,6 +515,7 @@ class TestAllBadgeGeneration:
                     "comprehensive_security": generate_comprehensive_security_badge,
                     "code_style": generate_code_style_badge,
                     "type_checked": generate_type_check_badge,
+                    "test_coverage": generate_test_coverage_badge,
                     "python_versions": generate_python_versions_badge,
                     "pypi_version": generate_pypi_version_badge,
                     "downloads": generate_downloads_badge,

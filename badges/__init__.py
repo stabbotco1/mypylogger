@@ -20,6 +20,7 @@ from .generator import (
     generate_pypi_version_badge,
     generate_python_versions_badge,
     generate_quality_gate_badge,
+    generate_test_coverage_badge,
     generate_type_check_badge,
     get_comprehensive_security_badge_link,
 )
@@ -142,6 +143,22 @@ def generate_all_badges(detect_status: bool = True) -> list[Badge]:
             )
         except Exception as e:
             logger.warning(f"Failed to generate type check badge: {e}")
+
+        # Test Coverage badge
+        try:
+            coverage_url = generate_test_coverage_badge()
+            status_info = statuses.get("test_coverage", {"status": "passing"})
+            badges.append(
+                Badge(
+                    name="test_coverage",
+                    url=coverage_url,
+                    alt_text="Test Coverage",
+                    link_url=coverage_url,
+                    status=status_info["status"],
+                )
+            )
+        except Exception as e:
+            logger.warning(f"Failed to generate test coverage badge: {e}")
 
         # Python Versions badge
         try:
@@ -429,6 +446,7 @@ __all__ = [
     "generate_python_versions_badge",
     "generate_quality_gate_badge",
     "generate_security_scan_badge",
+    "generate_test_coverage_badge",
     "generate_type_check_badge",
     "get_all_badge_statuses",
     "get_status_cache",

@@ -57,13 +57,13 @@ Install the package.
 
             # Test badge generation without status detection (faster)
             badges = generate_all_badges(detect_status=False)
-            assert len(badges) == 8
+            assert len(badges) == 9
             assert all(isinstance(badge, Badge) for badge in badges)
 
             # Test badge section creation
             badge_section = create_badge_section(badges)
             assert badge_section.title == "Project Badges"
-            assert len(badge_section.badges) == 8
+            assert len(badge_section.badges) == 9
             assert badge_section.markdown
             assert "[![" in badge_section.markdown
 
@@ -186,7 +186,7 @@ Install the package.
 
             # Test badge generation with custom config
             badges = generate_all_badges(detect_status=False)
-            assert len(badges) == 8
+            assert len(badges) == 9
 
             # Verify URLs contain custom values
             license_badge = next(b for b in badges if b.name == "license")
@@ -273,6 +273,7 @@ Install the package.
             "security",
             "code_style",
             "type_check",
+            "test_coverage",
             "python_versions",
             "pypi_version",
             "downloads",

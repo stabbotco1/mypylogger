@@ -33,10 +33,11 @@ Implement a fast and lean badge system for mypylogger v0.2.7 that displays profe
 2. THE Badge_System SHALL implement a single comprehensive security badge that includes all security-related tests (local scans: bandit, safety, semgrep, and GitHub CodeQL scanning)
 3. THE Badge_System SHALL implement code style badge showing "ruff" formatting compliance
 4. THE Badge_System SHALL implement type checking badge showing "mypy" validation status
-5. THE Badge_System SHALL implement Python version compatibility badge showing "3.8 | 3.9 | 3.10 | 3.11 | 3.12"
-6. THE Badge_System SHALL implement PyPI version badge showing "v0.2.0" 
-7. THE Badge_System SHALL implement downloads badge showing monthly PyPI download count using shields.io direct integration
-8. THE Badge_System SHALL implement license badge showing "MIT"
+5. THE Badge_System SHALL implement test coverage badge using file-based approach (see phase-8-test-coverage-badge spec for implementation)
+6. THE Badge_System SHALL implement Python version compatibility badge showing "3.8 | 3.9 | 3.10 | 3.11 | 3.12"
+7. THE Badge_System SHALL implement PyPI version badge showing "v0.2.0" 
+8. THE Badge_System SHALL implement downloads badge showing monthly PyPI download count using shields.io direct integration
+9. THE Badge_System SHALL implement license badge showing "MIT"
 
 ### Requirement 2
 

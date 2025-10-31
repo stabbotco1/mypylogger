@@ -49,6 +49,9 @@ def generate_code_style_badge() -> str:
 def generate_type_check_badge() -> str:
     """Generate mypy type checking badge URL."""
     
+def generate_test_coverage_badge() -> str:
+    """Generate test coverage badge URL using file-based coverage data (see phase-8-test-coverage-badge spec)."""
+    
 def generate_python_versions_badge() -> str:
     """Generate Python compatibility badge URL."""
     
@@ -67,8 +70,10 @@ def generate_license_badge() -> str:
 - **Quality Gate badge**: Reflects CI test execution results (all tests must pass)
 - **Comprehensive security badge**: Combines CI security scans with GitHub CodeQL results
 - **Code quality badges**: Based on CI execution of ruff and mypy
+- **Test coverage badge**: Uses file-based coverage data from docs/test-coverage-results.md (phase-8 implementation)
 - **Static badges**: Use project configuration and PyPI API data
 - **Downloads badge**: Uses shields.io direct PyPI integration for real-time monthly download counts
+- **Test coverage badge**: Reads coverage percentage from file-based storage (phase-8 implementation)
 - **Local testing**: Focuses only on test execution, not badge generation
 
 ### README Updater (`badges/updater.py`)
@@ -135,6 +140,7 @@ BADGE_CONFIG = {
         'comprehensive_security': 'badge/security-{status}-{color}',
         'code_style': 'badge/code%20style-ruff-000000',
         'type_checked': 'badge/type%20checked-mypy-blue',
+        'test_coverage': 'badge/coverage-{coverage}%25-{color}',
         'python_versions': 'pypi/pyversions/{package}',
         'pypi_version': 'pypi/v/{package}',
         'downloads': 'pypi/dm/{package}',
@@ -369,6 +375,25 @@ def test_security_integration_workflow():
 - Primary link: GitHub CodeQL results page (`/security/code-scanning`)
 - Fallback link: General security tab (`/security`)
 - Include repository context in all security links
+
+## Test Coverage Badge Implementation
+
+### File-Based Coverage Approach
+
+The test coverage badge uses a file-based approach implemented in phase-8-test-coverage-badge spec:
+
+1. **Local File Storage**: Coverage data stored in `docs/test-coverage-results.md`
+2. **Fast Access**: No external API calls or subprocess timeouts during badge generation
+3. **GitHub Integration**: Badge links directly to coverage results file on GitHub
+4. **Structured Data**: Human-readable file with coverage percentage, test counts, and execution summary
+5. **Reliable Updates**: Eliminates timeout issues from API-based approaches
+
+**Implementation Reference**:
+- **Detailed Implementation**: See `.kiro/specs/phase-8-test-coverage-badge/` for complete specification
+- **Coverage Source**: File-based reading from `docs/test-coverage-results.md`
+- **Badge URL Format**: `https://img.shields.io/badge/coverage-{percentage}%25-{color}`
+- **Color Logic**: Green (≥95%), Amber (90-94%), Red (<90%)
+- **Badge Link**: Direct link to GitHub coverage results file
 
 ## Downloads Badge Implementation
 

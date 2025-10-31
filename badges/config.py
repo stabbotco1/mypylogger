@@ -131,6 +131,8 @@ BADGE_CONFIG: dict[str, Any] = {
         # Static code quality badges
         "code_style": "badge/code%20style-ruff-000000?style=flat",
         "type_checked": "badge/type%20checked-mypy-blue?style=flat",
+        # Test coverage badge
+        "test_coverage": "badge/coverage-{coverage}%25-{color}?style=flat",
         # Python version compatibility badge
         "python_versions": "pypi/pyversions/{package}?style=flat",
         # PyPI badges
