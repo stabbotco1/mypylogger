@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document defines the requirements for Phase 2 of mypylogger v0.2.7 development, focusing on implementing the core JSON logging functionality with environment-based configuration, graceful error handling, and comprehensive source location tracking.
+This document defines the requirements for Phase 2 of mypylogger v0.2.8 development, focusing on implementing the core JSON logging functionality with environment-based configuration, graceful error handling, and comprehensive source location tracking.
 
 ## Glossary
 

@@ -1,12 +1,12 @@
 # Product Overview
 
-## mypylogger v0.2.7
+## mypylogger v0.2.8
 
 A Python logging library designed to provide enhanced logging capabilities. This is version 0.2.0 of the mypylogger project, representing a significant update with modern Python practices and improved functionality.
 
 ## Vision
 
-Create a **zero-dependency JSON logging library with sensible defaults** for Python applications. mypylogger v0.2.7 does ONE thing exceptionally well: structured JSON logs that work everywhere—from local development to AWS Lambda to Kubernetes.
+Create a **zero-dependency JSON logging library with sensible defaults** for Python applications. mypylogger v0.2.8 does ONE thing exceptionally well: structured JSON logs that work everywhere—from local development to AWS Lambda to Kubernetes.
 
 ## Core Value Proposition
 
@@ -101,7 +101,7 @@ The project follows a **phased development methodology** with strict gates betwe
 
 ## Success Metrics
 
-**mypylogger v0.2.7 is successful if:**
+**mypylogger v0.2.8 is successful if:**
 1. **Installation:** `pip install mypylogger` → working logger in <1 minute
 2. **Configuration:** Works with ZERO config, customizable via env vars
 3. **Output:** Valid JSON, one line per entry, timestamp always first

@@ -1,4 +1,4 @@
-"""mypylogger v0.2.7 - Zero-dependency JSON logging with sensible defaults."""
+"""mypylogger v0.2.8 - Zero-dependency JSON logging with sensible defaults."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from .exceptions import ConfigurationError, FormattingError, HandlerError, Mypyl
 if TYPE_CHECKING:
     import logging
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 # Global logger manager instance
 _logger_manager = LoggerManager()

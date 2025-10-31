@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Master test script for mypylogger v0.2.7
+# Master test script for mypylogger v0.2.8
 # This script runs all quality gates and must pass before any task completion
 # 
 # LOCAL DEVELOPMENT FOCUS: Code quality validation only
@@ -68,7 +68,7 @@ else
     SCOPE_DESCRIPTION="Full Test Suite (default)"
 fi
 
-echo "🧪 mypylogger v0.2.7 - Master Test Runner"
+echo "🧪 mypylogger v0.2.8 - Master Test Runner"
 echo "===================================="
 echo "Scope: $SCOPE_DESCRIPTION"
 echo ""

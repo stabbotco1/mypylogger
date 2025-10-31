@@ -1,4 +1,4 @@
-"""Performance benchmarks for mypylogger v0.2.7.
+"""Performance benchmarks for mypylogger v0.2.8.
 
 This module contains performance tests that validate the library meets
 performance requirements:
