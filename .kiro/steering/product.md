@@ -1,114 +1,130 @@
-# Product Overview
+---
+inclusion: always
+---
 
-## mypylogger v0.2.7
+# mypylogger v0.2.7 Product Guide
 
-A Python logging library designed to provide enhanced logging capabilities. This is version 0.2.0 of the mypylogger project, representing a significant update with modern Python practices and improved functionality.
+## Core Mission
+Zero-dependency JSON logging library with sensible defaults. Does ONE thing exceptionally well: structured JSON logs that work everywhere—from local development to AWS Lambda to Kubernetes.
 
-## Vision
-
-Create a **zero-dependency JSON logging library with sensible defaults** for Python applications. mypylogger v0.2.7 does ONE thing exceptionally well: structured JSON logs that work everywhere—from local development to AWS Lambda to Kubernetes.
-
-## Core Value Proposition
-
-**What makes mypylogger different:**
-1. **Minimal Dependencies** (only `python-json-logger`)
-   - Works in restricted environments (Lambda, containers, air-gapped systems)
-   - Minimal attack surface, fast installation
-   - No transitive dependency hell
-
-2. **Clean, Predictable JSON Output**
-   - Flat structure, consistent key ordering (timestamp always first)
-   - Human-readable AND machine-parseable
-   - Ready for Splunk, Dynatrace, CloudWatch without transformation
-
-3. **Developer-Friendly Defaults**
-   - Works out-of-box with minimal configuration
-   - Environment-driven config (no code changes for different environments)
-   - Immediate flush for real-time monitoring during development
-
-4. **Standard Python Patterns**
-   - Uses stdlib `logging.getLogger(__name__)` pattern
-   - Not a singleton (properly handles per-module loggers)
-   - Compatible with existing Python logging ecosystem
-
-## Development Approach
-
-The project follows a **phased development methodology** with strict gates between phases. Each phase must be 100% complete before proceeding to the next phase.
-
-## Development Phases
-
-### Phase 1: Project Foundation
-**Objective**: Establish complete project infrastructure
-- Project structure and organization
-- Development tooling configuration (UV, Ruff, pytest, mypy)
-- Quality gates and testing infrastructure
-- Basic project scaffolding
-
-**Gate Criteria**: Complete project structure, all tooling configured, basic tests passing
-
-### Phase 2: Core Functionality
-**Objective**: Implement the core logging library
-- Python logging package implementation
-- Core logging features and capabilities
-- Comprehensive test suite (95%+ coverage)
-- Package ready for distribution
-
-**Gate Criteria**: Full logging functionality implemented, 95%+ test coverage, ready for distribution
-
-### Phase 3: CI/CD Integration
-**Objective**: Implement automated quality and deployment pipelines
-- GitHub Actions CI/CD workflows
-- Automated testing, scanning, and quality gates
-- Feature branch protection and merge requirements
-- Automated quality enforcement
-
-**Gate Criteria**: All CI/CD workflows operational, feature branch protection enforced
-
-### Phase 4: Documentation & Publishing
-**Objective**: Complete documentation and establish publishing workflow
-- Comprehensive user documentation
-- API documentation and examples
-- Manual GitHub release action for PyPI publishing
-- Publication workflow established
-
-**Gate Criteria**: Complete documentation, successful PyPI publication process
+## Value Proposition
+1. **Minimal Dependencies** - Only `python-json-logger`, works in restricted environments
+2. **Predictable JSON Output** - Flat structure, timestamp-first, machine-parseable
+3. **Zero Configuration** - Works out-of-box, environment-driven config
+4. **Standard Python Patterns** - Uses `logging.getLogger(__name__)`, not a singleton
 
 ## Design Principles
 
-### 1. Simplicity Over Features
-- **One clear purpose:** JSON logging
-- **Obvious defaults:** Should work with zero configuration
-- **Minimal API surface:** `get_logger(__name__)` and standard logging methods
-- **No magic:** Explicit is better than implicit
+### Simplicity Over Features
+- One clear purpose: JSON logging only
+- Minimal API: `get_logger(__name__)` + standard logging methods
+- No magic: Explicit configuration, obvious defaults
+- <500 lines total codebase
 
-### 2. Reliability Over Performance
-- **Immediate flush by default:** Reliability > 10x speed improvement
-- **Graceful degradation:** Fall back to safe defaults when operations fail
-- **Predictable behavior:** Same output format across all environments
+### Reliability Over Performance
+- Immediate flush by default (reliability > speed)
+- Graceful degradation with safe fallbacks
+- Never crash the application
+- Predictable behavior across environments
 
-### 3. Maintainability Over Completeness
-- **Small codebase:** Easy to understand and maintain (<500 lines)
-- **Stdlib-based:** Leverage Python's mature logging infrastructure
-- **Clear boundaries:** External tools handle rotation, filtering, analysis
+### Maintainability Over Completeness
+- Stdlib-based architecture
+- Clear boundaries: external tools handle rotation/filtering/analysis
+- Comprehensive error handling with try-catch blocks
+- Self-documenting code patterns
 
-## Quality Standards
+## Architecture Constraints
 
-- **TDD Methodology**: Test-driven development throughout all phases
-- **95% Test Coverage**: Minimum coverage requirement for all phases
-- **Zero Tolerance**: No linting, style, or type errors allowed
-- **Master Test Script**: All phases must pass `./scripts/run_tests.sh`
-- **Git Workflow**: Conventional commits on main branch
+### Dependencies
+- **ONLY** `python-json-logger` allowed as external dependency
+- Must justify any new dependency against 5 strict criteria
+- Prefer stdlib solutions over external libraries
+- Zero transitive dependencies preferred
+
+### Code Organization
+```
+src/mypylogger/
+├── __init__.py          # Public API exports
+├── core.py              # Main logger functionality  
+├── config.py            # Environment-driven configuration
+├── formatters.py        # JSON formatting logic
+└── exceptions.py        # Custom exception classes
+```
+
+### API Design
+- Primary entry point: `get_logger(name: Optional[str] = None)`
+- Standard logging methods: `.info()`, `.error()`, `.debug()`, etc.
+- Configuration via environment variables only
+- No configuration files, no complex initialization
+
+## Quality Gates (MANDATORY)
+
+### Test Requirements
+- 95% minimum test coverage
+- All tests must pass (zero tolerance)
+- No warnings or skipped tests
+- TDD methodology required
+
+### Code Quality
+- Zero linting errors (`uv run ruff check .`)
+- Zero style errors (`uv run ruff format --check .`)
+- Zero type errors (`uv run mypy .`)
+- All code wrapped in try-catch blocks
+
+### Master Validation
+- `./scripts/run_tests.sh` must pass completely
+- Required before ANY task/sub-task completion
+- No exceptions or partial success allowed
+
+## Development Workflow
+
+### TDD Cycle (MANDATORY)
+1. **Red**: Write failing test first
+2. **Green**: Minimal code to pass test
+3. **Refactor**: Improve while keeping tests green
+4. **Validate**: Run master test script
+
+### UV Environment (REQUIRED)
+- Always use `uv run` prefix for Python commands
+- `uv run pytest --cov=mypylogger --cov-fail-under=95`
+- `uv run ruff check .` and `uv run ruff format .`
+- `uv run mypy src/`
+
+### Git Workflow
+- Conventional commits on main branch
+- Commit after each TDD cycle completion
+- Use `git --no-pager` commands to prevent lockup
+- All quality gates must pass before commit
 
 ## Success Metrics
+1. **Installation**: `pip install mypylogger` → working logger in <1 minute
+2. **Zero Config**: Works immediately with sensible defaults
+3. **JSON Output**: Valid JSON, timestamp-first, one line per entry
+4. **Reliability**: Logs never lost due to crashes/termination
+5. **Size**: Core library <500 lines of code
 
-**mypylogger v0.2.7 is successful if:**
-1. **Installation:** `pip install mypylogger` → working logger in <1 minute
-2. **Configuration:** Works with ZERO config, customizable via env vars
-3. **Output:** Valid JSON, one line per entry, timestamp always first
-4. **Reliability:** Logs are never lost due to crashes or termination
-5. **Size:** Core library is <500 lines of code
-6. **Dependencies:** Only `python-json-logger` + Python stdlib
+## AI Agent Guidelines
 
-## Project Status
+### MANDATORY Protocol
+1. Read ALL steering docs before starting any task
+2. Follow TDD: write failing test before implementation
+3. Use `uv run` for all Python commands
+4. Focus on single task objective only
+5. Run `./scripts/run_tests.sh` before marking complete
+6. STOP and wait for user review after completion
 
-See `.kiro/PROJECT_STATUS.md` for current phase progress and next actions.
+### Restrictions
+- No features not explicitly in specifications
+- No "helpful" additions without asking
+- No skipping tests to save time
+- No bare Python commands (always `uv run`)
+- Default answer is NO to new features
+
+### Task Completion Checklist
+- [ ] Tests pass: `uv run pytest --cov=mypylogger --cov-fail-under=95`
+- [ ] Linting passes: `uv run ruff check .`
+- [ ] Formatting passes: `uv run ruff format --check .`
+- [ ] Type checking passes: `uv run mypy src/`
+- [ ] Master script passes: `./scripts/run_tests.sh`
+- [ ] Changes committed with conventional message
+- [ ] STOP and wait for user approval
